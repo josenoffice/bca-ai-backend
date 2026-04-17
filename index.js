@@ -37,6 +37,7 @@ app.use('/api', phase6Router)
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
 app.get('/', (_req, res) => res.sendFile(join(__dirname, 'phase1-viewer.html')))
+app.get('/BCA_Intake_App.html', (_req, res) => res.sendFile(join(__dirname, 'BCA_Intake_App.html')))
 
 app.listen(PORT, () => {
   console.log(`BCA AI Backend running on port ${PORT}`)
