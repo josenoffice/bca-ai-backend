@@ -1488,11 +1488,11 @@
   <nav class="nav-bar">
     <button class="nav-btn active" data-section="howitworks" onclick="showSection('howitworks')">How It Works</button>
     <button class="nav-btn" data-section="analysis" onclick="showSection('analysis')">Discovery</button>
-    <button class="nav-btn" data-section="phase2" onclick="showSection('phase2')">Financials</button>
-    <button class="nav-btn" data-section="phase3" onclick="showSection('phase3')">Traceability</button>
-    <button class="nav-btn" data-section="phase4" onclick="showSection('phase4')">Ranking</button>
-    <button class="nav-btn" data-section="phase5" onclick="showSection('phase5')">Report</button>
-    <button class="nav-btn" data-section="phase6" onclick="showSection('phase6')">BRD</button>
+    <button class="nav-btn nav-locked" data-section="phase2" onclick="showSection('phase2')">Financials</button>
+    <button class="nav-btn nav-locked" data-section="phase3" onclick="showSection('phase3')">Traceability</button>
+    <button class="nav-btn nav-locked" data-section="phase4" onclick="showSection('phase4')">Ranking</button>
+    <button class="nav-btn nav-locked" data-section="phase5" onclick="showSection('phase5')">Report</button>
+    <button class="nav-btn nav-locked" data-section="phase6" onclick="showSection('phase6')">BRD</button>
     <button class="nav-btn" data-section="brdstandalone" onclick="showSection('brdstandalone')">BRD Standalone</button>
     <button class="nav-btn" data-section="help" onclick="showSection('help')">Help</button>
   </nav>
@@ -2654,11 +2654,35 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <script>
 // ─── SPA Navigation ──────────────────────────────────────────────
 function showSection(name) {
+  // Guard: if the target tab is locked, show a toast and abort
+  const navBtn = document.querySelector('[data-section="' + name + '"]');
+  if (navBtn && navBtn.classList.contains('nav-locked')) {
+    const prereq = { phase2: 'Discovery + Reflection', phase3: 'Financials (Phase 2)', phase4: 'Traceability (Phase 3)', phase5: 'Ranking (Phase 4)', phase6: 'Report (Phase 5)' };
+    showToast('Complete ' + (prereq[name] || 'the previous phase') + ' first to unlock this tab.', 3500);
+    return;
+  }
   document.querySelectorAll('.spa-section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('section-' + name).classList.add('active');
-  document.querySelector('[data-section="' + name + '"]').classList.add('active');
+  if (navBtn) navBtn.classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// Unlock a phase nav tab (called when its prerequisite phase succeeds)
+function unlockPhaseTab(section) {
+  const btn = document.querySelector('[data-section="' + section + '"]');
+  if (btn) btn.classList.remove('nav-locked');
+}
+
+// Re-lock phase nav tabs (called on Re-Analysis reset)
+function relockPhaseTabs() {
+  ['phase2','phase3','phase4','phase5','phase6'].forEach(s => {
+    const btn = document.querySelector('[data-section="' + s + '"]');
+    if (btn) {
+      btn.classList.add('nav-locked');
+      btn.classList.remove('nav-phase-done', 'nav-phase-ready');
+    }
+  });
 }
 
 // ─── FAQ toggle (accordion — only one open at a time) ────────────
@@ -5045,8 +5069,9 @@ function reAnalysis() {
   _providerSelections = {};
   _selectedSolutionId = null;
   _selectedVendorData = null;
-  // Unlock Discovery and navigate to it
+  // Unlock Discovery, re-lock downstream phases
   unlockDiscoveryTab();
+  relockPhaseTabs();
   // Show intake
   const intakeEl = document.getElementById('intakeContainer');
   if (intakeEl) intakeEl.style.display = '';
@@ -6246,7 +6271,8 @@ async function runPhase15() {
   $('#reflection-results').style.display = 'none';
 
   try {
-    const payload = _phase1Results ? buildPhase15Payload() : COST_TEST_PAYLOAD;
+    if (!_phase1Results) { showToast('Run Discovery (Phase 1) first.', 3000); btn.disabled = false; clearInterval(p15Interval); spinner.classList.remove('active'); return; }
+    const payload = buildPhase15Payload();
     const res = await fetch('/api/phase1-5-cost', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -6339,7 +6365,8 @@ async function runReflection() {
   $('#reflection-results').style.display = 'none';
 
   try {
-    const payload = _phase15Results || REFLECTION_TEST_PAYLOAD;
+    if (!_phase15Results) { showToast('Run Cost Estimation first.', 3000); return; }
+    const payload = _phase15Results;
     const res = await fetch('/api/phase1-reflection', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -6354,6 +6381,10 @@ async function runReflection() {
       return;
     }
     _reflectionResults = r;
+    // Unlock Financials only when reflection passes (not a hard fail)
+    if (r.readyForPhase2 || r.verdict === 'pass' || r.verdict === 'pass_with_warnings') {
+      unlockPhaseTab('phase2');
+    }
     renderReflection(r);
   } catch (err) {
     const el = $('#reflection-results');
@@ -6496,7 +6527,8 @@ async function runPhase2() {
   $('#phase2-results').style.display = 'none';
 
   try {
-    const payload = _phase15Results || PHASE2_TEST_PAYLOAD;
+    if (!_phase15Results) { showToast('Complete Discovery + Reflection first.', 3000); return; }
+    const payload = _phase15Results;
     const res = await fetch('/api/phase2', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -6511,6 +6543,7 @@ async function runPhase2() {
       return;
     }
     _phase2Results = r;
+    unlockPhaseTab('phase3');
     renderPhase2(r);
   } catch (err) {
     const el = $('#phase2-results');
@@ -6894,7 +6927,8 @@ async function runPhase3() {
   const p3Interval = setInterval(() => { p3MsgIdx=(p3MsgIdx+1)%p3Msgs.length; const lEl=document.getElementById('p3-loading'); if(lEl) lEl.textContent=p3Msgs[p3MsgIdx]; }, 2000);
 
   try {
-    const payload = _phase2Results || PHASE3_TEST_PAYLOAD;
+    if (!_phase2Results) { showToast('Run Financials (Phase 2) first.', 3000); return; }
+    const payload = _phase2Results;
     const resp = await fetch('/api/phase3', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -6904,6 +6938,7 @@ async function runPhase3() {
     const d = Array.isArray(data) ? data[0] : data;
     if (d.status === 'error') throw new Error(d.error || 'Phase 3 returned error');
     _phase3Results = d;
+    unlockPhaseTab('phase4');
     renderPhase3(d, el);
   } catch (err) {
     el.innerHTML = `<div class="error-card"><strong>Phase 3 Error</strong><p>${err.message}</p></div>`;
@@ -7254,7 +7289,8 @@ async function runPhase4() {
   const p4Interval = setInterval(() => { p4MsgIdx=(p4MsgIdx+1)%p4Msgs.length; const lEl=document.getElementById('p4-loading'); if(lEl) lEl.textContent=p4Msgs[p4MsgIdx]; }, 2000);
 
   try {
-    const payload = _phase3Results || PHASE4_TEST_PAYLOAD;
+    if (!_phase3Results) { showToast('Run Traceability (Phase 3) first.', 3000); return; }
+    const payload = _phase3Results;
     const res = await fetch('/api/phase4', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7264,6 +7300,7 @@ async function runPhase4() {
     const d = Array.isArray(data) ? data[0] : data;
     if (d.status === 'error') throw new Error(d.errorMessage || 'Phase 4 failed');
     _phase4Results = d;
+    unlockPhaseTab('phase5');
     renderPhase4(d, el);
   } catch (err) {
     el.innerHTML = `<div class="card" style="border-left:4px solid var(--danger);padding:24px;"><strong>Phase 4 Error</strong><br>${err.message}</div>`;
@@ -7725,7 +7762,8 @@ async function runPhase5() {
   const p5Interval = setInterval(() => { p5MsgIdx=(p5MsgIdx+1)%p5Msgs.length; const lEl=document.getElementById('p5-loading'); if(lEl) lEl.textContent=p5Msgs[p5MsgIdx]; }, 2000);
 
   try {
-    const payload = _phase4Results || PHASE5_TEST_PAYLOAD;
+    if (!_phase4Results) { showToast('Run Ranking (Phase 4) first.', 3000); return; }
+    const payload = _phase4Results;
     const res = await fetch('/api/phase5', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -7737,6 +7775,7 @@ async function runPhase5() {
     _phase5ExportHtml = d.export?.html || '';
     _phase5ProjectTitle = d.project?.title || d.projectMeta?.projectTitle || 'BCA_Report';
     _phase5Results = d;
+    unlockPhaseTab('phase6');
     renderPhase5(d);
   } catch (err) {
     box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);font-weight:600;">Phase 5 Error<br><span style="font-weight:400;font-size:13px;">' + err.message + '</span></div>';
@@ -8294,7 +8333,8 @@ async function runPhase6() {
   }, 2000);
 
   try {
-    const payload = _phase5Results || PHASE5_TEST_PAYLOAD;
+    if (!_phase5Results) { showToast('Run Report (Phase 5) first.', 3000); return; }
+    const payload = _phase5Results;
     const res = await fetch('/api/phase6', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
