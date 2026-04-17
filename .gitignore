@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# Environment — never commit API keys
+.env
+
+# macOS
+.DS_Store
+
+# Claude Code internal files
+.claude/
+
+# Large binaries / generated files
+*.docx
+screenshots/
+
+# Dev tools (not needed in production)
+capture-screenshots.cjs
+create-review-doc.cjs
+
+# Logs
+*.log

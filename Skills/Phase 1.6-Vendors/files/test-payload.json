@@ -1,0 +1,55 @@
+{
+  "solution": {
+    "id": "SOL-001",
+    "name": "Security & Compliance Foundation",
+    "description": "Dedicated security hardening and compliance implementation for PCI-DSS and GDPR requirements. Phase 1 foundation workstream covering data encryption, access controls, vulnerability assessment, and audit readiness.",
+    "category": "security_compliance",
+    "riskLevel": "Low",
+    "deliveryPhase": 1,
+    "totalCost": 120000,
+    "costEstimate": {
+      "low": 95000,
+      "mid": 120000,
+      "high": 148000,
+      "recommended": 120000,
+      "implementationMonths": 5,
+      "source": "ai_generated"
+    }
+  },
+  "validatedData": {
+    "projectTitle": "Eco Platform Upgrade",
+    "businessUnit": "Digital Commerce",
+    "industry": "retail",
+    "budget": 500000,
+    "annualRevenue": 5000000,
+    "annualOperatingCost": 2000000,
+    "headcount": 50,
+    "companySize": "SME",
+    "onlineRevenuePct": 68,
+    "timeHorizonYears": 3,
+    "discountRatePct": 12,
+    "complianceRequirements": ["PCI-DSS", "GDPR"],
+    "technicalStack": ["AWS", "React", "Node.js"],
+    "systemIntegrations": ["Shopify", "Stripe", "Mailchimp"],
+    "currentPainPoints": [
+      "GDPR compliance gaps in customer data handling",
+      "No formal PCI-DSS certification",
+      "Manual security audit process"
+    ],
+    "businessGoals": [
+      "Full PCI-DSS Level 1 certification",
+      "Automate GDPR compliance reporting",
+      "Zero security incidents in production"
+    ]
+  },
+  "budgetAnalysis": {
+    "totalCost": 410000,
+    "budget": 500000,
+    "budgetUtilizationPct": 82,
+    "withinBudget": true,
+    "withinCeiling": true
+  },
+  "trackingId": "req_MOCK_ECO_001",
+  "discoveryMethod": "ai_generated",
+  "selectedVendorName": null
+}

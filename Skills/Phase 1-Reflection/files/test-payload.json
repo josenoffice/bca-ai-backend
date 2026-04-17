@@ -1,0 +1,123 @@
+{
+  "solutions": [
+    {
+      "id": "SOL-001", "name": "Security & Compliance Foundation",
+      "category": "security_compliance", "riskLevel": "Low", "deliveryPhase": 1,
+      "linkedBenefits": ["BEN-001","BEN-002","BEN-003"],
+      "linkedRequirements": ["REQ-001","REQ-002","REQ-003"],
+      "delivers_benefits": ["BEN-001","BEN-002","BEN-003"],
+      "depends_on_requirements": ["REQ-001","REQ-002","REQ-003"],
+      "costEstimate": { "low": 42000, "mid": 52000, "high": 65000, "recommended": 52000,
+        "breakdown": { "labour": 26000, "licensing": 10000, "infrastructure": 5000, "testing": 6000, "training": 3000, "contingency": 2000 },
+        "implementationMonths": 5 },
+      "recurringAnnualCost": 15000,
+      "selectedVendor": { "name": "Vanta", "fitScore": 94, "complianceCoverage": ["PCI-DSS","GDPR"], "vendorCostLow": 30000, "vendorCostHigh": 60000 },
+      "vendorName": "Vanta", "vendorFitScore": 94
+    },
+    {
+      "id": "SOL-002", "name": "Platform Modernisation & CDN",
+      "category": "frontend_modernization", "riskLevel": "Medium", "deliveryPhase": 2,
+      "linkedBenefits": ["BEN-002","BEN-004"],
+      "linkedRequirements": ["REQ-002","REQ-004"],
+      "delivers_benefits": ["BEN-002","BEN-004"],
+      "depends_on_requirements": ["REQ-002","REQ-004"],
+      "costEstimate": { "low": 28000, "mid": 35000, "high": 44000, "recommended": 35000,
+        "breakdown": { "labour": 17000, "licensing": 7000, "infrastructure": 4000, "testing": 4000, "training": 2000, "contingency": 1000 },
+        "implementationMonths": 4 },
+      "recurringAnnualCost": 24000,
+      "selectedVendor": { "name": "Vercel Enterprise", "fitScore": 88, "complianceCoverage": ["PCI-DSS","GDPR","SOC2"], "vendorCostLow": 18000, "vendorCostHigh": 36000 },
+      "vendorName": "Vercel Enterprise", "vendorFitScore": 88
+    },
+    {
+      "id": "SOL-003", "name": "Order Processing Automation",
+      "category": "process_optimization", "riskLevel": "Medium", "deliveryPhase": 2,
+      "linkedBenefits": ["BEN-001","BEN-003","BEN-005"],
+      "linkedRequirements": ["REQ-002","REQ-003","REQ-004"],
+      "delivers_benefits": ["BEN-001","BEN-003","BEN-005"],
+      "depends_on_requirements": ["REQ-002","REQ-003","REQ-004"],
+      "costEstimate": { "low": 38000, "mid": 48000, "high": 60000, "recommended": 48000,
+        "breakdown": { "labour": 24000, "licensing": 10000, "infrastructure": 5000, "testing": 5000, "training": 2000, "contingency": 2000 },
+        "implementationMonths": 6 },
+      "recurringAnnualCost": 18000,
+      "selectedVendor": { "name": "Kissflow Process", "fitScore": 85, "complianceCoverage": ["SOC2","GDPR"], "vendorCostLow": 28000, "vendorCostHigh": 55000 },
+      "vendorName": "Kissflow Process", "vendorFitScore": 85
+    },
+    {
+      "id": "SOL-004", "name": "Cart Recovery & Conversion",
+      "category": "ecommerce_optimization", "riskLevel": "Low", "deliveryPhase": 2,
+      "linkedBenefits": ["BEN-002","BEN-004"],
+      "linkedRequirements": ["REQ-001","REQ-004"],
+      "delivers_benefits": ["BEN-002","BEN-004"],
+      "depends_on_requirements": ["REQ-001","REQ-004"],
+      "costEstimate": { "low": 30000, "mid": 38000, "high": 48000, "recommended": 38000,
+        "breakdown": { "labour": 19000, "licensing": 8000, "infrastructure": 4000, "testing": 4000, "training": 2000, "contingency": 1000 },
+        "implementationMonths": 4 },
+      "recurringAnnualCost": 36000,
+      "selectedVendor": { "name": "Dynamic Yield", "fitScore": 82, "complianceCoverage": ["PCI-DSS","GDPR","SOC2"], "vendorCostLow": 22000, "vendorCostHigh": 45000 },
+      "vendorName": "Dynamic Yield", "vendorFitScore": 82
+    },
+    {
+      "id": "SOL-005", "name": "Sustainable Operations & Carbon Tracking",
+      "category": "cloud_modernization", "riskLevel": "Low", "deliveryPhase": 3,
+      "linkedBenefits": ["BEN-003","BEN-005"],
+      "linkedRequirements": ["REQ-003","REQ-005"],
+      "delivers_benefits": ["BEN-003","BEN-005"],
+      "depends_on_requirements": ["REQ-003","REQ-005"],
+      "costEstimate": { "low": 28000, "mid": 36000, "high": 46000, "recommended": 36000,
+        "breakdown": { "labour": 18000, "licensing": 7000, "infrastructure": 4000, "testing": 4000, "training": 2000, "contingency": 1000 },
+        "implementationMonths": 3 },
+      "recurringAnnualCost": 28000,
+      "selectedVendor": { "name": "Sweep", "fitScore": 80, "complianceCoverage": ["PCI-DSS","GDPR","SOC2","ISO27001"], "vendorCostLow": 20000, "vendorCostHigh": 40000 },
+      "vendorName": "Sweep", "vendorFitScore": 80
+    }
+  ],
+  "benefits": [
+    { "id": "BEN-001", "category": "Operational Efficiency", "description": "Automate 80% of order processing.", "riskAdjustedValue": 48000, "confidence": 0.85, "valueBasis": "1.8 FTE equivalent savings [source: company financials]", "linkedSolutions": ["SOL-003"], "delivered_by_solutions": ["SOL-003"] },
+    { "id": "BEN-002", "category": "Revenue Impact", "description": "Cart abandonment reduction from 68% to 38%.", "riskAdjustedValue": 45900, "confidence": 0.78, "valueBasis": "3% conversion uplift on $3.4M online revenue = $102,000/yr gross, risk-adjusted at 0.45 confidence = $45,900 [source: company financials]", "linkedSolutions": ["SOL-002","SOL-004"], "delivered_by_solutions": ["SOL-002","SOL-004"] },
+    { "id": "BEN-003", "category": "Risk Mitigation", "description": "PCI-DSS and GDPR compliance.", "riskAdjustedValue": 62500, "confidence": 0.75, "valueBasis": "Avoided regulatory fines estimated at $25K-$100K/yr based on SME retail PCI-DSS breach precedents, risk-adjusted at 0.75 confidence = $62,500 [source: industry benchmark estimate]", "linkedSolutions": ["SOL-001","SOL-003"], "delivered_by_solutions": ["SOL-001","SOL-003"] },
+    { "id": "BEN-004", "category": "Performance Improvement", "description": "Page load from 3.2s to sub-1s.", "riskAdjustedValue": 32640, "confidence": 0.80, "valueBasis": "15% bounce rate reduction → 1.2% conversion uplift on $3.4M online revenue = $40,800/yr, risk-adjusted at 0.80 confidence = $32,640 [source: company financials]", "linkedSolutions": ["SOL-002","SOL-004"], "delivered_by_solutions": ["SOL-002","SOL-004"] },
+    { "id": "BEN-005", "category": "Strategic Value", "description": "Carbon-neutral brand positioning.", "riskAdjustedValue": 22000, "confidence": 0.70, "valueBasis": "Brand premium uplift estimated at 0.5% of $3.4M online revenue based on Nielsen ESG retail study 2024 = $17,000/yr, risk-adjusted at 0.70 = $22,000 [source: industry benchmark estimate — Nielsen ESG Retail 2024]", "linkedSolutions": ["SOL-003","SOL-005"], "delivered_by_solutions": ["SOL-003","SOL-005"] }
+  ],
+  "requirements": [
+    { "id": "REQ-001", "description": "PCI-DSS Level 1 certification and GDPR compliance.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-004"] },
+    { "id": "REQ-002", "description": "Integration with existing AWS, Shopify, Stripe stack.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-002","SOL-003"] },
+    { "id": "REQ-003", "description": "99.9% uptime SLA and sub-2s page load.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-003","SOL-005"] },
+    { "id": "REQ-004", "description": "Real-time data synchronisation across order systems.", "priority": "must_have", "linkedSolutions": ["SOL-002","SOL-003","SOL-004"] },
+    { "id": "REQ-005", "description": "ESG reporting aligned to GRI standards.", "priority": "should_have", "linkedSolutions": ["SOL-005"] }
+  ],
+  "validatedData": {
+    "projectTitle": "Eco Platform Upgrade",
+    "industry": "retail",
+    "budget": 500000,
+    "annualRevenue": 5000000,
+    "annualOperatingCost": 2000000,
+    "headcount": 50,
+    "companySize": "SME",
+    "onlineRevenuePct": 68,
+    "timeHorizonYears": 3,
+    "discountRatePct": 12,
+    "complianceRequirements": ["PCI-DSS", "GDPR"]
+  },
+  "budgetAnalysis": {
+    "totalRecommendedCost": 209000,
+    "budget": 500000,
+    "budgetUtilizationPct": 42,
+    "withinBudget": true,
+    "withinCeiling": true,
+    "tco": { "npvTCO": 389137, "simpleTCO": 434000, "discountRate": 0.12, "discountRateSource": "user_supplied" }
+  },
+  "discoveryMethod": "ai_generated",
+  "costEstimationStatus": "success",
+  "trackingId": "req_MOCK_ECO_001",
+  "deferredSolutionIds": [],
+  "portfolioOpExSummary": {
+    "totalAnnualRecurring": 121000,
+    "perSolution": [
+      {"id": "SOL-001", "recurringAnnualCost": 15000},
+      {"id": "SOL-002", "recurringAnnualCost": 24000},
+      {"id": "SOL-003", "recurringAnnualCost": 18000},
+      {"id": "SOL-004", "recurringAnnualCost": 36000},
+      {"id": "SOL-005", "recurringAnnualCost": 28000}
+    ]
+  }
+}

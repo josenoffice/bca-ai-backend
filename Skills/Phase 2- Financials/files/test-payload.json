@@ -1,0 +1,96 @@
+{
+  "solutions": [
+    {
+      "id": "SOL-001", "name": "Security & Compliance Foundation",
+      "category": "security_compliance", "riskLevel": "Low", "deliveryPhase": 1,
+      "totalCost": 52000, "implementationTime": 5, "recurringAnnualCost": 15000,
+      "linkedBenefits": ["BEN-003"], "linkedRequirements": ["REQ-001","REQ-002"],
+      "delivers_benefits": ["BEN-003"], "depends_on_requirements": ["REQ-001","REQ-002"],
+      "costEstimate": { "low": 42000, "mid": 52000, "high": 65000, "recommended": 52000, "implementationMonths": 5 },
+      "selectedVendor": { "name": "Vanta", "fitScore": 94, "complianceCoverage": ["PCI-DSS","GDPR","SOC2"], "vendorCostLow": 30000, "vendorCostHigh": 60000, "implementationMonths": 4 }
+    },
+    {
+      "id": "SOL-002", "name": "Platform Modernisation & CDN",
+      "category": "frontend_modernization", "riskLevel": "Medium", "deliveryPhase": 2,
+      "totalCost": 35000, "implementationTime": 4, "recurringAnnualCost": 24000,
+      "linkedBenefits": ["BEN-002","BEN-004"], "linkedRequirements": ["REQ-002","REQ-004"],
+      "delivers_benefits": ["BEN-002","BEN-004"], "depends_on_requirements": ["REQ-002","REQ-004"],
+      "costEstimate": { "low": 28000, "mid": 35000, "high": 44000, "recommended": 35000, "implementationMonths": 4 },
+      "selectedVendor": { "name": "Vercel Enterprise", "fitScore": 88, "complianceCoverage": ["PCI-DSS","GDPR","SOC2"], "vendorCostLow": 18000, "vendorCostHigh": 36000, "implementationMonths": 3 }
+    },
+    {
+      "id": "SOL-003", "name": "Order Processing Automation",
+      "category": "process_optimization", "riskLevel": "Medium", "deliveryPhase": 2,
+      "totalCost": 48000, "implementationTime": 6, "recurringAnnualCost": 18000,
+      "linkedBenefits": ["BEN-001","BEN-003"], "linkedRequirements": ["REQ-002","REQ-003","REQ-004"],
+      "delivers_benefits": ["BEN-001","BEN-003"], "depends_on_requirements": ["REQ-002","REQ-003","REQ-004"],
+      "costEstimate": { "low": 38000, "mid": 48000, "high": 60000, "recommended": 48000, "implementationMonths": 6 },
+      "selectedVendor": { "name": "Kissflow Process", "fitScore": 85, "complianceCoverage": ["GDPR","SOC2"], "vendorCostLow": 28000, "vendorCostHigh": 55000, "implementationMonths": 5 }
+    },
+    {
+      "id": "SOL-004", "name": "Cart Recovery & Conversion",
+      "category": "ecommerce_optimization", "riskLevel": "Low", "deliveryPhase": 2,
+      "totalCost": 38000, "implementationTime": 4, "recurringAnnualCost": 36000,
+      "linkedBenefits": ["BEN-002","BEN-004"], "linkedRequirements": ["REQ-001","REQ-004"],
+      "delivers_benefits": ["BEN-002","BEN-004"], "depends_on_requirements": ["REQ-001","REQ-004"],
+      "costEstimate": { "low": 30000, "mid": 38000, "high": 48000, "recommended": 38000, "implementationMonths": 4 },
+      "selectedVendor": { "name": "Dynamic Yield", "fitScore": 82, "complianceCoverage": ["PCI-DSS","GDPR","SOC2"], "vendorCostLow": 22000, "vendorCostHigh": 45000, "implementationMonths": 3 }
+    },
+    {
+      "id": "SOL-005", "name": "Sustainable Operations & Carbon Tracking",
+      "category": "cloud_modernization", "riskLevel": "Low", "deliveryPhase": 3,
+      "totalCost": 36000, "implementationTime": 3, "recurringAnnualCost": 28000,
+      "linkedBenefits": ["BEN-005"], "linkedRequirements": ["REQ-003","REQ-005"],
+      "delivers_benefits": ["BEN-005"], "depends_on_requirements": ["REQ-003","REQ-005"],
+      "costEstimate": { "low": 28000, "mid": 36000, "high": 46000, "recommended": 36000, "implementationMonths": 3 },
+      "selectedVendor": { "name": "Sweep", "fitScore": 80, "complianceCoverage": ["PCI-DSS","GDPR","SOC2","ISO27001"], "vendorCostLow": 20000, "vendorCostHigh": 40000, "implementationMonths": 3 }
+    }
+  ],
+  "benefits": [
+    { "id": "BEN-001", "category": "Operational Efficiency", "description": "Automate 80% of order processing, eliminating 4hrs/day manual effort.", "riskAdjustedValue": 144000, "confidence": 0.85, "valueBasis": "1.8 FTE savings × $80K loaded cost [source: company financials]", "linkedSolutions": ["SOL-003"] },
+    { "id": "BEN-002", "category": "Revenue Impact", "description": "Cart abandonment reduction from 68% to 38%.", "riskAdjustedValue": 137700, "confidence": 0.78, "valueBasis": "3% conversion uplift × $3.4M online revenue × 0.45 confidence [source: company financials]", "linkedSolutions": ["SOL-002","SOL-004"] },
+    { "id": "BEN-003", "category": "Risk Mitigation", "description": "PCI-DSS and GDPR compliance certification.", "riskAdjustedValue": 187500, "confidence": 0.92, "valueBasis": "Avoided regulatory fines $25K-$100K/yr × 0.75 [source: industry benchmark]", "linkedSolutions": ["SOL-001","SOL-003"] },
+    { "id": "BEN-004", "category": "Performance Improvement", "description": "Page load from 3.2s to sub-1s.", "riskAdjustedValue": 97920, "confidence": 0.80, "valueBasis": "1.2% conversion uplift × $3.4M online revenue × 0.80 [source: company financials]", "linkedSolutions": ["SOL-002","SOL-004"] },
+    { "id": "BEN-005", "category": "Strategic Value", "description": "Carbon-neutral brand positioning.", "riskAdjustedValue": 66000, "confidence": 0.70, "valueBasis": "0.5% revenue uplift × $3.4M × 0.70 [source: industry benchmark Nielsen ESG 2024]", "linkedSolutions": ["SOL-005"] }
+  ],
+  "requirements": [
+    { "id": "REQ-001", "description": "PCI-DSS Level 1 certification and GDPR compliance for all payment and personal data handling.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-004"] },
+    { "id": "REQ-002", "description": "Integration with existing AWS, Shopify, Stripe and Node.js stack.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-002","SOL-003"] },
+    { "id": "REQ-003", "description": "99.9% uptime SLA and sub-2 second page load across all customer-facing surfaces.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-003","SOL-005"] },
+    { "id": "REQ-004", "description": "Real-time data synchronisation across order management, fulfilment, and CRM systems.", "priority": "must_have", "linkedSolutions": ["SOL-002","SOL-003","SOL-004"] },
+    { "id": "REQ-005", "description": "ESG reporting aligned to GRI standards for annual sustainability disclosure.", "priority": "should_have", "linkedSolutions": ["SOL-005"] }
+  ],
+  "validatedData": {
+    "projectTitle": "Eco Platform Upgrade",
+    "industry": "retail",
+    "budget": 500000,
+    "annualRevenue": 5000000,
+    "annualOperatingCost": 2000000,
+    "headcount": 50,
+    "companySize": "SME",
+    "onlineRevenuePct": 68,
+    "timeHorizonYears": 3,
+    "discountRatePct": 12,
+    "complianceRequirements": ["PCI-DSS", "GDPR"]
+  },
+  "budgetAnalysis": {
+    "totalRecommendedCost": 209000,
+    "budget": 500000,
+    "budgetUtilizationPct": 42,
+    "withinBudget": true,
+    "withinCeiling": true,
+    "tco": { "npvTCO": 389137, "simpleTCO": 434000, "discountRate": 0.12, "discountRateSource": "user_supplied" }
+  },
+  "reflection": {
+    "verdict": "pass_with_warnings",
+    "overallScore": 72,
+    "readyForPhase2": true,
+    "summary": "BCA is structurally sound with clear linkages and company-anchored financials.",
+    "criticalIssues": [],
+    "warnings": [],
+    "strengths": ["Company financials provided", "Vendor data present on all solutions"]
+  },
+  "discoveryMethod": "ai_generated",
+  "trackingId": "req_MOCK_ECO_001",
+  "deferredSolutionIds": []
+}

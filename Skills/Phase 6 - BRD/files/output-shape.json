@@ -1,0 +1,279 @@
+[{
+  "status": "success",
+  "phase": "6",
+  "trackingId": "req_1711000000000_abc123",
+  "timestamp": "2026-03-26T00:00:00.000Z",
+  "sections": [
+    {
+      "id": 1,
+      "title": "Executive Summary",
+      "content": "This Business Requirements Document outlines the justification, scope, and requirements for the proposed technology investment. The recommended solution is Security & Compliance Foundation, which delivers a projected present value of $474,475 over 3 years with an estimated ROI of 171.1%. Highest composite score (0.843) — strong ROI (237%), high confidence (78%), low risk profile, best-in-class vendor fit (Vanta 94/100). Best balance of returns and certainty across all 5 scoring dimensions.",
+      "source": "phase5",
+      "editable": true
+    },
+    {
+      "id": 2,
+      "title": "Business Justification",
+      "content": "The organisation faces significant operational and compliance challenges that demand immediate strategic investment. Current manual order processing consumes approximately 4 hours per day, representing a substantial drag on operational efficiency. Cart abandonment rates of 68% indicate critical revenue leakage estimated at $340,000 annually, while identified GDPR compliance gaps expose the organisation to regulatory risk.\n\nThe proposed technology investment portfolio delivers a projected net present value of $474,475 over a 3-year horizon at a 12% discount rate, with an average return on investment of 171.1%. The recommended Security & Compliance Foundation solution alone achieves a 237% ROI with an 11-month payback period, demonstrating rapid value realisation.\n\nFailure to act will result in continued revenue erosion, escalating compliance risk, and competitive disadvantage. The financial analysis confirms that the investment is not merely justified but imperative — the cost of inaction materially exceeds the cost of transformation.\n\nThis Business Requirements Document establishes the formal scope, requirements, and governance framework necessary to proceed with confidence through procurement and implementation.",
+      "source": "ai",
+      "editable": true
+    },
+    {
+      "id": 3,
+      "title": "Problem Statement",
+      "content": "Our ecommerce platform is 6 years old. Cart abandonment is at 68%. Order processing is manual and takes 4 hours per day. Page load is 3.2 seconds average. We are losing $340K/year in abandoned carts. GDPR compliance gaps in customer data handling.\n\nKey Pain Points:\n  - High cart abandonment rate (68%) causing $340K annual revenue loss\n  - Manual order processing consuming 4 hours daily\n  - Slow page load times (3.2s average) impacting user experience",
+      "source": "wizard",
+      "editable": true
+    },
+    {
+      "id": 4,
+      "title": "Project Objectives",
+      "objectives": [
+        { "text": "Achieve PCI-DSS Level 1 and GDPR compliance certification within 4 months of project initiation, eliminating all identified regulatory gaps." },
+        { "text": "Reduce cart abandonment rate from 68% to below 45% within 6 months of platform modernisation deployment, recovering a minimum of $170,000 in annual revenue." },
+        { "text": "Automate 80% of order processing workflows within 5 months, reducing daily manual processing from 4 hours to under 45 minutes." },
+        { "text": "Achieve sub-1-second average page load time across all customer-facing pages within 4 months of CDN and platform optimisation deployment." },
+        { "text": "Implement carbon tracking and ESG reporting capabilities aligned with GRI standards within 8 months, supporting the organisation's sustainability commitments." },
+        { "text": "Deliver total portfolio net present value of $474,475 over 3 years with all solutions operational within the approved $500,000 budget envelope." }
+      ],
+      "source": "ai",
+      "editable": true
+    },
+    {
+      "id": 5,
+      "title": "Scope",
+      "inScope": [
+        { "id": "SOL-001", "name": "Security & Compliance Foundation", "phase": 1 },
+        { "id": "SOL-002", "name": "Platform Modernisation & CDN", "phase": 2 },
+        { "id": "SOL-003", "name": "Order Processing Automation", "phase": 2 },
+        { "id": "SOL-004", "name": "Cart Recovery & Conversion", "phase": 2 },
+        { "id": "SOL-005", "name": "Sustainable Operations & Carbon Tracking", "phase": 3 }
+      ],
+      "outOfScope": [
+        "Organisational change management beyond immediate project scope",
+        "Legacy system decommissioning (separate initiative)",
+        "Third-party vendor contract renegotiation",
+        "Non-critical integrations identified during discovery"
+      ],
+      "source": "phase1",
+      "editable": true
+    },
+    {
+      "id": 6,
+      "title": "Functional Requirements",
+      "requirements": [
+        {
+          "id": "REQ-001",
+          "title": "PCI-DSS Level 1 and GDPR compliance",
+          "priority": "Must Have",
+          "linkedSolutions": ["SOL-001"],
+          "subRequirements": [
+            { "id": "REQ-001.1", "description": "Implement PCI-DSS Level 1 compliant payment card processing with tokenisation and encrypted storage." },
+            { "id": "REQ-001.2", "description": "Deploy GDPR-compliant data subject access request (DSAR) handling with automated response within 30 days." },
+            { "id": "REQ-001.3", "description": "Establish comprehensive audit trail for all data access and modification events with 12-month retention." },
+            { "id": "REQ-001.4", "description": "Implement data minimisation controls ensuring only necessary personal data is collected and processed." },
+            { "id": "REQ-001.5", "description": "Deploy automated compliance monitoring dashboard with real-time violation alerting." }
+          ]
+        },
+        {
+          "id": "REQ-002",
+          "title": "Integration with AWS, Shopify, Stripe",
+          "priority": "Must Have",
+          "linkedSolutions": ["SOL-001", "SOL-002"],
+          "subRequirements": [
+            { "id": "REQ-002.1", "description": "Establish secure API connectivity between AWS infrastructure, Shopify storefront, and Stripe payment gateway." },
+            { "id": "REQ-002.2", "description": "Implement real-time webhook processing for order, payment, and inventory synchronisation events." },
+            { "id": "REQ-002.3", "description": "Deploy error handling and retry mechanisms for all third-party API integrations with circuit breaker patterns." }
+          ]
+        },
+        {
+          "id": "REQ-003",
+          "title": "99.9% uptime and sub-2s page load",
+          "priority": "Must Have",
+          "linkedSolutions": ["SOL-002", "SOL-003"],
+          "subRequirements": [
+            { "id": "REQ-003.1", "description": "Deploy multi-region CDN with automatic failover ensuring 99.9% platform availability." },
+            { "id": "REQ-003.2", "description": "Implement performance monitoring with automated alerting when page load exceeds 2-second threshold." },
+            { "id": "REQ-003.3", "description": "Establish load testing regime simulating 2x peak traffic to validate infrastructure capacity." }
+          ]
+        },
+        {
+          "id": "REQ-004",
+          "title": "Real-time data synchronisation",
+          "priority": "Must Have",
+          "linkedSolutions": ["SOL-003", "SOL-004"],
+          "subRequirements": [
+            { "id": "REQ-004.1", "description": "Implement event-driven architecture for real-time inventory, pricing, and order status synchronisation." },
+            { "id": "REQ-004.2", "description": "Deploy conflict resolution mechanisms for concurrent data updates across distributed systems." },
+            { "id": "REQ-004.3", "description": "Establish data consistency monitoring with automated reconciliation for cross-system discrepancies." }
+          ]
+        },
+        {
+          "id": "REQ-005",
+          "title": "ESG reporting to GRI standards",
+          "priority": "Should Have",
+          "linkedSolutions": ["SOL-005"],
+          "subRequirements": [
+            { "id": "REQ-005.1", "description": "Implement carbon footprint tracking across supply chain operations with GRI-compliant reporting output." },
+            { "id": "REQ-005.2", "description": "Deploy sustainability dashboard with automated data collection from logistics and operations systems." },
+            { "id": "REQ-005.3", "description": "Establish baseline carbon metrics and reduction targets aligned with industry benchmarks." }
+          ]
+        }
+      ],
+      "source": "ai",
+      "editable": true
+    },
+    {
+      "id": 7,
+      "title": "Non-Functional Requirements",
+      "categories": [
+        {
+          "category": "Compliance",
+          "items": [
+            { "id": "NFR-C01", "description": "All systems must maintain PCI-DSS Level 1 certification with annual audit compliance.", "priority": "Must Have" },
+            { "id": "NFR-C02", "description": "GDPR compliance must be maintained across all customer data processing activities.", "priority": "Must Have" },
+            { "id": "NFR-C03", "description": "SOC 2 Type II compliance for all cloud-hosted services handling sensitive data.", "priority": "Should Have" }
+          ]
+        },
+        {
+          "category": "Performance",
+          "items": [
+            { "id": "NFR-P01", "description": "Page load time must not exceed 1 second for 95th percentile of requests.", "priority": "Must Have" },
+            { "id": "NFR-P02", "description": "API response time must not exceed 200ms for 99th percentile under normal load.", "priority": "Must Have" },
+            { "id": "NFR-P03", "description": "System must handle 500 concurrent users without performance degradation.", "priority": "Should Have" }
+          ]
+        },
+        {
+          "category": "Security",
+          "items": [
+            { "id": "NFR-S01", "description": "All data at rest and in transit must be encrypted using AES-256 and TLS 1.3 respectively.", "priority": "Must Have" },
+            { "id": "NFR-S02", "description": "Multi-factor authentication required for all administrative access.", "priority": "Must Have" },
+            { "id": "NFR-S03", "description": "Annual penetration testing by certified third-party security firm.", "priority": "Must Have" }
+          ]
+        },
+        {
+          "category": "Availability",
+          "items": [
+            { "id": "NFR-A01", "description": "System uptime of 99.9% measured monthly, excluding planned maintenance windows.", "priority": "Must Have" },
+            { "id": "NFR-A02", "description": "Recovery time objective (RTO) of 4 hours and recovery point objective (RPO) of 1 hour.", "priority": "Should Have" },
+            { "id": "NFR-A03", "description": "Automated failover to secondary region within 60 seconds of primary region failure.", "priority": "Should Have" }
+          ]
+        }
+      ],
+      "source": "ai",
+      "editable": true
+    },
+    {
+      "id": 8,
+      "title": "Stakeholders & RACI",
+      "raci": [
+        { "role": "Project Sponsor",   "r": false, "a": true,  "c": true,  "i": true  },
+        { "role": "Project Manager",   "r": true,  "a": true,  "c": true,  "i": true  },
+        { "role": "Business Analyst",  "r": true,  "a": false, "c": true,  "i": true  },
+        { "role": "IT SME",            "r": true,  "a": false, "c": true,  "i": true  },
+        { "role": "Vendor",            "r": true,  "a": false, "c": false, "i": true  },
+        { "role": "End Users",         "r": false, "a": false, "c": true,  "i": true  }
+      ],
+      "source": "template",
+      "editable": true
+    },
+    {
+      "id": 9,
+      "title": "Implementation Timeline",
+      "timeline": {
+        "totalWeeks": 30,
+        "startDate": "2026-04-01",
+        "phases": [
+          { "name": "Discovery & Design", "startWeek": 1, "endWeek": 5 },
+          { "name": "Build & Integrate", "startWeek": 6, "endWeek": 21 },
+          { "name": "Test & Validate", "startWeek": 22, "endWeek": 29 },
+          { "name": "Go-Live & Hypercare", "startWeek": 30, "endWeek": 30 }
+        ]
+      },
+      "source": "phase3",
+      "editable": true
+    },
+    {
+      "id": 10,
+      "title": "Risk Assessment",
+      "risks": [
+        {
+          "risk": "Vendor lock-in with single compliance platform (Vanta)",
+          "impact": "High",
+          "likelihood": "Medium",
+          "mitigation": "Negotiate contract exit clauses with maximum 90-day transition period. Maintain abstraction layers between vendor APIs and internal systems to enable future vendor switching."
+        },
+        {
+          "risk": "Integration complexity across legacy ecommerce systems",
+          "impact": "Medium",
+          "likelihood": "High",
+          "mitigation": "Implement phased integration approach with comprehensive integration testing at each milestone. Allocate 15% contingency buffer in timeline for integration challenges."
+        },
+        {
+          "risk": "Scope creep during platform modernisation",
+          "impact": "High",
+          "likelihood": "Medium",
+          "mitigation": "Enforce strict change control process with formal impact assessment for any scope additions. Maintain clear in-scope/out-of-scope boundaries as defined in Section 5."
+        },
+        {
+          "risk": "Data migration integrity during system transitions",
+          "impact": "High",
+          "likelihood": "Low",
+          "mitigation": "Implement automated data validation checks pre- and post-migration. Execute parallel running period with reconciliation before legacy system decommissioning."
+        },
+        {
+          "risk": "Resource availability constraints during delivery phases",
+          "impact": "Medium",
+          "likelihood": "Medium",
+          "mitigation": "Identify and onboard backup resources for critical roles. Establish vendor support escalation paths for implementation assistance during peak delivery periods."
+        }
+      ],
+      "source": "ai",
+      "editable": true
+    },
+    {
+      "id": 11,
+      "title": "Assumptions & Constraints",
+      "assumptions": [
+        "A discount rate of 12% has been applied for present value calculations.",
+        "The financial analysis covers a 3-year time horizon.",
+        "The approved budget envelope is $500,000.",
+        "Benefit estimates are based on current organisational scale and operational metrics.",
+        "Benefit values have been anchored to auditable financial baselines where available.",
+        "Vendor pricing is based on current market rates and may be subject to negotiation.",
+        "Resource availability aligns with projected delivery timelines."
+      ],
+      "constraints": [
+        "Total implementation cost must not exceed 85% of the approved budget ceiling.",
+        "All deliverables must comply with: PCI-DSS, GDPR.",
+        "Solution must integrate with existing enterprise systems and architecture.",
+        "Delivery must align with the approved project timeline and milestone schedule.",
+        "Data migration and system integration must not disrupt existing business operations.",
+        "All changes must pass security review and penetration testing before go-live."
+      ],
+      "source": "template",
+      "editable": true
+    },
+    {
+      "id": 12,
+      "title": "Approval & Sign-off",
+      "signatories": [
+        { "role": "Project Sponsor",      "name": "", "title": "", "date": "" },
+        { "role": "Finance Approver",     "name": "", "title": "", "date": "" },
+        { "role": "IT Approver",          "name": "", "title": "", "date": "" },
+        { "role": "Procurement Approver", "name": "", "title": "", "date": "" }
+      ],
+      "source": "template",
+      "editable": true
+    }
+  ],
+  "metadata": {
+    "projectTitle": "Eco Platform Upgrade",
+    "businessUnit": "",
+    "industry": "retail",
+    "generatedAt": "2026-03-26T12:00:00.000Z",
+    "totalCost": 209000,
+    "totalBenefit3y": 474475,
+    "recommendedSolution": "Security & Compliance Foundation"
+  }
+}]

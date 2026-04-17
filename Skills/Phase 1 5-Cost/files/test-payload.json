@@ -1,0 +1,130 @@
+{
+  "solutions": [
+    {
+      "id": "SOL-001",
+      "name": "Security & Compliance Foundation",
+      "category": "security_compliance",
+      "description": "PCI-DSS and GDPR compliance implementation with security hardening.",
+      "riskLevel": "Low",
+      "deliveryPhase": 1,
+      "totalCost": 120000,
+      "costEstimate": { "low": 95000, "mid": 120000, "high": 148000, "recommended": 120000, "implementationMonths": 5 },
+      "selectedVendor": {
+        "name": "Vanta",
+        "fitScore": 94,
+        "vendorCostLow": 30000,
+        "vendorCostHigh": 60000,
+        "implementationMonths": 4
+      },
+      "vendorName": "Vanta",
+      "vendorFitScore": 94
+    },
+    {
+      "id": "SOL-002",
+      "name": "Platform Modernisation & CDN",
+      "category": "frontend_modernization",
+      "description": "Modern React frontend with CDN acceleration and performance optimisation.",
+      "riskLevel": "Medium",
+      "deliveryPhase": 2,
+      "totalCost": 95000,
+      "costEstimate": { "low": 75000, "mid": 95000, "high": 118000, "recommended": 95000, "implementationMonths": 4 },
+      "selectedVendor": {
+        "name": "Vercel Enterprise",
+        "fitScore": 88,
+        "vendorCostLow": 18000,
+        "vendorCostHigh": 36000,
+        "implementationMonths": 3
+      },
+      "vendorName": "Vercel Enterprise",
+      "vendorFitScore": 88
+    },
+    {
+      "id": "SOL-003",
+      "name": "Order Processing Automation",
+      "category": "process_optimization",
+      "description": "End-to-end order automation with AI routing and carrier integration.",
+      "riskLevel": "Medium",
+      "deliveryPhase": 2,
+      "totalCost": 108000,
+      "costEstimate": { "low": 82000, "mid": 108000, "high": 138000, "recommended": 108000, "implementationMonths": 6 },
+      "selectedVendor": {
+        "name": "Kissflow Process",
+        "fitScore": 85,
+        "vendorCostLow": 28000,
+        "vendorCostHigh": 55000,
+        "implementationMonths": 5
+      },
+      "vendorName": "Kissflow Process",
+      "vendorFitScore": 85
+    },
+    {
+      "id": "SOL-004",
+      "name": "Cart Recovery & Conversion",
+      "category": "ecommerce_optimization",
+      "description": "AI-powered cart abandonment recovery with personalised flows.",
+      "riskLevel": "Low",
+      "deliveryPhase": 2,
+      "totalCost": 85000,
+      "costEstimate": { "low": 65000, "mid": 85000, "high": 105000, "recommended": 85000, "implementationMonths": 4 },
+      "selectedVendor": {
+        "name": "Dynamic Yield",
+        "fitScore": 82,
+        "vendorCostLow": 22000,
+        "vendorCostHigh": 45000,
+        "implementationMonths": 3
+      },
+      "vendorName": "Dynamic Yield",
+      "vendorFitScore": 82
+    },
+    {
+      "id": "SOL-005",
+      "name": "Sustainable Operations & Carbon Tracking",
+      "category": "cloud_modernization",
+      "description": "Carbon footprint tracking with ESG reporting dashboard.",
+      "riskLevel": "Low",
+      "deliveryPhase": 3,
+      "totalCost": 55000,
+      "costEstimate": { "low": 42000, "mid": 55000, "high": 70000, "recommended": 55000, "implementationMonths": 3 },
+      "selectedVendor": {
+        "name": "Sweep",
+        "fitScore": 80,
+        "vendorCostLow": 20000,
+        "vendorCostHigh": 40000,
+        "implementationMonths": 3
+      },
+      "vendorName": "Sweep",
+      "vendorFitScore": 80
+    }
+  ],
+  "benefits": [
+    { "id": "BEN-001", "category": "Operational Efficiency", "riskAdjustedValue": 48000 },
+    { "id": "BEN-002", "category": "Revenue Impact", "riskAdjustedValue": 34000 },
+    { "id": "BEN-003", "category": "Risk Mitigation", "riskAdjustedValue": 125000 },
+    { "id": "BEN-004", "category": "Performance Improvement", "riskAdjustedValue": 22000 },
+    { "id": "BEN-005", "category": "Strategic Value", "riskAdjustedValue": 36000 }
+  ],
+  "requirements": [
+    { "id": "REQ-001", "priority": "must_have" },
+    { "id": "REQ-002", "priority": "must_have" },
+    { "id": "REQ-003", "priority": "must_have" },
+    { "id": "REQ-004", "priority": "should_have" },
+    { "id": "REQ-005", "priority": "should_have" }
+  ],
+  "validatedData": {
+    "projectTitle": "Eco Platform Upgrade",
+    "industry": "retail",
+    "budget": 500000,
+    "annualRevenue": 5000000,
+    "annualOperatingCost": 2000000,
+    "headcount": 50,
+    "companySize": "SME",
+    "timeHorizonYears": 3,
+    "discountRatePct": 12,
+    "complianceRequirements": ["PCI-DSS", "GDPR"],
+    "technicalStack": ["AWS", "React", "Node.js"],
+    "systemIntegrations": ["Shopify", "Stripe", "Mailchimp"]
+  },
+  "trackingId": "req_MOCK_ECO_001",
+  "discoveryMethod": "ai_generated",
+  "deferredSolutionIds": []
+}

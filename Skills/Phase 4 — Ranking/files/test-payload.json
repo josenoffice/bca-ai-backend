@@ -1,0 +1,206 @@
+{
+  "status": "success",
+  "phase": 3,
+  "trackingId": "req_MOCK_ECO_001",
+  "projectTitle": "Eco Platform Upgrade",
+  "projectMeta": {
+    "projectTitle": "Eco Platform Upgrade",
+    "industry": "retail",
+    "timeHorizonYears": 3,
+    "discountRatePct": 12,
+    "budget": 500000,
+    "annualRevenue": 5000000,
+    "annualOperatingCost": 2000000
+  },
+  "validatedData": {
+    "projectTitle": "Eco Platform Upgrade",
+    "industry": "retail",
+    "budget": 500000,
+    "annualRevenue": 5000000,
+    "annualOperatingCost": 2000000,
+    "headcount": 50,
+    "companySize": "SME",
+    "timeHorizonYears": 3,
+    "discountRatePct": 12,
+    "complianceRequirements": ["PCI-DSS", "GDPR"]
+  },
+  "solutions": [
+    {
+      "id": "SOL-001", "name": "Security & Compliance Foundation",
+      "category": "security_compliance", "riskLevel": "Low", "deliveryPhase": 1,
+      "totalCost": 52000, "estimatedCostUSD": 52000, "implementation_cost": 52000,
+      "recurringAnnualCost": 15000, "annualBenefit": 62500,
+      "confidenceScore": 78, "confidence": 0.78,
+      "linkedBenefits": ["BEN-003"], "delivers_benefits": ["BEN-003"],
+      "linkedRequirements": ["REQ-001","REQ-002"], "depends_on_requirements": ["REQ-001","REQ-002"],
+      "supported_by_requirements": ["REQ-001","REQ-002"],
+      "npv": 112000, "roi": 315, "irr": 88, "paybackMonths": 14,
+      "selectedVendor": {
+        "name": "Vanta", "fitScore": 94,
+        "complianceCoverage": ["PCI-DSS","GDPR","SOC2"],
+        "vendorCostLow": 30000, "vendorCostHigh": 60000, "implementationMonths": 4
+      },
+      "vendorName": "Vanta", "vendorFitScore": 94,
+      "vendorCostLow": 30000, "vendorCostHigh": 60000
+    },
+    {
+      "id": "SOL-002", "name": "Platform Modernisation & CDN",
+      "category": "frontend_modernization", "riskLevel": "Medium", "deliveryPhase": 2,
+      "totalCost": 35000, "estimatedCostUSD": 35000, "implementation_cost": 35000,
+      "recurringAnnualCost": 24000, "annualBenefit": 30467,
+      "confidenceScore": 79, "confidence": 0.79,
+      "linkedBenefits": ["BEN-002","BEN-004"], "delivers_benefits": ["BEN-002","BEN-004"],
+      "linkedRequirements": ["REQ-002","REQ-004"], "depends_on_requirements": ["REQ-002","REQ-004"],
+      "supported_by_requirements": ["REQ-002","REQ-004"],
+      "npv": 98000, "roi": 280, "irr": 76, "paybackMonths": 16,
+      "selectedVendor": {
+        "name": "Vercel Enterprise", "fitScore": 88,
+        "complianceCoverage": ["PCI-DSS","GDPR","SOC2"],
+        "vendorCostLow": 18000, "vendorCostHigh": 36000, "implementationMonths": 3
+      },
+      "vendorName": "Vercel Enterprise", "vendorFitScore": 88,
+      "vendorCostLow": 18000, "vendorCostHigh": 36000
+    },
+    {
+      "id": "SOL-003", "name": "Order Processing Automation",
+      "category": "process_optimization", "riskLevel": "Medium", "deliveryPhase": 2,
+      "totalCost": 48000, "estimatedCostUSD": 48000, "implementation_cost": 48000,
+      "recurringAnnualCost": 18000, "annualBenefit": 68833,
+      "confidenceScore": 74, "confidence": 0.74,
+      "linkedBenefits": ["BEN-001","BEN-003"], "delivers_benefits": ["BEN-001","BEN-003"],
+      "linkedRequirements": ["REQ-002","REQ-003","REQ-004"], "depends_on_requirements": ["REQ-002","REQ-003","REQ-004"],
+      "supported_by_requirements": ["REQ-002","REQ-003","REQ-004"],
+      "npv": 187000, "roi": 520, "irr": 118, "paybackMonths": 11,
+      "selectedVendor": {
+        "name": "Kissflow Process", "fitScore": 85,
+        "complianceCoverage": ["GDPR","SOC2"],
+        "vendorCostLow": 28000, "vendorCostHigh": 55000, "implementationMonths": 5
+      },
+      "vendorName": "Kissflow Process", "vendorFitScore": 85,
+      "vendorCostLow": 28000, "vendorCostHigh": 55000
+    },
+    {
+      "id": "SOL-004", "name": "Cart Recovery & Conversion",
+      "category": "ecommerce_optimization", "riskLevel": "Low", "deliveryPhase": 2,
+      "totalCost": 38000, "estimatedCostUSD": 38000, "implementation_cost": 38000,
+      "recurringAnnualCost": 36000, "annualBenefit": 30467,
+      "confidenceScore": 80, "confidence": 0.80,
+      "linkedBenefits": ["BEN-002","BEN-004"], "delivers_benefits": ["BEN-002","BEN-004"],
+      "linkedRequirements": ["REQ-001","REQ-004"], "depends_on_requirements": ["REQ-001","REQ-004"],
+      "supported_by_requirements": ["REQ-001","REQ-004"],
+      "npv": 143000, "roi": 395, "irr": 102, "paybackMonths": 13,
+      "selectedVendor": {
+        "name": "Dynamic Yield", "fitScore": 82,
+        "complianceCoverage": ["PCI-DSS","GDPR","SOC2"],
+        "vendorCostLow": 22000, "vendorCostHigh": 45000, "implementationMonths": 3
+      },
+      "vendorName": "Dynamic Yield", "vendorFitScore": 82,
+      "vendorCostLow": 22000, "vendorCostHigh": 45000
+    },
+    {
+      "id": "SOL-005", "name": "Sustainable Operations & Carbon Tracking",
+      "category": "cloud_modernization", "riskLevel": "Low", "deliveryPhase": 3,
+      "totalCost": 36000, "estimatedCostUSD": 36000, "implementation_cost": 36000,
+      "recurringAnnualCost": 28000, "annualBenefit": 22000,
+      "confidenceScore": 77, "confidence": 0.77,
+      "linkedBenefits": ["BEN-005"], "delivers_benefits": ["BEN-005"],
+      "linkedRequirements": ["REQ-003","REQ-005"], "depends_on_requirements": ["REQ-003","REQ-005"],
+      "supported_by_requirements": ["REQ-003","REQ-005"],
+      "npv": 97000, "roi": 270, "irr": 71, "paybackMonths": 17,
+      "selectedVendor": {
+        "name": "Sweep", "fitScore": 80,
+        "complianceCoverage": ["PCI-DSS","GDPR","SOC2","ISO27001"],
+        "vendorCostLow": 20000, "vendorCostHigh": 40000, "implementationMonths": 3
+      },
+      "vendorName": "Sweep", "vendorFitScore": 80,
+      "vendorCostLow": 20000, "vendorCostHigh": 40000
+    }
+  ],
+  "benefits": [
+    { "id": "BEN-001", "category": "Operational Efficiency", "description": "Automate 80% of order processing.", "riskAdjustedValue": 144000, "annualizedValue": 48000, "confidence": 0.85, "linkedSolutions": ["SOL-003"] },
+    { "id": "BEN-002", "category": "Revenue Impact", "description": "Cart abandonment reduction.", "riskAdjustedValue": 137700, "annualizedValue": 45900, "confidence": 0.78, "linkedSolutions": ["SOL-002","SOL-004"] },
+    { "id": "BEN-003", "category": "Risk Mitigation", "description": "PCI-DSS and GDPR compliance.", "riskAdjustedValue": 187500, "annualizedValue": 62500, "confidence": 0.92, "linkedSolutions": ["SOL-001","SOL-003"] },
+    { "id": "BEN-004", "category": "Performance Improvement", "description": "Page load sub-1s.", "riskAdjustedValue": 97920, "annualizedValue": 32640, "confidence": 0.80, "linkedSolutions": ["SOL-002","SOL-004"] },
+    { "id": "BEN-005", "category": "Strategic Value", "description": "Carbon-neutral brand.", "riskAdjustedValue": 66000, "annualizedValue": 22000, "confidence": 0.70, "linkedSolutions": ["SOL-005"] }
+  ],
+  "requirements": [
+    { "id": "REQ-001", "description": "PCI-DSS Level 1 and GDPR compliance.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-004"] },
+    { "id": "REQ-002", "description": "Integration with AWS, Shopify, Stripe.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-002","SOL-003"] },
+    { "id": "REQ-003", "description": "99.9% uptime and sub-2s page load.", "priority": "must_have", "linkedSolutions": ["SOL-001","SOL-003","SOL-005"] },
+    { "id": "REQ-004", "description": "Real-time data synchronisation.", "priority": "must_have", "linkedSolutions": ["SOL-002","SOL-003","SOL-004"] },
+    { "id": "REQ-005", "description": "ESG reporting to GRI standards.", "priority": "should_have", "linkedSolutions": ["SOL-005"] }
+  ],
+  "portfolioMetrics": {
+    "portfolio": {
+      "totalNPV": 637000, "averageROI": 356, "portfolioIRR": 91,
+      "paybackMonths": 19, "totalInitialCost": 209000, "withinBudget": true, "withinCeiling": true
+    }
+  },
+  "portfolioIRR": 91,
+  "budgetAnalysis": {
+    "totalRecommendedCost": 209000, "budget": 500000,
+    "budgetUtilizationPct": 42, "withinBudget": true, "withinCeiling": true
+  },
+  "traceability": {
+    "healthScore": 78, "linkageScore": 73,
+    "vendorCompliancePerSolution": [
+      { "solutionId": "SOL-001", "vendorName": "Vanta", "vendorComplianceScore": 100 },
+      { "solutionId": "SOL-002", "vendorName": "Vercel Enterprise", "vendorComplianceScore": 100 },
+      { "solutionId": "SOL-003", "vendorName": "Kissflow Process", "vendorComplianceScore": 50 },
+      { "solutionId": "SOL-004", "vendorName": "Dynamic Yield", "vendorComplianceScore": 100 },
+      { "solutionId": "SOL-005", "vendorName": "Sweep", "vendorComplianceScore": 100 }
+    ]
+  },
+  "traceabilityCoverage": { "coveragePct": 78 },
+  "confidenceAnalysis": { "average": 78, "overallConfidence": 78, "distribution": { "low": 0, "med": 1, "high": 4 } },
+  "timeline": {
+    "projectTimeline": { "totalDurationWeeks": 30, "projectStartDate": "2026-04-01", "projectEndDate": "2026-10-28", "totalCost": 209000 },
+    "phases": [
+      { "name": "Discovery & Design", "startWeek": 1, "endWeek": 5 },
+      { "name": "Build & Integrate", "startWeek": 6, "endWeek": 21 },
+      { "name": "Test & Validate", "startWeek": 22, "endWeek": 29 },
+      { "name": "Go-Live & Hypercare", "startWeek": 30, "endWeek": 30 }
+    ]
+  },
+  "phase4Readiness": { "phase4ContractReady": true, "portfolioConfidence": 78 },
+  "dependencyAnalysis": {
+    "edges": [
+      { "type": "delivers", "from": "SOL-001", "to": "BEN-003" },
+      { "type": "delivers", "from": "SOL-002", "to": "BEN-002" },
+      { "type": "delivers", "from": "SOL-002", "to": "BEN-004" },
+      { "type": "delivers", "from": "SOL-003", "to": "BEN-001" },
+      { "type": "delivers", "from": "SOL-003", "to": "BEN-003" },
+      { "type": "delivers", "from": "SOL-004", "to": "BEN-002" },
+      { "type": "delivers", "from": "SOL-004", "to": "BEN-004" },
+      { "type": "delivers", "from": "SOL-005", "to": "BEN-005" },
+      { "type": "requires", "from": "REQ-001", "to": "SOL-001" },
+      { "type": "requires", "from": "REQ-002", "to": "SOL-001" },
+      { "type": "requires", "from": "REQ-002", "to": "SOL-002" },
+      { "type": "requires", "from": "REQ-002", "to": "SOL-003" },
+      { "type": "requires", "from": "REQ-003", "to": "SOL-003" },
+      { "type": "requires", "from": "REQ-004", "to": "SOL-002" },
+      { "type": "requires", "from": "REQ-004", "to": "SOL-003" },
+      { "type": "requires", "from": "REQ-004", "to": "SOL-004" },
+      { "type": "requires", "from": "REQ-001", "to": "SOL-004" },
+      { "type": "requires", "from": "REQ-003", "to": "SOL-005" },
+      { "type": "requires", "from": "REQ-005", "to": "SOL-005" }
+    ],
+    "criticalPath": ["SOL-003","SOL-001","SOL-002"]
+  },
+  "vendorData": [
+    { "solutionId": "SOL-001", "vendorName": "Vanta", "fitScore": 94, "vendorCostLow": 30000, "vendorCostHigh": 60000 },
+    { "solutionId": "SOL-002", "vendorName": "Vercel Enterprise", "fitScore": 88, "vendorCostLow": 18000, "vendorCostHigh": 36000 },
+    { "solutionId": "SOL-003", "vendorName": "Kissflow Process", "fitScore": 85, "vendorCostLow": 28000, "vendorCostHigh": 55000 },
+    { "solutionId": "SOL-004", "vendorName": "Dynamic Yield", "fitScore": 82, "vendorCostLow": 22000, "vendorCostHigh": 45000 },
+    { "solutionId": "SOL-005", "vendorName": "Sweep", "fitScore": 80, "vendorCostLow": 20000, "vendorCostHigh": 40000 }
+  ],
+  "qualityScore": { "overallScore": 82 },
+  "phaseResults": [
+    { "phase": 1, "ok": true },
+    { "phase": "1.6", "ok": true },
+    { "phase": "1.5", "ok": true },
+    { "phase": "reflection", "ok": true },
+    { "phase": 2, "ok": true },
+    { "phase": 3, "ok": true, "avgConfidence": 78, "totalCost": 209000, "totalDurationWeeks": 30 }
+  ]
+}

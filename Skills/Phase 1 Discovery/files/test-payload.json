@@ -1,0 +1,36 @@
+{
+  "projectTitle": "Eco Platform Upgrade",
+  "businessUnit": "Digital Commerce",
+  "currentState": "Our ecommerce platform is 6 years old. Cart abandonment is at 68%. Order processing is manual and takes 4 hours per day. Page load is 3.2 seconds average.",
+  "businessImpact": "We are losing $340K/year in abandoned carts. Manual processing is causing shipping errors and customer complaints. Competitor platforms load in under 1 second.",
+  "industry": "retail",
+  "budget": 500000,
+  "urgency": "high",
+  "expectedTimeframe": "12 months",
+  "annualRevenue": 5000000,
+  "annualOperatingCost": 2000000,
+  "headcount": 50,
+  "onlineRevenuePct": 68,
+  "companySize": "SME",
+  "timeHorizonYears": 3,
+  "discountRatePct": 12,
+  "complianceRequirements": ["PCI-DSS", "GDPR"],
+  "technicalStack": ["AWS", "React", "Node.js"],
+  "systemIntegrations": ["Shopify", "Stripe", "Mailchimp"],
+  "currentPainPoints": [
+    "68% cart abandonment rate",
+    "3.2s average page load time",
+    "Manual order processing takes 4hrs/day",
+    "No real-time inventory sync",
+    "GDPR compliance gaps in customer data handling"
+  ],
+  "businessGoals": [
+    "Reduce cart abandonment by 30%",
+    "Achieve carbon-neutral operations by 2026",
+    "Automate 80% of order processing",
+    "Reach sub-1s page load time",
+    "Full PCI-DSS Level 1 certification"
+  ],
+  "discoverWithAI": true,
+  "mode": "draft"
+}
