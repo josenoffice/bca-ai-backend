@@ -3,93 +3,126 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCA Conversational Intake</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>BCA Assistant — Conversational Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* ── Variables & Reset ── */
 :root {
-  --navy:         #1C2E4A;
-  --navy-mid:     #2A4066;
-  --blue:         #2563EB;
-  --blue-light:   #DBEAFE;
-  --blue-soft:    #EFF6FF;
-  --teal:         #0F766E;
-  --amber:        #B45309;
-  --amber-bg:     #FFFBEB;
-  --amber-border: #F59E0B;
-  --amber-light:  #FEF3C7;
-  --green:        #15803D;
-  --green-light:  #DCFCE7;
-  --purple:       #7C3AED;
-  --purple-light: #EDE9FE;
-  --slate-50:     #F8FAFC;
-  --slate-100:    #F1F5F9;
-  --slate-200:    #E2E8F0;
-  --slate-300:    #CBD5E1;
-  --slate-400:    #94A3B8;
-  --slate-500:    #64748B;
-  --slate-600:    #475569;
-  --slate-700:    #334155;
-  --slate-800:    #1E293B;
-  --white:        #FFFFFF;
-  --font-display: 'DM Serif Display', Georgia, serif;
-  --font-body:    'DM Sans', system-ui, sans-serif;
+  --navy: #0f172a; --navy-mid: #1e293b; --navy-light: #334155;
+  --blue: #2563EB; --blue-light: #DBEAFE; --blue-soft: #EFF6FF;
+  --teal: #0F766E; --amber: #B45309; --amber-bg: #FFFBEB;
+  --amber-border: #F59E0B; --amber-light: #FEF3C7;
+  --green: #15803D; --green-light: #DCFCE7; --purple: #7C3AED;
+  --purple-light: #EDE9FE; --slate-50: #F8FAFC; --slate-100: #F1F5F9;
+  --slate-200: #E2E8F0; --slate-300: #CBD5E1; --slate-400: #94A3B8;
+  --slate-500: #64748B; --slate-600: #475569; --slate-700: #334155;
+  --slate-800: #1E293B; --white: #FFFFFF;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
   --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.07); --shadow-md: 0 4px 12px rgba(0,0,0,.1);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { font-family: var(--font-body); background: var(--slate-100); color: var(--slate-800); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+html { height: 100%; }
+body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-800); font-size: 14px; line-height: 1.5; height: 100%; display: flex; flex-direction: column; overflow: hidden; }
 
 /* ── TOPBAR ── */
-.topbar { background: var(--navy); display: flex; align-items: center; padding: 0 24px; height: 56px; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); position: sticky; top: 0; z-index: 100; }
-.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.brand-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-.brand-name { font-family: var(--font-display); color: white; font-size: 15px; }
-.topbar-sep { color: rgba(255,255,255,0.25); font-size: 18px; }
-.topbar-title { color: rgba(255,255,255,0.55); font-size: 12px; font-weight: 500; }
+.topbar { background: var(--navy); display: flex; align-items: center; padding: 0 20px; height: 56px; gap: 10px; flex-shrink: 0; z-index: 100; }
+.brand { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+.brand-icon { width: 30px; height: 30px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.brand-name { color: white; font-size: 14px; font-weight: 700; }
+.topbar-sep { color: rgba(255,255,255,.25); margin: 0 2px; }
+.step-label { color: rgba(255,255,255,.55); font-size: 12px; font-weight: 500; }
 .topbar-spacer { flex: 1; }
-.demo-trigger-btn { background: linear-gradient(135deg,#F59E0B,#D97706); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; letter-spacing: 0.01em; }
+.btn-switch { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); color: white; border-radius: 7px; padding: 6px 13px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: var(--font-body); transition: background .15s; }
+.btn-switch:hover { background: rgba(255,255,255,.18); }
+.btn-draft { background: var(--blue); border: none; color: white; border-radius: 7px; padding: 6px 13px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font-body); margin-left: 6px; transition: background .15s; }
+.btn-draft:hover { background: #1d4ed8; }
+.demo-trigger-btn { background: linear-gradient(135deg,#F59E0B,#D97706); color: white; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; font-family: var(--font-body); margin-left: 4px; }
 .demo-trigger-btn:hover { opacity: .88; }
-.demo-trigger-btn svg { flex-shrink: 0; }
 
 /* ── DEMO BANNER ── */
-.demo-banner { display: none; background: var(--amber-bg); border-bottom: 2px solid var(--amber-border); padding: 10px 24px; align-items: center; gap: 12px; }
+.demo-banner { display: none; background: var(--amber-bg); border-bottom: 2px solid var(--amber-border); padding: 8px 20px; align-items: center; gap: 12px; flex-shrink: 0; }
 .demo-banner.visible { display: flex; }
 .demo-badge { background: var(--amber-border); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .06em; text-transform: uppercase; flex-shrink: 0; }
 .demo-banner-text { color: var(--amber); font-size: 13px; font-weight: 500; flex: 1; }
-.demo-clear-btn { background: none; border: 1.5px solid var(--amber-border); color: var(--amber); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-weight: 600; transition: all .15s; }
-.demo-clear-btn:hover { background: var(--amber-light); }
+.demo-clear-btn { background: none; border: 1.5px solid var(--amber-border); color: var(--amber); border-radius: 6px; padding: 3px 10px; font-size: 12px; cursor: pointer; font-weight: 600; font-family: var(--font-body); }
 
-/* ── PAGE LAYOUT ── */
-.page-layout { display: grid; grid-template-columns: 1fr 272px; gap: 24px; max-width: 1080px; margin: 0 auto; padding: 28px 24px 80px; align-items: start; }
-@media (max-width: 820px) { .page-layout { grid-template-columns: 1fr; } .data-panel { display: none; } }
+/* ── STEP NAVIGATION ── */
+.step-nav { background: white; border-bottom: 1px solid var(--slate-200); display: flex; align-items: center; padding: 0 16px; height: 50px; flex-shrink: 0; overflow-x: auto; gap: 0; }
+.step-nav::-webkit-scrollbar { display: none; }
+.step-tabs { display: flex; gap: 2px; align-items: center; flex: 1; }
+.step-tab { display: flex; align-items: center; gap: 5px; padding: 5px 9px; border: none; background: none; cursor: pointer; border-radius: 7px; color: var(--slate-400); font-size: 12px; font-weight: 600; transition: all .15s; white-space: nowrap; font-family: var(--font-body); }
+.step-tab:hover { background: var(--slate-100); color: var(--slate-600); }
+.step-tab.active { background: var(--blue-light); color: var(--blue); }
+.step-tab.done { color: var(--green); }
+.answer-counter { font-size: 12px; color: var(--slate-400); font-weight: 600; white-space: nowrap; padding-left: 12px; border-left: 1px solid var(--slate-200); margin-left: 8px; flex-shrink: 0; }
 
-/* ── PROGRESS BAR ── */
-.progress-bar { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
-.progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.progress-label-text { font-size: 12px; color: var(--slate-500); font-weight: 600; }
-.progress-pct { font-size: 12px; color: var(--blue); font-weight: 700; }
-.progress-track { height: 5px; background: var(--slate-200); border-radius: 3px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 3px; transition: width .5s ease; }
+/* ── PROGRESS LINE ── */
+.progress-line { height: 3px; background: var(--slate-200); flex-shrink: 0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); transition: width .5s ease; }
 
-/* ── QUESTION CARD ── */
-.chat-stream { display: flex; flex-direction: column; gap: 14px; }
-.q-card { background: var(--white); border: 1.5px solid var(--slate-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; opacity: 0; transform: translateY(10px); transition: opacity .3s ease, transform .3s ease, border-color .2s; }
-.q-card.visible { opacity: 1; transform: translateY(0); }
-.q-card.current { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.07), var(--shadow-md); }
-.q-card.answered .q-body { display: none; }
-.q-card.answered .q-answered-preview { display: flex; }
+/* ── PAGE WRAPPER ── */
+.page-wrapper { display: flex; flex: 1; overflow: hidden; }
+.main-col { flex: 1; display: flex; flex-direction: column; overflow: hidden; max-width: 780px; margin: 0 auto; width: 100%; }
 
-.q-header { padding: 16px 20px 12px; display: flex; gap: 12px; align-items: flex-start; }
-.q-step-badge { min-width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: background .2s; }
-.q-card.answered .q-step-badge { background: var(--green); }
-.q-text { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.4; }
-.q-hint { font-size: 12px; color: var(--slate-500); margin-top: 4px; line-height: 1.5; }
-.q-body { padding: 0 20px 20px; }
-.q-answered-preview { display: none; padding: 0 20px 14px 58px; align-items: center; gap: 10px; }
-.q-preview-text { font-size: 12.5px; color: var(--slate-600); flex: 1; line-height: 1.4; }
-.q-edit-btn { background: none; border: 1px solid var(--slate-200); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--slate-500); cursor: pointer; flex-shrink: 0; transition: all .15s; }
-.q-edit-btn:hover { border-color: var(--blue); color: var(--blue); }
+/* ── CHAT STREAM ── */
+.chat-stream { flex: 1; overflow-y: auto; padding: 20px 20px 12px; display: flex; flex-direction: column; gap: 4px; }
+.chat-stream::-webkit-scrollbar { width: 4px; }
+.chat-stream::-webkit-scrollbar-thumb { background: var(--slate-200); border-radius: 4px; }
+
+/* ── AI BUBBLE ── */
+.ai-bubble { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 4px; opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s ease; }
+.ai-bubble.visible { opacity: 1; transform: translateY(0); }
+.ai-avatar { width: 34px; height: 34px; background: var(--navy); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; margin-top: 2px; }
+.ai-msg { background: white; border-radius: 4px 16px 16px 16px; padding: 11px 15px; box-shadow: var(--shadow-sm); max-width: 82%; font-size: 14px; line-height: 1.55; }
+.ai-msg p + p { margin-top: 7px; }
+.ai-q-text { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.4; }
+.ai-q-hint { font-size: 12px; color: var(--slate-500); margin-top: 4px; line-height: 1.5; }
+
+/* ── SECTION HEADER BUBBLE ── */
+.section-hdr { display: flex; align-items: center; gap: 10px; background: white; border-radius: 4px 16px 16px 16px; padding: 10px 15px; box-shadow: var(--shadow-sm); margin-left: 44px; max-width: 72%; border-left: 3px solid var(--blue); margin-bottom: 4px; opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s ease; }
+.section-hdr.visible { opacity: 1; transform: translateY(0); }
+.section-hdr-icon { font-size: 17px; }
+.section-hdr-name { font-weight: 700; font-size: 13px; color: var(--navy); }
+.section-hdr-sub { font-size: 11px; color: var(--slate-500); margin-top: 1px; }
+
+/* ── ANSWER AREA ── */
+.answer-area { background: white; border-radius: 12px; padding: 16px 18px; margin-left: 44px; box-shadow: var(--shadow-sm); border: 1.5px solid var(--slate-200); margin-top: 6px; margin-bottom: 4px; opacity: 0; transform: translateY(6px); transition: opacity .3s ease, transform .3s ease; }
+.answer-area.visible { opacity: 1; transform: translateY(0); }
+
+/* ── USER BUBBLE (answered state) ── */
+.answered-bubble { display: none; justify-content: flex-end; margin-bottom: 4px; }
+.user-msg { background: var(--navy); color: white; border-radius: 16px 4px 16px 16px; padding: 10px 15px; max-width: 75%; font-size: 13px; line-height: 1.45; box-shadow: var(--shadow-sm); }
+.edit-answer-btn { display: block; text-align: right; margin-top: 4px; background: none; border: none; font-size: 11px; color: var(--slate-400); cursor: pointer; font-family: var(--font-body); }
+.edit-answer-btn:hover { color: var(--blue); }
+
+/* ── CHAT TURN ── */
+.chat-turn { margin-bottom: 8px; }
+.chat-turn.answered .answer-area { display: none; }
+.chat-turn.answered .answered-bubble { display: flex; flex-direction: column; align-items: flex-end; }
+
+/* ── GENERATE CTA ── */
+.generate-cta { display: none; background: white; border-radius: 16px; padding: 28px 28px; margin: 16px 20px 20px; text-align: center; border: 1.5px solid var(--slate-200); box-shadow: var(--shadow-md); }
+.generate-cta.visible { display: block; }
+.generate-cta h3 { font-size: 19px; font-weight: 800; color: var(--navy); margin-bottom: 8px; }
+.generate-cta p { font-size: 13px; color: var(--slate-500); margin-bottom: 20px; line-height: 1.6; }
+.generate-btn { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; border: none; border-radius: 10px; padding: 14px 30px; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-body); box-shadow: 0 4px 18px rgba(37,99,235,.3); transition: opacity .15s; }
+.generate-btn:hover { opacity: .9; }
+.generate-cta .demo-note { font-size: 11px; color: var(--amber); margin-top: 12px; font-weight: 600; }
+
+/* ── DATA PANEL ── */
+.data-panel { width: 240px; flex-shrink: 0; background: white; border-left: 1px solid var(--slate-200); padding: 18px 14px; overflow-y: auto; display: none; }
+@media (min-width: 1100px) { .data-panel { display: block; } }
+.panel-title { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+.data-item { margin-bottom: 11px; padding-bottom: 11px; border-bottom: 1px solid var(--slate-100); }
+.data-item:last-child { border-bottom: none; }
+.data-key { font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.data-val { font-size: 12px; color: var(--slate-800); line-height: 1.4; }
+.data-val.empty { color: var(--slate-300); font-style: italic; }
+.data-val.filled { color: var(--navy); font-weight: 600; }
+
+/* ── FOOTER ── */
+.footer-copyright { background: white; border-top: 1px solid var(--slate-200); text-align: center; padding: 9px; font-size: 11px; color: var(--slate-400); flex-shrink: 0; }
 
 /* ── INPUTS ── */
 .field-textarea { width: 100%; border: 1.5px solid var(--slate-200); border-radius: var(--radius-md); padding: 10px 12px; font-size: 13px; font-family: var(--font-body); color: var(--slate-800); resize: none; line-height: 1.6; transition: border-color .15s; min-height: 80px; }
@@ -260,94 +293,65 @@ select.field-input { cursor: pointer; }
 
 <!-- TOPBAR -->
 <div class="topbar">
-  <a class="brand" href="/">
-    <div class="brand-icon">✦</div>
-    <div class="brand-name">BCA.AI</div>
-  </a>
-  <span class="topbar-sep">/</span>
-  <span class="topbar-title">Conversational Intake</span>
+  <div class="brand">
+    <div class="brand-icon">📊</div>
+    <span class="brand-name">BCA Assistant</span>
+  </div>
+  <span class="topbar-sep">·</span>
+  <span class="step-label" id="stepLabel">Step 1 of 11 — Strategic Alignment</span>
   <div class="topbar-spacer"></div>
-  <button class="demo-trigger-btn" id="demoTriggerBtn" onclick="startDemo()">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-    Try Demo — AAFES Scenario
-  </button>
+  <button class="btn-switch" onclick="window.location.href='/'">Switch to Form</button>
+  <button class="btn-draft" id="viewDraftBtn" onclick="viewDraft()">View Draft</button>
+  <button class="demo-trigger-btn" id="demoTriggerBtn" onclick="startDemo()">▶ Try Demo</button>
 </div>
 
 <!-- DEMO BANNER -->
 <div class="demo-banner" id="demoBanner">
   <span class="demo-badge">Demo Mode</span>
-  <span class="demo-banner-text">Showing: AAFES Retail POS Modernisation — explore what to expect without entering real data</span>
+  <span class="demo-banner-text">Showing: AAFES Retail POS Modernisation — explore without entering real data</span>
   <button class="demo-clear-btn" onclick="clearDemo()">✕ Clear Demo</button>
 </div>
 
-<!-- PAGE LAYOUT -->
-<div class="page-layout">
+<!-- STEP NAVIGATION -->
+<div class="step-nav">
+  <div class="step-tabs" id="stepTabs"></div>
+  <div class="answer-counter" id="answerCounter">0 / 14 answered</div>
+</div>
+
+<!-- PROGRESS LINE -->
+<div class="progress-line">
+  <div class="progress-fill" id="progressFill" style="width:0%"></div>
+</div>
+
+<!-- PAGE WRAPPER -->
+<div class="page-wrapper">
   <div class="main-col">
-
-    <!-- PROGRESS -->
-    <div class="progress-bar">
-      <div class="progress-top">
-        <span class="progress-label-text">Building your business case</span>
-        <span class="progress-pct" id="progressPct">0 of 14 complete</span>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="progressFill" style="width:0%"></div>
-      </div>
-    </div>
-
-    <!-- CHAT STREAM -->
     <div class="chat-stream" id="chatStream"></div>
-
-    <!-- GENERATE CTA -->
     <div class="generate-cta" id="generateCta">
       <h3>Ready to build your business case</h3>
       <p>All key information collected.<br>BCA.AI will run Discovery → Financials → Traceability → Ranking → Report.</p>
       <button class="generate-btn" onclick="submitIntake()">
         Generate Business Case Analysis
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
-      <div class="demo-note" id="demoNote" style="display:none;">Demo Mode — no real analysis will run. Click to see what submitting looks like.</div>
+      <div class="demo-note" id="demoNote" style="display:none;">Demo Mode — no real analysis will run.</div>
     </div>
-
   </div>
-
-  <!-- DATA PANEL -->
   <div class="data-panel">
     <div class="panel-title">📋 Data Collected</div>
-    <div class="data-item">
-      <div class="data-key">Project</div>
-      <div class="data-val empty" id="dp-projectTitle">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">Role / Org</div>
-      <div class="data-val empty" id="dp-role">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">Key Pain</div>
-      <div class="data-val empty" id="dp-pain">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">Urgency</div>
-      <div class="data-val empty" id="dp-urgency">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">Budget</div>
-      <div class="data-val empty" id="dp-budget">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">Timeline</div>
-      <div class="data-val empty" id="dp-timeline">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">KPIs</div>
-      <div class="data-val empty" id="dp-kpis">Not yet entered</div>
-    </div>
-    <div class="data-item">
-      <div class="data-key">Compliance</div>
-      <div class="data-val empty" id="dp-compliance">Not yet entered</div>
-    </div>
+    <div class="data-item"><div class="data-key">Project</div><div class="data-val empty" id="dp-projectTitle">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">Role / Org</div><div class="data-val empty" id="dp-role">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">Key Pain</div><div class="data-val empty" id="dp-pain">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">Urgency</div><div class="data-val empty" id="dp-urgency">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">Budget</div><div class="data-val empty" id="dp-budget">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">Timeline</div><div class="data-val empty" id="dp-timeline">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">KPIs</div><div class="data-val empty" id="dp-kpis">Not yet entered</div></div>
+    <div class="data-item"><div class="data-key">Compliance</div><div class="data-val empty" id="dp-compliance">Not yet entered</div></div>
   </div>
 </div>
+
+<!-- FOOTER -->
+<div class="footer-copyright">© 2026 Nidhish Jose. All rights reserved.</div>
 
 <script>
 // ════════════════════════════════════════════════════════
@@ -358,6 +362,51 @@ let _collectedData = {};
 let _selectedCompliance = [];
 let _answeredCount = 0;
 const TOTAL_Q = 14;
+
+// ── SECTIONS (11 sections → step navigation tabs) ──
+const SECTIONS = [
+  { num:1,  name:'Strategic Alignment', icon:'🎯', qids:['q1','q2'] },
+  { num:2,  name:'Current State',       icon:'🔍', qids:['q3','q4'] },
+  { num:3,  name:'Urgency',             icon:'🚨', qids:['q5'] },
+  { num:4,  name:"What's Been Tried",   icon:'📋', qids:['q6'] },
+  { num:5,  name:'Success Metrics',     icon:'💰', qids:['q7'] },
+  { num:6,  name:'Stakeholders',        icon:'👥', qids:['q8'] },
+  { num:7,  name:'Solution Options',    icon:'⚡', qids:['q9'] },
+  { num:8,  name:'Financials',          icon:'📊', qids:['q10'] },
+  { num:9,  name:'Tech Stack',          icon:'🔗', qids:['q11'] },
+  { num:10, name:'Compliance',          icon:'✅', qids:['q12'] },
+  { num:11, name:'Timeline & Context',  icon:'📅', qids:['q13','q14'] },
+];
+
+function getSectionForQ(qid) { return SECTIONS.find(s => s.qids.includes(qid)); }
+
+function renderStepTabs() {
+  const container = document.getElementById('stepTabs');
+  if (!container) return;
+  container.innerHTML = SECTIONS.map(s => `
+    <button class="step-tab ${s.num === 1 ? 'active' : ''}" id="stab-${s.num}" title="${s.name}">
+      <span>${s.icon}</span><span>${s.num}</span>
+    </button>`).join('');
+}
+
+function updateStepUI(qid) {
+  const sec = getSectionForQ(qid);
+  if (!sec) return;
+  const lbl = document.getElementById('stepLabel');
+  if (lbl) lbl.textContent = `Step ${sec.num} of 11 — ${sec.name}`;
+  document.querySelectorAll('.step-tab').forEach(t => {
+    const n = parseInt(t.id.replace('stab-',''));
+    t.classList.toggle('active', n === sec.num);
+    if (n < sec.num) t.classList.add('done');
+  });
+}
+
+function viewDraft() {
+  const keys = Object.keys(_collectedData).filter(k => _collectedData[k]);
+  if (keys.length === 0) { alert('No data collected yet — answer some questions first.'); return; }
+  const lines = keys.map(k => `${k}: ${JSON.stringify(_collectedData[k]).substring(0,80)}`);
+  alert('Draft Data:\n\n' + lines.join('\n'));
+}
 
 // ════════════════════════════════════════════════════════
 // DEMO SCENARIO — AAFES POS MODERNISATION
@@ -715,18 +764,39 @@ const QUESTIONS = [
 ];
 
 // ════════════════════════════════════════════════════════
-// RENDER ENGINE
+// RENDER ENGINE — Chat bubble UI
 // ════════════════════════════════════════════════════════
+let _lastSection = 0;
+
 function renderQuestion(q) {
   const stream = document.getElementById('chatStream');
   if (document.getElementById('qcard-' + q.id)) return document.getElementById('qcard-' + q.id);
 
-  const card = document.createElement('div');
-  card.className = 'q-card';
-  card.id = 'qcard-' + q.id;
+  // ── Section header bubble (first Q of each section) ──
+  const sec = getSectionForQ(q.id);
+  if (sec && sec.num !== _lastSection) {
+    _lastSection = sec.num;
+    const hdr = document.createElement('div');
+    hdr.className = 'section-hdr';
+    hdr.innerHTML = `
+      <span class="section-hdr-icon">${sec.icon}</span>
+      <div>
+        <div class="section-hdr-name">Section ${sec.num} — ${sec.name}</div>
+        <div class="section-hdr-sub">Let's start with the big picture.</div>
+      </div>`;
+    stream.appendChild(hdr);
+    requestAnimationFrame(() => requestAnimationFrame(() => hdr.classList.add('visible')));
+  }
+
+  updateStepUI(q.id);
+
+  // ── AI question bubble ──
+  const turn = document.createElement('div');
+  turn.className = 'chat-turn';
+  turn.id = 'qcard-' + q.id;
 
   const guideHtml = q.guide ? `
-    <div style="margin-bottom:8px">
+    <div style="margin-bottom:10px">
       <button class="guide-btn" onclick="toggleGuide('${q.id}')">💡 Guide Me</button>
       <div class="guide-panel" id="guide-${q.id}">
         ${q.guide}
@@ -734,27 +804,30 @@ function renderQuestion(q) {
       </div>
     </div>` : '';
 
-  card.innerHTML = `
-    <div class="q-header">
-      <div class="q-step-badge">${q.step || '↪'}</div>
-      <div style="flex:1">
-        <div class="q-text">${q.title}</div>
-        ${q.hint ? `<div class="q-hint">${q.hint}</div>` : ''}
+  turn.innerHTML = `
+    <div class="ai-bubble" id="aibubble-${q.id}">
+      <div class="ai-avatar">🤖</div>
+      <div class="ai-msg">
+        <div class="ai-q-text">${q.title}</div>
+        ${q.hint ? `<div class="ai-q-hint">${q.hint}</div>` : ''}
       </div>
     </div>
-    <div class="q-body" id="qbody-${q.id}">${guideHtml}${renderBody(q)}</div>
-    <div class="q-answered-preview" id="qpreview-${q.id}">
-      <div class="q-preview-text" id="qpreview-text-${q.id}"></div>
-      <button class="q-edit-btn" onclick="editQuestion('${q.id}')">Edit</button>
+    <div class="answer-area" id="qbody-${q.id}">
+      ${guideHtml}${renderBody(q)}
     </div>
-  `;
-  stream.appendChild(card);
+    <div class="answered-bubble" id="qpreview-${q.id}">
+      <div class="user-msg" id="qpreview-text-${q.id}"></div>
+      <button class="edit-answer-btn" onclick="editQuestion('${q.id}')">Edit ✎</button>
+    </div>`;
+
+  stream.appendChild(turn);
 
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    card.classList.add('visible');
-    if (q.step) card.classList.add('current');
+    turn.querySelector('.ai-bubble').classList.add('visible');
+    setTimeout(() => turn.querySelector('.answer-area').classList.add('visible'), 180);
   }));
-  return card;
+
+  return turn;
 }
 
 function renderBody(q) {
@@ -1578,15 +1651,15 @@ function markAnswered(qid, previewText) {
   card.classList.add('answered');
   const pt = document.getElementById('qpreview-text-' + qid);
   if (pt) pt.textContent = previewText;
-  _answeredCount = document.querySelectorAll('.q-card.answered').length;
+  _answeredCount = document.querySelectorAll('.chat-turn.answered').length;
+  const counter = document.getElementById('answerCounter');
+  if (counter) counter.textContent = `${_answeredCount} / ${TOTAL_Q} answered`;
 }
 
 function updateProgress(completedStep) {
   const pct = Math.round((completedStep / TOTAL_Q) * 100);
   const fill = document.getElementById('progressFill');
-  const label = document.getElementById('progressPct');
   if (fill) fill.style.width = Math.min(pct,100) + '%';
-  if (label) label.textContent = completedStep + ' of ' + TOTAL_Q + ' complete';
 }
 
 function updatePanel(field, value) {
@@ -1804,7 +1877,23 @@ function submitIntake() {
 // INIT
 // ════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-  renderQuestion(QUESTIONS[0]);
+  renderStepTabs();
+
+  // Welcome message bubble
+  const stream = document.getElementById('chatStream');
+  const welcome = document.createElement('div');
+  welcome.className = 'ai-bubble visible';
+  welcome.style.marginBottom = '12px';
+  welcome.innerHTML = `
+    <div class="ai-avatar">🤖</div>
+    <div class="ai-msg">
+      <p>👋 Welcome! I'll walk you through <strong>11 short sections</strong> to capture everything your BCA needs.</p>
+      <p>Answer in your own words, skip anything you're not sure about, and click <strong>View Draft</strong> anytime to see what's been collected.</p>
+      <p>Ready? Let's begin with <strong>Strategic Alignment</strong>.</p>
+    </div>`;
+  stream.appendChild(welcome);
+
+  setTimeout(() => renderQuestion(QUESTIONS[0]), 400);
 });
 </script>
 </body>
