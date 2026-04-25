@@ -2931,6 +2931,28 @@ function buildMetricInterpretation(type, value, industry, extraData) {
     body = `The investment is projected to <strong>recover its full cost in ${v} months</strong>. This is <strong style="color:${vsColor};">${vsLabel} the ${bmLabel}</strong>. Shorter payback reduces financial risk.`;
   }
 
+  if (type === 'irr') {
+    const v = value || 0;
+    const hurdle = extraData?.hurdle || 12;
+    const bmIRR  = bm.irr || 18;
+    const vsHurdle = v > hurdle ? 'above' : 'below';
+    const vsHColor = v > hurdle ? 'var(--success)' : 'var(--danger)';
+    const vsBm = v >= bmIRR ? 'above' : 'below';
+    const vsBmColor = v >= bmIRR ? 'var(--success)' : '#d97706';
+    if (v >= 50) { icon = '🟢'; heading = 'Exceptional internal return'; color = 'var(--success)'; }
+    else if (v >= 25) { icon = '🟢'; heading = 'Strong internal return'; color = 'var(--success)'; }
+    else if (v > hurdle) { icon = '🟡'; heading = 'Positive internal return'; color = '#d97706'; }
+    else { icon = '🔴'; heading = 'Below hurdle rate'; color = 'var(--danger)'; }
+    body = `IRR of <strong>${v}%</strong> is <strong style="color:${vsHColor};">${vsHurdle} the ${hurdle}% cost of capital</strong> — meaning this portfolio ${v > hurdle ? 'creates value' : 'does not clear the minimum return threshold'}. It is also <strong style="color:${vsBmColor};">${vsBm} the ${bmIRR}% ${bm.label} benchmark</strong>. The higher the IRR, the more buffer above your cost of capital.`;
+  }
+
+  if (type === 'quality') {
+    const v = value || 0;
+    if (v >= 80) { icon = '🟢'; heading = 'High-quality business case'; color = 'var(--success)'; body = `A quality score of ${v}/100 means the business case is well-structured — requirements trace to solutions, financials are positive, and the budget is within limits. Strong foundation for a go/no-go decision.`; }
+    else if (v >= 60) { icon = '🟡'; heading = 'Good quality — some gaps'; color = '#d97706'; body = `Score of ${v}/100 is solid but not complete. Some requirements may lack solution links, or confidence in the financial case could be stronger. Address gaps before presenting to decision-makers.`; }
+    else { icon = '🔴'; heading = 'Quality gaps need attention'; color = 'var(--danger)'; body = `Score of ${v}/100 signals significant gaps — likely missing requirement-to-solution traceability, over-budget, or low NPV coverage. Resolve these before escalating.`; }
+  }
+
   return `<div style="margin-top:10px;padding:10px 14px;border-radius:8px;border-left:3px solid ${color};background:${color === 'var(--success)' ? 'var(--success-light)' : color === 'var(--danger)' ? '#fef2f2' : '#fffbeb'};">
     <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:${color};margin-bottom:4px;">${icon} ${heading}</div>
     <div style="font-size:12px;color:var(--text);line-height:1.5;">${body}</div>
@@ -6739,6 +6761,8 @@ function renderPhase2(r) {
   const qs = r.qualityScore || {};
   const ic = r.industryConfig || {};
   const sols = r.solutions || [];
+  const p2Industry = r.projectMeta?.industry || r.validatedData?.industry || ic.industry || '';
+  const p2Bm = getIndustryBenchmark(p2Industry);
 
   // ─── Portfolio KPIs ────────────────────────────
   const rate = ic.discountRate || 0.12;
@@ -6792,15 +6816,77 @@ function renderPhase2(r) {
     ])
   );
 
+  // ── Plain-English "at a glance" summary ──────────
+  const glanceNPV  = (p.totalNPV || 0) >= 0;
+  const glanceROI  = (p.averageROI || 0) >= p2Bm.roi;
+  const glancePay  = p.paybackMonths != null && p.paybackMonths <= p2Bm.payback;
+  const glanceQS   = (qs.overallScore || 0) >= 70;
+  const glancePass = [glanceNPV, glanceROI, glancePay, glanceQS].filter(Boolean).length;
+  const glanceColor = glancePass >= 3 ? 'var(--success)' : glancePass >= 2 ? '#d97706' : 'var(--danger)';
+  const glanceBg   = glancePass >= 3 ? 'var(--success-light)' : glancePass >= 2 ? '#fffbeb' : '#fef2f2';
+  const glanceIcon  = glancePass >= 3 ? '🟢' : glancePass >= 2 ? '🟡' : '🔴';
+  const glanceVerdict = glancePass >= 3
+    ? `This portfolio passes ${glancePass} of 4 key checks — positive NPV, ${glanceROI ? 'above' : 'near'} the ${p2Bm.label} ROI benchmark, payback ${glancePay ? 'within' : 'close to'} target, and a solid quality score. The financial case is strong.`
+    : glancePass >= 2
+    ? `This portfolio passes ${glancePass} of 4 key checks. Review the amber areas below before escalating — some assumptions may need strengthening.`
+    : `This portfolio passes only ${glancePass} of 4 key checks. Significant gaps exist — review assumptions, traceability, and budget before proceeding.`;
+
   const kpiRow = `<div class="p2-section">
     <div class="p2-section-title" style="border-bottom-color:var(--primary);">Portfolio Financial KPIs ${guideBtn('What financial metrics are calculated?')}</div>
+    <div style="margin-bottom:16px;padding:12px 16px;border-radius:10px;border-left:4px solid ${glanceColor};background:${glanceBg};">
+      <div style="font-size:12px;font-weight:700;color:${glanceColor};margin-bottom:4px;">${glanceIcon} Portfolio at a Glance — ${p2Bm.label} context</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5;">${glanceVerdict}</div>
+      <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap;">
+        ${[
+          { label: 'NPV positive', ok: glanceNPV },
+          { label: 'ROI vs benchmark', ok: glanceROI },
+          { label: 'Payback on target', ok: glancePay },
+          { label: 'Quality score ≥70', ok: glanceQS }
+        ].map(c => `<span style="font-size:11px;font-weight:600;color:${c.ok ? 'var(--success)' : '#d97706'};">${c.ok ? '✅' : '⚠️'} ${c.label}</span>`).join('')}
+      </div>
+    </div>
     <div class="p2-kpi-row">
-      <div class="p2-kpi"><div class="p2-kpi-label">Total NPV ${guideBtn('How is NPV calculated?')}</div><div class="p2-kpi-value" style="color:${p.totalNPV >= 0 ? 'var(--success)' : 'var(--danger)'};">${fmt(p.totalNPV)}</div><div class="p2-kpi-sub">${years}-year horizon @ ${Math.round(rate * 100)}%</div>${npvKpiCalc}</div>
-      <div class="p2-kpi"><div class="p2-kpi-label">Average ROI ${guideBtn('How is ROI calculated?')}</div><div class="p2-kpi-value">${p.averageROI || 0}%</div><div class="p2-kpi-sub">Benchmark: ${ic.benchmarkROI || '—'}%</div>${roiKpiCalc}</div>
-      <div class="p2-kpi"><div class="p2-kpi-label">Portfolio IRR ${guideBtn('How is IRR calculated?')}</div><div class="p2-kpi-value">${p.portfolioIRR != null ? p.portfolioIRR + '%' : '—'}</div><div class="p2-kpi-sub">Internal rate of return</div>${irrKpiCalc}</div>
-      <div class="p2-kpi"><div class="p2-kpi-label">Payback Period ${guideBtn('How is Payback Period calculated?')}</div><div class="p2-kpi-value">${p.paybackMonths != null ? p.paybackMonths + 'mo' : '—'}</div><div class="p2-kpi-sub">Benchmark: ${ic.benchmarkPaybackMonths || '—'}mo</div>${paybackKpiCalc}</div>
-      <div class="p2-kpi"><div class="p2-kpi-label">Total TCO</div><div class="p2-kpi-value">${fmt(p.totalTCO)}</div><div class="p2-kpi-sub">Initial ${fmt(p.totalInitialCost)} + OpEx ${fmt(p.totalAnnualRecurring)}/yr × ${years}</div>${tcoKpiCalc}</div>
-      <div class="p2-kpi"><div class="p2-kpi-label">Quality Score ${guideBtn('What does the quality score mean?')}</div><div class="p2-kpi-value" style="color:${qs.overallScore >= 80 ? 'var(--success)' : qs.overallScore >= 60 ? 'var(--warning)' : 'var(--danger)'};">${qs.overallScore || 0}</div><div class="p2-kpi-sub">Trace ${qs.traceScore} · Budget ${qs.budgetScore} · NPV+ ${qs.npvPositive}%</div>${qsCalc}</div>
+      <div class="p2-kpi">
+        <div class="p2-kpi-label">Total NPV ${guideBtn('How is NPV calculated?')}</div>
+        <div class="p2-kpi-value" style="color:${p.totalNPV >= 0 ? 'var(--success)' : 'var(--danger)'};">${fmt(p.totalNPV)}</div>
+        <div class="p2-kpi-sub">${years}-year horizon @ ${Math.round(rate * 100)}%</div>
+        ${buildMetricInterpretation('npv', p.totalNPV, p2Industry)}
+        ${npvKpiCalc}
+      </div>
+      <div class="p2-kpi">
+        <div class="p2-kpi-label">Average ROI ${guideBtn('How is ROI calculated?')}</div>
+        <div class="p2-kpi-value">${p.averageROI || 0}%</div>
+        <div class="p2-kpi-sub">${p2Bm.label} benchmark: ${p2Bm.roi}%</div>
+        ${buildMetricInterpretation('roi', p.averageROI, p2Industry)}
+        ${roiKpiCalc}
+      </div>
+      <div class="p2-kpi">
+        <div class="p2-kpi-label">Portfolio IRR ${guideBtn('How is IRR calculated?')}</div>
+        <div class="p2-kpi-value">${p.portfolioIRR != null ? p.portfolioIRR + '%' : '—'}</div>
+        <div class="p2-kpi-sub">Hurdle rate: ${Math.round(rate * 100)}% · Benchmark: ${p2Bm.irr}%</div>
+        ${p.portfolioIRR != null ? buildMetricInterpretation('irr', p.portfolioIRR, p2Industry, { hurdle: Math.round(rate * 100) }) : ''}
+        ${irrKpiCalc}
+      </div>
+      <div class="p2-kpi">
+        <div class="p2-kpi-label">Payback Period ${guideBtn('How is Payback Period calculated?')}</div>
+        <div class="p2-kpi-value">${p.paybackMonths != null ? p.paybackMonths + 'mo' : '—'}</div>
+        <div class="p2-kpi-sub">${p2Bm.label} benchmark: ${p2Bm.payback}mo</div>
+        ${p.paybackMonths != null ? buildMetricInterpretation('payback', p.paybackMonths, p2Industry) : ''}
+        ${paybackKpiCalc}
+      </div>
+      <div class="p2-kpi">
+        <div class="p2-kpi-label">Total TCO</div>
+        <div class="p2-kpi-value">${fmt(p.totalTCO)}</div>
+        <div class="p2-kpi-sub">Initial ${fmt(p.totalInitialCost)} + OpEx ${fmt(p.totalAnnualRecurring)}/yr × ${years}</div>
+        ${tcoKpiCalc}
+      </div>
+      <div class="p2-kpi">
+        <div class="p2-kpi-label">Quality Score ${guideBtn('What does the quality score mean?')}</div>
+        <div class="p2-kpi-value" style="color:${qs.overallScore >= 80 ? 'var(--success)' : qs.overallScore >= 60 ? 'var(--warning)' : 'var(--danger)'};">${qs.overallScore || 0}</div>
+        <div class="p2-kpi-sub">Trace ${qs.traceScore} · Budget ${qs.budgetScore} · NPV+ ${qs.npvPositive}%</div>
+        ${buildMetricInterpretation('quality', qs.overallScore, p2Industry)}
+        ${qsCalc}
+      </div>
     </div>
   </div>`;
 
