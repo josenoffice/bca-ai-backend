@@ -1527,12 +1527,20 @@
   </div>
 
   <!-- Demo Data Button -->
-  <div id="demoLoadBar" style="text-align:center;padding:12px 0 0;">
-    <button class="btn" onclick="startIntakeWalkthrough()" style="padding:10px 28px;font-size:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(99,102,241,.35);transition:all .2s;">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      Start Guided Demo — Eco Platform Upgrade (Retail)
-    </button>
-    <div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Walk through all 11 intake sub-tabs pre-filled with demo data, then run real AI Discovery</div>
+  <div id="demoLoadBar" style="text-align:center;padding:12px 0 0;display:flex;flex-direction:column;align-items:center;gap:10px;">
+    <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+      <button class="btn" onclick="startIntakeWalkthrough()" style="padding:10px 24px;font-size:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(99,102,241,.35);transition:all .2s;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Guided Demo — Eco Platform Upgrade
+      </button>
+      <button onclick="window.open('/conversational-intake','_blank')" style="padding:10px 24px;font-size:14px;background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(245,158,11,.35);transition:all .2s;display:inline-flex;align-items:center;gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Try Conversational Intake ✦
+      </button>
+    </div>
+    <div style="font-size:11px;color:var(--text-muted);">
+      Guided Demo: 11-tab form with retail scenario &nbsp;·&nbsp; Conversational Intake: chat-style Q&amp;A with AAFES demo
+    </div>
   </div>
 
   <!-- Intake Demo Form — editable, pre-filled with Eco Platform Upgrade data -->
@@ -5904,27 +5912,31 @@ function startIntakeWalkthrough() {
   if (intakeEl) intakeEl.style.display = '';
   if (demoBanner) demoBanner.style.display = '';
 
-  // ── Send PREFILL to iframe ────────────────────────────────────
+  // ── Send PREFILL to iframe via onload (reliable across all sandbox contexts) ──
   const iframe = document.getElementById('intakeIframe');
-  if (iframe && iframe.contentWindow) {
-    // Wait a tick to ensure iframe is visible and loaded
-    setTimeout(() => {
-      iframe.contentWindow.postMessage({
-        type: 'BCA_INTAKE_PREFILL',
-        payload: {
-          projectTitle: 'Eco Platform Upgrade',
-          complianceDeadline: '2026-09-30',
-          background: wizardData.currentState,
-          whyNow: 'PCI-DSS deadline is in 90 days — non-compliance risks $5K–$100K per incident. Every month of delay costs ~$51K in lost conversion revenue from 3.2s page load. Competitor platforms now load in under 1 second. The longer we wait, the larger the compliance fine and the wider the conversion gap.',
-          problem: '68% cart abandonment rate costing $340K/yr (vs 38% industry average). 3.2s average page load — Google Core Web Vitals: Poor on 68% of pages. Manual order processing 4 hrs/day across 3 systems — $40K/yr staff cost. No PCI-DSS certification, GDPR gaps — $200K regulatory exposure.',
-          annualCost: 591000,
-          rootCause: 'Legacy monolithic platform (2018) lacks modern frontend rendering (causes slow load), has no automated compliance controls (causes PCI/GDPR risk), and has no workflow engine (causes manual order processing). 6 years of technical debt with no major modernisation investment.',
-          upfrontLow: 400000, upfrontLikely: 500000, upfrontHigh: 620000,
-          ongoingY1: 85000, ongoingSS: 72000, indirect: 45000,
-          goLive: '2026-09-30'
-        }
-      }, '*');
-    }, 150);
+  if (iframe) {
+    const prefillMsg = {
+      type: 'BCA_INTAKE_PREFILL',
+      payload: {
+        projectTitle: 'Eco Platform Upgrade',
+        complianceDeadline: '2026-09-30',
+        background: wizardData.currentState,
+        whyNow: 'PCI-DSS deadline is in 90 days — non-compliance risks $5K–$100K per incident. Every month of delay costs ~$51K in lost conversion revenue from 3.2s page load. Competitor platforms now load in under 1 second. The longer we wait, the larger the compliance fine and the wider the conversion gap.',
+        problem: '68% cart abandonment rate costing $340K/yr (vs 38% industry average). 3.2s average page load — Google Core Web Vitals: Poor on 68% of pages. Manual order processing 4 hrs/day across 3 systems — $40K/yr staff cost. No PCI-DSS certification, GDPR gaps — $200K regulatory exposure.',
+        annualCost: 591000,
+        rootCause: 'Legacy monolithic platform (2018) lacks modern frontend rendering (causes slow load), has no automated compliance controls (causes PCI/GDPR risk), and has no workflow engine (causes manual order processing). 6 years of technical debt with no major modernisation investment.',
+        upfrontLow: 400000, upfrontLikely: 500000, upfrontHigh: 620000,
+        ongoingY1: 85000, ongoingSS: 72000, indirect: 45000,
+        goLive: '2026-09-30'
+      }
+    };
+    // Attach onload BEFORE changing src so the event fires after fresh load
+    iframe.onload = () => {
+      if (iframe.contentWindow) iframe.contentWindow.postMessage(prefillMsg, '*');
+      iframe.onload = null;
+    };
+    // Force a fresh load (cache-bust) so onload always fires
+    iframe.src = 'BCA_Intake_App.html?v=' + Date.now();
   }
 
   // Scroll to intake
@@ -8487,7 +8499,112 @@ function p6RenderSectionContent(sec) {
     html += '</ul></div>';
   }
 
-  // ── Section 12: Approval & Sign-off ──
+  // ── Section 12: Financial Analysis & Scoring Methodology ──
+  if (sec.scoringMethodology) {
+    const sm = sec.scoringMethodology;
+    const weights = sm.weights || {};
+    const wLabels = { npv: 'NPV (35%)', roi: 'ROI (20%)', confidence: 'Confidence (15%)', riskPenalty: 'Risk Penalty (15%)', vendorFit: 'Vendor Fit (15%)' };
+
+    // Formula callout
+    html += '<div style="background:var(--surface-alt);border-left:3px solid #1976D2;padding:10px 14px;border-radius:0 6px 6px 0;margin-bottom:14px;">';
+    html += '<div style="font-size:11px;font-weight:700;color:#1976D2;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;">Scoring Formula</div>';
+    html += '<div style="font-size:12px;font-weight:600;color:var(--text-main);font-family:monospace;">' + (sm.formula || '').replace(/</g,'&lt;') + '</div>';
+    if (sm.note) html += '<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">' + sm.note.replace(/</g,'&lt;') + '</div>';
+    html += '</div>';
+
+    // Weights chips
+    html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;">';
+    for (const [k, v] of Object.entries(weights)) {
+      html += '<span style="padding:3px 10px;border-radius:12px;background:#e3f2fd;color:#1565c0;font-size:11px;font-weight:700;">' + (wLabels[k] || k + ' (' + Math.round(v*100) + '%)') + '</span>';
+    }
+    html += '</div>';
+
+    // Ranking table
+    if (sec.ranking && sec.ranking.length) {
+      html += '<div style="font-weight:700;font-size:12px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:6px;">Solution Ranking</div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:11px;margin-bottom:16px;">';
+      html += '<tr style="background:#1976D2;color:#fff;"><th style="padding:6px 8px;text-align:left;">Rank</th><th style="padding:6px 8px;text-align:left;">Solution</th><th style="padding:6px 8px;text-align:right;">Score</th><th style="padding:6px 8px;text-align:right;">NPV</th><th style="padding:6px 8px;text-align:right;">ROI%</th><th style="padding:6px 8px;text-align:right;">Payback</th><th style="padding:6px 8px;text-align:center;">Risk</th><th style="padding:6px 8px;text-align:right;">Conf%</th><th style="padding:6px 8px;text-align:right;">VendorFit</th></tr>';
+      sec.ranking.forEach(r => {
+        const riskColor = r.riskLevel === 'High' ? '#b91c1c' : r.riskLevel === 'Medium' ? '#a16207' : '#15803d';
+        const isRec = r.rank === 1;
+        html += '<tr style="background:' + (isRec ? '#f0fdf4' : 'transparent') + ';border-bottom:1px solid var(--border-light);">';
+        html += '<td style="padding:7px 8px;font-weight:700;color:' + (isRec ? '#15803d' : 'var(--text-main)') + ';">' + (r.rank || '') + (isRec ? ' ★' : '') + '</td>';
+        html += '<td style="padding:7px 8px;font-weight:600;">' + (r.name || '').replace(/</g,'&lt;') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:right;font-weight:700;">' + (r.score || '') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:right;">$' + (r.npv != null ? Math.round((r.npv||0)/1000) + 'K' : '-') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:right;">' + (r.roiPct != null ? Math.round(r.roiPct||0) + '%' : '-') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:right;">' + (r.paybackMonths ? r.paybackMonths + ' mo' : 'N/A') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:center;font-weight:600;color:' + riskColor + ';">' + (r.riskLevel || '-') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:right;">' + (r.confidenceScore != null ? r.confidenceScore + '%' : '-') + '</td>';
+        html += '<td style="padding:7px 8px;text-align:right;">' + (r.vendorFitScore != null ? r.vendorFitScore : '-') + '</td>';
+        html += '</tr>';
+        if (r.rationale) {
+          html += '<tr style="background:#fafafa;border-bottom:1px solid var(--border-light);"><td></td><td colspan="8" style="padding:4px 8px 8px;font-size:11px;color:var(--text-muted);font-style:italic;">' + r.rationale.replace(/</g,'&lt;') + '</td></tr>';
+        }
+      });
+      html += '</table>';
+    }
+
+    // Sensitivity analysis
+    if (sec.sensitivity && sec.sensitivity.length) {
+      html += '<div style="font-weight:700;font-size:12px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:6px;">Discount Rate Sensitivity</div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">';
+      html += '<tr style="background:var(--surface-alt);"><th style="padding:6px 8px;text-align:left;border-bottom:2px solid var(--border-light);">Discount Rate</th><th style="padding:6px 8px;text-align:right;border-bottom:2px solid var(--border-light);">Portfolio PV Benefit</th><th style="padding:6px 8px;text-align:center;border-bottom:2px solid var(--border-light);">Horizon</th></tr>';
+      sec.sensitivity.forEach(s => {
+        const isBase = Math.abs((s.discountRate || 0) - (sec.budgetSummary?.discountRate || 0.12)) < 0.001;
+        html += '<tr style="border-bottom:1px solid var(--border-light);' + (isBase ? 'background:#fffde7;' : '') + '">';
+        html += '<td style="padding:6px 8px;font-weight:' + (isBase ? '700' : '400') + ';">' + Math.round((s.discountRate||0)*100) + '%' + (isBase ? ' (base)' : '') + '</td>';
+        html += '<td style="padding:6px 8px;text-align:right;">$' + Math.round((s.portfolioPVBenefit||0)/1000) + 'K</td>';
+        html += '<td style="padding:6px 8px;text-align:center;">' + (s.horizonYears || '-') + ' yr</td>';
+        html += '</tr>';
+      });
+      html += '</table>';
+    }
+
+    // Benefit scenarios
+    if (sec.benefitSensitivity && sec.benefitSensitivity.length) {
+      html += '<div style="font-weight:700;font-size:12px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:6px;">Benefit Scenarios</div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:16px;">';
+      html += '<tr style="background:var(--surface-alt);"><th style="padding:6px 8px;text-align:left;border-bottom:2px solid var(--border-light);">Scenario</th><th style="padding:6px 8px;text-align:center;border-bottom:2px solid var(--border-light);">Multiplier</th><th style="padding:6px 8px;text-align:right;border-bottom:2px solid var(--border-light);">Portfolio PV</th><th style="padding:6px 8px;text-align:right;border-bottom:2px solid var(--border-light);">Portfolio ROI%</th></tr>';
+      sec.benefitSensitivity.forEach(b => {
+        const scenColor = b.label === 'Optimistic' ? '#15803d' : b.label === 'Pessimistic' ? '#b91c1c' : '#1565c0';
+        html += '<tr style="border-bottom:1px solid var(--border-light);">';
+        html += '<td style="padding:6px 8px;font-weight:700;color:' + scenColor + ';">' + (b.label || '') + '</td>';
+        html += '<td style="padding:6px 8px;text-align:center;">' + Math.round((b.multiplier||1)*100) + '%</td>';
+        html += '<td style="padding:6px 8px;text-align:right;">$' + Math.round((b.portfolioPV||0)/1000) + 'K</td>';
+        html += '<td style="padding:6px 8px;text-align:right;">' + (b.portfolioROI || 0) + '%</td>';
+        html += '</tr>';
+      });
+      html += '</table>';
+    }
+
+    // Budget summary
+    if (sec.budgetSummary) {
+      const bs = sec.budgetSummary;
+      html += '<div style="font-weight:700;font-size:12px;text-transform:uppercase;color:var(--text-muted);letter-spacing:0.5px;margin-bottom:6px;">Budget Summary</div>';
+      html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
+      html += '<tr style="background:var(--surface-alt);"><th style="text-align:left;padding:6px 8px;border-bottom:2px solid var(--border-light);">Metric</th><th style="text-align:right;padding:6px 8px;border-bottom:2px solid var(--border-light);">Value</th></tr>';
+      const rows = [
+        ['Total Investment', '$' + Math.round(bs.totalCost||0).toLocaleString()],
+        ['PV Benefit (' + (bs.horizonYears||3) + 'Y)', '$' + Math.round(bs.pvBenefit3y||0).toLocaleString()],
+        ['Average ROI', (bs.avgROIPct||0) + '%'],
+        ['Discount Rate', Math.round((bs.discountRate||0.12)*100) + '%'],
+        ['Applied Benefit Multiplier', bs.appliedBenefitMult != null ? bs.appliedBenefitMult : 'N/A'],
+        ['Applied Risk Penalty', bs.appliedRiskPenalty != null ? bs.appliedRiskPenalty : 'N/A'],
+      ];
+      if (bs.budget > 0) {
+        rows.push(['Approved Budget', '$' + Math.round(bs.budget||0).toLocaleString()]);
+        rows.push(['Budget Utilisation', bs.utilizationPct != null ? bs.utilizationPct + '%' : 'N/A']);
+        rows.push(['Within Budget', bs.withinBudget === true ? '✓ Yes' : bs.withinBudget === false ? '✗ No — exceeds budget' : 'N/A']);
+      }
+      rows.forEach(([label, value]) => {
+        html += '<tr style="border-bottom:1px solid var(--border-light);"><td style="padding:6px 8px;">' + label + '</td><td style="padding:6px 8px;text-align:right;font-weight:600;">' + value + '</td></tr>';
+      });
+      html += '</table>';
+    }
+  }
+
+  // ── Section 13: Approval & Sign-off ──
   if (sec.signatories && sec.signatories.length) {
     html += '<table style="width:100%;border-collapse:collapse;font-size:12px;">';
     html += '<tr style="background:var(--surface-alt);"><th style="text-align:left;padding:8px;border-bottom:2px solid var(--border-light);">Role</th><th style="text-align:left;padding:8px;border-bottom:2px solid var(--border-light);">Name</th><th style="text-align:left;padding:8px;border-bottom:2px solid var(--border-light);">Title</th><th style="text-align:left;padding:8px;border-bottom:2px solid var(--border-light);">Date</th><th style="text-align:left;padding:8px;border-bottom:2px solid var(--border-light);">Signature</th></tr>';
@@ -8520,6 +8637,24 @@ function p6GetSectionPlainText(sec) {
   if (sec.timeline) return 'Duration: ' + sec.timeline.totalWeeks + ' weeks\nStart: ' + sec.timeline.startDate + '\n\n' + (sec.timeline.phases || []).map(p => p.name + ': Wk ' + p.startWeek + '-' + p.endWeek).join('\n');
   if (sec.risks) return sec.risks.map(r => 'Risk: ' + r.risk + '\nImpact: ' + r.impact + ' | Likelihood: ' + r.likelihood + '\nMitigation: ' + r.mitigation).join('\n\n');
   if (sec.assumptions) return 'ASSUMPTIONS:\n' + sec.assumptions.map(a => '- ' + a).join('\n') + '\n\nCONSTRAINTS:\n' + (sec.constraints || []).map(c => '- ' + c).join('\n');
+  if (sec.scoringMethodology) {
+    let t = 'SCORING FORMULA:\n' + (sec.scoringMethodology.formula || '') + '\n' + (sec.scoringMethodology.note || '') + '\n\n';
+    if (sec.ranking && sec.ranking.length) {
+      t += 'SOLUTION RANKING:\n';
+      t += sec.ranking.map(r => '#' + r.rank + ' ' + r.name + ': Score=' + r.score + ' | NPV=$' + Math.round((r.npv||0)/1000) + 'K | ROI=' + Math.round(r.roiPct||0) + '% | Risk=' + r.riskLevel + ' | Payback=' + (r.paybackMonths ? r.paybackMonths + 'mo' : 'N/A') + '\n  ' + (r.rationale || '')).join('\n\n') + '\n\n';
+    }
+    if (sec.sensitivity && sec.sensitivity.length) {
+      t += 'SENSITIVITY:\n' + sec.sensitivity.map(s => Math.round((s.discountRate||0)*100) + '%: $' + Math.round((s.portfolioPVBenefit||0)/1000) + 'K').join(' | ') + '\n\n';
+    }
+    if (sec.benefitSensitivity && sec.benefitSensitivity.length) {
+      t += 'BENEFIT SCENARIOS:\n' + sec.benefitSensitivity.map(b => b.label + ' (' + Math.round((b.multiplier||1)*100) + '%): $' + Math.round((b.portfolioPV||0)/1000) + 'K | ROI ' + (b.portfolioROI||0) + '%').join('\n') + '\n\n';
+    }
+    if (sec.budgetSummary) {
+      const bs = sec.budgetSummary;
+      t += 'BUDGET SUMMARY:\nTotal Investment: $' + Math.round(bs.totalCost||0).toLocaleString() + '\nPV Benefit: $' + Math.round(bs.pvBenefit3y||0).toLocaleString() + '\nROI: ' + (bs.avgROIPct||0) + '% | Discount Rate: ' + Math.round((bs.discountRate||0.12)*100) + '%';
+    }
+    return t;
+  }
   if (sec.signatories) return sec.signatories.map(s => s.role + ': ' + (s.name || '(blank)')).join('\n');
   return '';
 }

@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCA Conversational Intake</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:         #1C2E4A;
+  --navy-mid:     #2A4066;
+  --blue:         #2563EB;
+  --blue-light:   #DBEAFE;
+  --blue-soft:    #EFF6FF;
+  --teal:         #0F766E;
+  --amber:        #B45309;
+  --amber-bg:     #FFFBEB;
+  --amber-border: #F59E0B;
+  --amber-light:  #FEF3C7;
+  --green:        #15803D;
+  --green-light:  #DCFCE7;
+  --purple:       #7C3AED;
+  --purple-light: #EDE9FE;
+  --slate-50:     #F8FAFC;
+  --slate-100:    #F1F5F9;
+  --slate-200:    #E2E8F0;
+  --slate-300:    #CBD5E1;
+  --slate-400:    #94A3B8;
+  --slate-500:    #64748B;
+  --slate-600:    #475569;
+  --slate-700:    #334155;
+  --slate-800:    #1E293B;
+  --white:        #FFFFFF;
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body:    'DM Sans', system-ui, sans-serif;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: var(--font-body); background: var(--slate-100); color: var(--slate-800); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+
+/* ── TOPBAR ── */
+.topbar { background: var(--navy); display: flex; align-items: center; padding: 0 24px; height: 56px; gap: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); position: sticky; top: 0; z-index: 100; }
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+.brand-icon { width: 32px; height: 32px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.brand-name { font-family: var(--font-display); color: white; font-size: 15px; }
+.topbar-sep { color: rgba(255,255,255,0.25); font-size: 18px; }
+.topbar-title { color: rgba(255,255,255,0.55); font-size: 12px; font-weight: 500; }
+.topbar-spacer { flex: 1; }
+.demo-trigger-btn { background: linear-gradient(135deg,#F59E0B,#D97706); color: white; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: opacity .15s; letter-spacing: 0.01em; }
+.demo-trigger-btn:hover { opacity: .88; }
+.demo-trigger-btn svg { flex-shrink: 0; }
+
+/* ── DEMO BANNER ── */
+.demo-banner { display: none; background: var(--amber-bg); border-bottom: 2px solid var(--amber-border); padding: 10px 24px; align-items: center; gap: 12px; }
+.demo-banner.visible { display: flex; }
+.demo-badge { background: var(--amber-border); color: white; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .06em; text-transform: uppercase; flex-shrink: 0; }
+.demo-banner-text { color: var(--amber); font-size: 13px; font-weight: 500; flex: 1; }
+.demo-clear-btn { background: none; border: 1.5px solid var(--amber-border); color: var(--amber); border-radius: 6px; padding: 4px 12px; font-size: 12px; cursor: pointer; font-weight: 600; transition: all .15s; }
+.demo-clear-btn:hover { background: var(--amber-light); }
+
+/* ── PAGE LAYOUT ── */
+.page-layout { display: grid; grid-template-columns: 1fr 272px; gap: 24px; max-width: 1080px; margin: 0 auto; padding: 28px 24px 80px; align-items: start; }
+@media (max-width: 820px) { .page-layout { grid-template-columns: 1fr; } .data-panel { display: none; } }
+
+/* ── PROGRESS BAR ── */
+.progress-bar { background: var(--white); border: 1px solid var(--slate-200); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+.progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.progress-label-text { font-size: 12px; color: var(--slate-500); font-weight: 600; }
+.progress-pct { font-size: 12px; color: var(--blue); font-weight: 700; }
+.progress-track { height: 5px; background: var(--slate-200); border-radius: 3px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), var(--purple)); border-radius: 3px; transition: width .5s ease; }
+
+/* ── QUESTION CARD ── */
+.chat-stream { display: flex; flex-direction: column; gap: 14px; }
+.q-card { background: var(--white); border: 1.5px solid var(--slate-200); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); overflow: hidden; opacity: 0; transform: translateY(10px); transition: opacity .3s ease, transform .3s ease, border-color .2s; }
+.q-card.visible { opacity: 1; transform: translateY(0); }
+.q-card.current { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.07), var(--shadow-md); }
+.q-card.answered .q-body { display: none; }
+.q-card.answered .q-answered-preview { display: flex; }
+
+.q-header { padding: 16px 20px 12px; display: flex; gap: 12px; align-items: flex-start; }
+.q-step-badge { min-width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: white; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; transition: background .2s; }
+.q-card.answered .q-step-badge { background: var(--green); }
+.q-text { font-size: 15px; font-weight: 700; color: var(--navy); line-height: 1.4; }
+.q-hint { font-size: 12px; color: var(--slate-500); margin-top: 4px; line-height: 1.5; }
+.q-body { padding: 0 20px 20px; }
+.q-answered-preview { display: none; padding: 0 20px 14px 58px; align-items: center; gap: 10px; }
+.q-preview-text { font-size: 12.5px; color: var(--slate-600); flex: 1; line-height: 1.4; }
+.q-edit-btn { background: none; border: 1px solid var(--slate-200); border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--slate-500); cursor: pointer; flex-shrink: 0; transition: all .15s; }
+.q-edit-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ── INPUTS ── */
+.field-textarea { width: 100%; border: 1.5px solid var(--slate-200); border-radius: var(--radius-md); padding: 10px 12px; font-size: 13px; font-family: var(--font-body); color: var(--slate-800); resize: none; line-height: 1.6; transition: border-color .15s; min-height: 80px; }
+.field-textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.07); }
+.field-input { width: 100%; border: 1.5px solid var(--slate-200); border-radius: var(--radius-md); padding: 8px 12px; font-size: 13px; font-family: var(--font-body); color: var(--slate-800); transition: border-color .15s; }
+.field-input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.07); }
+.field-label { font-size: 11px; font-weight: 700; color: var(--slate-500); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: .04em; }
+.field-group { margin-bottom: 12px; }
+.field-row { display: flex; gap: 12px; }
+.field-row .field-group { flex: 1; }
+
+/* ── TILES ── */
+.tile-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tile { border: 1.5px solid var(--slate-200); border-radius: 10px; padding: 8px 14px; font-size: 13px; color: var(--slate-700); cursor: pointer; transition: all .15s; background: var(--white); display: flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.tile:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); }
+.tile.selected { border-color: var(--blue); background: var(--blue-light); color: var(--blue); }
+
+/* ── SYMPTOM CARDS ── */
+.symptom-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)); gap: 10px; margin-top: 8px; }
+.symptom-card { border: 1.5px solid var(--slate-200); border-radius: 12px; padding: 14px; cursor: pointer; transition: all .15s; background: var(--white); user-select: none; }
+.symptom-card:hover { border-color: var(--blue); background: var(--blue-soft); }
+.symptom-card.selected { border-color: var(--blue); background: var(--blue-light); }
+.sc-icon { font-size: 22px; margin-bottom: 6px; }
+.sc-title { font-size: 13px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+.sc-desc { font-size: 11px; color: var(--slate-500); margin-top: 3px; line-height: 1.4; }
+.symptom-card.selected .sc-title { color: var(--blue); }
+
+/* ── CHIP SELECT ── */
+.chip-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.chip { border: 1.5px solid var(--slate-200); border-radius: 20px; padding: 5px 12px; font-size: 12px; color: var(--slate-600); cursor: pointer; transition: all .15s; background: var(--white); font-weight: 500; }
+.chip:hover { border-color: var(--blue); color: var(--blue); }
+.chip.selected { border-color: var(--blue); background: var(--blue-light); color: var(--blue); font-weight: 700; }
+
+/* ── NUM ROW ── */
+.num-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 12px; }
+.num-label { font-size: 10px; font-weight: 700; color: var(--slate-500); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .04em; }
+.num-input { width: 100%; border: 1.5px solid var(--slate-200); border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: var(--font-body); transition: border-color .15s; }
+.num-input:focus { outline: none; border-color: var(--blue); }
+select.field-input { cursor: pointer; }
+
+/* ── ALTERNATIVES ── */
+.alt-grid { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.alt-card { border: 1.5px solid var(--slate-200); border-radius: 12px; padding: 13px 15px; display: flex; align-items: flex-start; gap: 12px; background: var(--white); transition: all .15s; }
+.alt-card.highlighted { border-color: #059669; background: #ECFDF5; }
+.alt-num { min-width: 26px; height: 26px; border-radius: 7px; background: var(--slate-100); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; color: var(--slate-600); flex-shrink: 0; margin-top: 1px; }
+.alt-card.highlighted .alt-num { background: #059669; color: white; }
+.alt-content { flex: 1; }
+.alt-title { font-size: 13px; font-weight: 700; color: var(--navy); }
+.alt-desc { font-size: 12px; color: var(--slate-500); margin-top: 3px; line-height: 1.4; }
+.alt-tag { font-size: 10px; padding: 2px 9px; border-radius: 10px; font-weight: 700; flex-shrink: 0; align-self: center; }
+.tag-rec { background: #D1FAE5; color: #065F46; }
+.tag-base { background: var(--slate-100); color: var(--slate-500); }
+.tag-part { background: var(--amber-light); color: var(--amber); }
+
+/* ── BUTTONS ── */
+.next-btn { background: var(--blue); color: white; border: none; border-radius: 8px; padding: 10px 20px; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 14px; display: inline-flex; align-items: center; gap: 8px; transition: background .15s; font-family: var(--font-body); }
+.next-btn:hover { background: #1d4ed8; }
+.skip-link { background: none; border: none; color: var(--slate-400); font-size: 12px; cursor: pointer; padding: 12px 0 0 10px; font-family: var(--font-body); }
+.skip-link:hover { color: var(--slate-600); }
+
+/* ── FOLLOW-UP ── */
+.followup-block { margin-top: 14px; border-top: 1px dashed var(--slate-200); padding-top: 14px; }
+.followup-label { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.followup-q { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+
+/* ── CALLOUTS ── */
+.callout { border-radius: var(--radius-sm); padding: 10px 12px; font-size: 12px; line-height: 1.5; margin-top: 10px; }
+.callout-info { background: #EFF6FF; color: #1D4ED8; border-left: 3px solid #2563EB; }
+.callout-warn { background: var(--amber-light); color: var(--amber); border-left: 3px solid var(--amber-border); }
+.callout-success { background: var(--green-light); color: var(--green); border-left: 3px solid var(--green); }
+
+/* ── GENERATE CTA ── */
+.generate-cta { display: none; background: var(--white); border: 2px solid var(--blue); border-radius: var(--radius-lg); padding: 28px 24px; text-align: center; box-shadow: var(--shadow-md); margin-top: 10px; }
+.generate-cta.visible { display: block; }
+.generate-cta h3 { font-size: 20px; font-weight: 800; color: var(--navy); margin-bottom: 6px; font-family: var(--font-display); }
+.generate-cta p { font-size: 13px; color: var(--slate-500); margin-bottom: 20px; line-height: 1.6; }
+.generate-btn { background: linear-gradient(135deg, var(--blue), var(--purple)); color: white; border: none; border-radius: 10px; padding: 14px 34px; font-size: 15px; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; box-shadow: 0 4px 18px rgba(37,99,235,.3); transition: opacity .15s; font-family: var(--font-body); }
+.generate-btn:hover { opacity: .9; }
+.generate-cta .demo-note { font-size: 11px; color: var(--amber); margin-top: 12px; font-weight: 600; }
+
+/* ── DATA PANEL ── */
+.data-panel { background: var(--white); border: 1.5px solid var(--slate-200); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); position: sticky; top: 72px; }
+.panel-title { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
+.data-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--slate-100); }
+.data-item:last-child { border-bottom: none; margin-bottom: 0; }
+.data-key { font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
+.data-val { font-size: 12px; color: var(--slate-800); line-height: 1.4; }
+.data-val.empty { color: var(--slate-300); font-style: italic; }
+.data-val.filled { color: var(--navy); font-weight: 600; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+.animate-in { animation: fadeSlideIn .3s ease forwards; }
+
+/* ── GUIDE PANEL ── */
+.guide-btn { background: none; border: 1px solid var(--blue-light); border-radius: 6px; padding: 3px 10px; font-size: 11px; color: var(--blue); cursor: pointer; font-weight: 600; transition: all .15s; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-body); }
+.guide-btn:hover { background: var(--blue-soft); border-color: var(--blue); }
+.guide-panel { display: none; background: var(--blue-soft); border: 1px solid var(--blue-light); border-radius: var(--radius-md); padding: 10px 13px; font-size: 12px; color: var(--slate-700); line-height: 1.65; margin-bottom: 10px; }
+.guide-panel.open { display: block; }
+.guide-example { margin-top: 7px; font-size: 11px; color: var(--slate-500); font-style: italic; border-top: 1px solid var(--blue-light); padding-top: 6px; }
+
+/* ── ALTERNATIVE SELECTION ── */
+.alt-card { cursor: default; }
+.alt-header-row { cursor: pointer; display: flex; align-items: flex-start; gap: 12px; width: 100%; user-select: none; }
+.alt-header-row:hover .alt-check { border-color: var(--blue); }
+.alt-card.alt-selected { border-color: var(--blue); background: var(--blue-soft); }
+.alt-card.alt-selected .alt-num { background: var(--blue); color: white; }
+.alt-card.alt-preferred { border-color: #059669 !important; background: #ECFDF5 !important; }
+.alt-card.alt-preferred .alt-num { background: #059669 !important; color: white !important; }
+.alt-check { width: 18px; height: 18px; border: 2px solid var(--slate-300); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 11px; margin-top: 4px; transition: all .15s; color: transparent; }
+.alt-card.alt-selected .alt-check { background: var(--blue); border-color: var(--blue); color: white; }
+.alt-card.alt-preferred .alt-check { background: #059669 !important; border-color: #059669 !important; color: white !important; }
+.alt-prefer-row { display: flex; align-items: center; justify-content: flex-end; margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--slate-200); }
+.alt-prefer-btn { background: none; border: 1px solid var(--slate-200); border-radius: 6px; padding: 4px 11px; font-size: 11px; cursor: pointer; color: var(--slate-500); transition: all .15s; font-family: var(--font-body); }
+.alt-prefer-btn:hover { border-color: #059669; color: #059669; background: #F0FDF4; }
+.alt-prefer-btn.is-preferred { background: #D1FAE5; border-color: #059669; color: #065F46; font-weight: 700; }
+
+/* ── GROUPED CHIPS ── */
+.group-section { margin-bottom: 12px; }
+.group-label { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 5px; display: block; }
+
+/* ── KPI TILES (card style with descriptions) ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 8px; margin-top: 8px; }
+.kpi-tile { border: 1.5px solid var(--slate-200); border-radius: 10px; padding: 10px 12px; cursor: pointer; transition: all .15s; background: var(--white); user-select: none; }
+.kpi-tile:hover { border-color: var(--blue); background: var(--blue-soft); }
+.kpi-tile.selected { border-color: var(--blue); background: var(--blue-light); }
+.kpi-tile-icon { font-size: 18px; margin-bottom: 4px; }
+.kpi-tile-label { font-size: 12px; font-weight: 700; color: var(--navy); line-height: 1.3; }
+.kpi-tile-desc { font-size: 10px; color: var(--slate-500); margin-top: 3px; line-height: 1.4; }
+.kpi-tile.selected .kpi-tile-label { color: var(--blue); }
+.kpi-tile.selected .kpi-tile-desc { color: var(--blue); opacity: .8; }
+
+/* ── STATUS QUO COST-OF-INACTION CALCULATOR ── */
+.coi-section { margin-top: 10px; background: var(--amber-bg); border: 1px solid var(--amber-border); border-radius: 10px; overflow: hidden; }
+.coi-toggle { display: flex; align-items: center; justify-content: space-between; padding: 9px 13px; cursor: pointer; font-size: 12px; font-weight: 700; color: var(--amber); user-select: none; }
+.coi-toggle:hover { background: var(--amber-light); }
+.coi-body { display: none; padding: 0 13px 13px; }
+.coi-body.open { display: block; }
+.coi-row { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; flex-wrap: wrap; }
+.coi-row-label { font-size: 11px; color: var(--slate-600); font-weight: 600; min-width: 200px; }
+.coi-multiplier { font-size: 12px; color: var(--slate-400); font-weight: 700; }
+.coi-input { border: 1.5px solid var(--slate-200); border-radius: 6px; padding: 5px 8px; font-size: 12px; font-family: var(--font-body); width: 110px; }
+.coi-input:focus { outline: none; border-color: var(--amber-border); }
+.coi-hint { font-size: 10px; color: var(--slate-400); font-style: italic; }
+.coi-total-bar { display: flex; align-items: center; justify-content: space-between; padding: 9px 0 6px; border-top: 1px solid var(--amber-border); margin-top: 6px; }
+.coi-total-label { font-size: 12px; font-weight: 700; color: var(--amber); }
+.coi-total-value { font-size: 15px; font-weight: 800; color: var(--amber); }
+.coi-use-btn { width: 100%; background: var(--amber-border); color: white; border: none; border-radius: 6px; padding: 7px 0; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--font-body); margin-top: 6px; transition: opacity .15s; }
+.coi-use-btn:hover { opacity: .88; }
+
+/* ── FIELD HELP ICONS ── */
+.field-label-row { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; }
+.field-help-wrap { position: relative; display: inline-block; }
+.field-help-icon { width: 14px; height: 14px; border-radius: 50%; background: var(--slate-200); color: var(--slate-500); font-size: 8px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border: none; font-family: var(--font-body); transition: all .15s; line-height: 1; flex-shrink: 0; }
+.field-help-icon:hover { background: var(--blue); color: white; }
+.field-help-panel { display: none; position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: var(--navy); color: white; font-size: 11px; line-height: 1.5; padding: 8px 11px; border-radius: 8px; width: 240px; z-index: 20; box-shadow: var(--shadow-md); }
+.field-help-panel::after { content:''; position:absolute; top:100%; left:50%; transform:translateX(-50%); border:5px solid transparent; border-top-color:var(--navy); }
+.field-help-panel.open { display: block; }
+
+/* ── PROMPT SCAFFOLD ── */
+.scaffold-label { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+.prompt-scaffold { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+.prompt-chip { background: none; border: 1px dashed var(--slate-300); border-radius: 15px; padding: 3px 10px; font-size: 11px; color: var(--slate-500); cursor: pointer; font-family: var(--font-body); transition: all .15s; }
+.prompt-chip:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-soft); border-style: solid; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <a class="brand" href="/">
+    <div class="brand-icon">✦</div>
+    <div class="brand-name">BCA.AI</div>
+  </a>
+  <span class="topbar-sep">/</span>
+  <span class="topbar-title">Conversational Intake</span>
+  <div class="topbar-spacer"></div>
+  <button class="demo-trigger-btn" id="demoTriggerBtn" onclick="startDemo()">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Try Demo — AAFES Scenario
+  </button>
+</div>
+
+<!-- DEMO BANNER -->
+<div class="demo-banner" id="demoBanner">
+  <span class="demo-badge">Demo Mode</span>
+  <span class="demo-banner-text">Showing: AAFES Retail POS Modernisation — explore what to expect without entering real data</span>
+  <button class="demo-clear-btn" onclick="clearDemo()">✕ Clear Demo</button>
+</div>
+
+<!-- PAGE LAYOUT -->
+<div class="page-layout">
+  <div class="main-col">
+
+    <!-- PROGRESS -->
+    <div class="progress-bar">
+      <div class="progress-top">
+        <span class="progress-label-text">Building your business case</span>
+        <span class="progress-pct" id="progressPct">0 of 14 complete</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- CHAT STREAM -->
+    <div class="chat-stream" id="chatStream"></div>
+
+    <!-- GENERATE CTA -->
+    <div class="generate-cta" id="generateCta">
+      <h3>Ready to build your business case</h3>
+      <p>All key information collected.<br>BCA.AI will run Discovery → Financials → Traceability → Ranking → Report.</p>
+      <button class="generate-btn" onclick="submitIntake()">
+        Generate Business Case Analysis
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      <div class="demo-note" id="demoNote" style="display:none;">Demo Mode — no real analysis will run. Click to see what submitting looks like.</div>
+    </div>
+
+  </div>
+
+  <!-- DATA PANEL -->
+  <div class="data-panel">
+    <div class="panel-title">📋 Data Collected</div>
+    <div class="data-item">
+      <div class="data-key">Project</div>
+      <div class="data-val empty" id="dp-projectTitle">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">Role / Org</div>
+      <div class="data-val empty" id="dp-role">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">Key Pain</div>
+      <div class="data-val empty" id="dp-pain">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">Urgency</div>
+      <div class="data-val empty" id="dp-urgency">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">Budget</div>
+      <div class="data-val empty" id="dp-budget">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">Timeline</div>
+      <div class="data-val empty" id="dp-timeline">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">KPIs</div>
+      <div class="data-val empty" id="dp-kpis">Not yet entered</div>
+    </div>
+    <div class="data-item">
+      <div class="data-key">Compliance</div>
+      <div class="data-val empty" id="dp-compliance">Not yet entered</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════
+let _demoMode = false;
+let _collectedData = {};
+let _selectedCompliance = [];
+let _answeredCount = 0;
+const TOTAL_Q = 14;
+
+// ════════════════════════════════════════════════════════
+// DEMO SCENARIO — AAFES POS MODERNISATION
+// ════════════════════════════════════════════════════════
+const DEMO_SCENARIOS = [
+  {
+    id: 'aafes-pos',
+    label: 'AAFES — Retail POS Modernisation',
+    answers: {
+      role: 'IT Program Manager',
+      businessUnit: 'Retail Operations',
+      industry: 'government-retail',
+      orgName: 'AAFES (Army & Air Force Exchange Service)',
+      projectTitle: 'Retail POS System Modernization — 312 Exchange Locations',
+      symptoms: ['end-of-life', 'compliance-risk', 'performance-degradation'],
+      currentState: 'Our retail POS system runs on Windows Server 2012 R2 which reached end-of-life in October 2023. The system crashes 2–3 times per month during peak hours — weekends, military paydays, and holidays — with each incident taking 45–90 minutes to recover. Each outage costs approximately $45,000 in lost sales across affected locations. Additionally, our inability to process mobile or contactless payments is a growing friction point for service members and dependants.',
+      urgency: 'immediate',
+      urgencyDriver: 'PCI-DSS v4.0 audit window opens March 2025 — current system will fail certification. A third consecutive audit finding would trigger mandatory DoD remediation programme with potential service suspension at non-compliant locations.',
+      alternativesTried: 'Applied emergency patches twice (each requiring 4-hour maintenance windows). Upgraded server RAM. Engaged original vendor for extended support — confirmed unavailable for Windows Server 2012. Evaluated OS-only upgrade to Server 2019 but POS client is incompatible. Explored managed service workaround — rejected due to ITAR data residency requirements.',
+      kpis: ['system-uptime', 'transaction-speed', 'mobile-payment', 'compliance-status'],
+      kpiTargets: 'System uptime: 99.9% (current: 96.2%). Transaction speed: <2 seconds (current avg: 8.3s). Mobile/contactless: 100% location coverage. PCI-DSS: Level 1 certified by March 2025.',
+      stakeholders: 'Retail Operations: 312 CONUS and OCONUS exchange locations. Finance division: NAF capital budget accountability and ROI reporting. IT Security: DISA STIG compliance, ITAR requirements. DoD Audit Agency: third consecutive finding risk. Exchange Command HQ: enterprise-wide modernisation template.',
+      alternativeDetails: {
+        0: { cost: '540000',  timeline: 'Ongoing — no change' },
+        1: { cost: '180000',  timeline: '1–3 months' },
+        2: { cost: '620000',  timeline: '3–6 months' },
+        3: { cost: '1850000', timeline: '12–15 months' },
+        4: { cost: '3200000', timeline: '18 months' }
+      },
+      preferredAlternative: 4,
+      budget: '3200000',
+      headcount: '12',
+      revenue: '54000000',
+      discountRate: '8',
+      timeHorizon: '5',
+      fundType: 'naf',
+      techStack: ['windows-server', 'oracle-db', 'java', 'cisco'],
+      compliance: ['PCI-DSS v4.0', 'DoD STIG', 'DISA Requirements', 'ITAR'],
+      timeline: '18 months total. Phase 1 pilot (10 CONUS locations): Q2 FY2025. Phase 2 regional rollout (150 locations): Q3 FY2025. Phase 3 full deployment including OCONUS: Q4 FY2025.',
+      additionalContext: 'HQ has approved a NAF capital budget earmark contingent on approved BCA. Exchange Command intends this as the template for all future modernisations. Vendor must demonstrate CONUS and OCONUS deployment capability with ITAR compliance. Incumbent contract expires March 2025 — procurement timeline is critical.'
+    }
+  }
+  // Future scenarios: add objects here — a scenario selector appears automatically when length > 1
+];
+
+// ════════════════════════════════════════════════════════
+// INDUSTRY-SPECIFIC SYMPTOM CARDS
+// ════════════════════════════════════════════════════════
+const SYMPTOM_CARDS = {
+  'government-retail': [
+    { id:'end-of-life',             icon:'⚠️', title:'End-of-Life / Out of Support',     desc:'System no longer receives security patches or vendor support — a known STIG / PCI violation.' },
+    { id:'compliance-risk',         icon:'⚖️', title:'Compliance / Audit Risk',           desc:'Open audit findings, PCI-DSS gaps, STIG non-compliance, or ITAR data residency issues.' },
+    { id:'performance-degradation', icon:'📉', title:'Performance Degradation',            desc:'Crashes, slow response times, or frequent outages degrading service to military members.' },
+    { id:'mission-readiness',       icon:'🎖️', title:'Mission Readiness Impact',          desc:'System failures affecting ability to serve service members, especially during deployments.' },
+    { id:'surge-demand',            icon:'📈', title:'Payday / Holiday Surge Failures',   desc:'System fails on military paydays, holidays, or PCS move periods — highest-cost outages.' },
+    { id:'no-mobile',               icon:'📱', title:'No Mobile / Contactless',            desc:'Cannot accept Apple Pay, Google Pay, or NFC — growing friction for service members under 35.' },
+    { id:'manual-processes',        icon:'📋', title:'Manual / Paper Processes',           desc:'High reliance on manual workarounds, paper reconciliation, and constant staff retraining.' },
+    { id:'data-silos',              icon:'🗄️', title:'Data Silos / No Visibility',        desc:'Inventory, sales, finance, and audit data not connected — no real-time enterprise view.' },
+    { id:'oconus-connectivity',     icon:'🌐', title:'OCONUS / Remote Connectivity',      desc:'Korea, Germany, Guam & Pacific locations experience network failures cascading to POS outages.' },
+    { id:'inventory-shrinkage',     icon:'🔍', title:'Inventory Shrinkage & Gaps',        desc:'Cannot track losses, variances, or stock levels accurately across all locations in real time.' },
+    { id:'no-omnichannel',          icon:'🔗', title:'No Omnichannel / E-Commerce Sync',  desc:'ShopMyExchange.com and in-store systems don\'t share inventory, customer, or order data.' },
+    { id:'payment-failures',        icon:'💳', title:'Payment / Military Star Failures',  desc:'Military Star ECP or credit card processing errors causing transaction failures or delays.' },
+    { id:'vendor-contract-risk',    icon:'📄', title:'Vendor / Contract Risk',            desc:'Incumbent contract expiring, vendor no longer viable, or procurement overdue.' },
+    { id:'reporting-gaps',          icon:'📊', title:'Reporting & Finance Visibility',    desc:'Finance and audit teams can\'t access real-time data — manual reporting is error-prone and delayed.' },
+    { id:'security-vulnerability',  icon:'🛡️', title:'Security Vulnerabilities',          desc:'Known CVEs or unpatched vulnerabilities that DISA/STIG assessments will flag as critical findings.' }
+  ],
+  'commercial-retail': [
+    { id:'cart-abandonment',  icon:'🛒', title:'High Cart Abandonment',    desc:'Customers leaving before completing purchase' },
+    { id:'end-of-life',       icon:'⚠️', title:'End-of-Life Platform',     desc:'System no longer supported by vendor' },
+    { id:'compliance-risk',   icon:'⚖️', title:'PCI / GDPR Risk',          desc:'Payment card data or customer privacy gaps' },
+    { id:'slow-checkout',     icon:'⏱️', title:'Slow Checkout Experience', desc:'Long queues or slow transaction processing' },
+    { id:'no-omnichannel',    icon:'🔗', title:'No Omnichannel',           desc:'Online and in-store systems don\'t sync' },
+    { id:'inventory',         icon:'📦', title:'Inventory Inaccuracy',     desc:'Stock levels don\'t match real-world quantities' },
+    { id:'no-analytics',      icon:'📊', title:'No Customer Analytics',   desc:'Can\'t track behaviour, personalise, or forecast demand' },
+    { id:'manual-processes',  icon:'📋', title:'Manual Processes',         desc:'Too much staff time on reconciliation and manual tasks' }
+  ],
+  'default': [
+    { id:'end-of-life',            icon:'⚠️', title:'End-of-Life System',      desc:'System no longer receives vendor support or patches' },
+    { id:'performance-degradation',icon:'📉', title:'Performance Issues',        desc:'Crashes, slowness, or frequent downtime' },
+    { id:'compliance-risk',        icon:'⚖️', title:'Compliance Risk',           desc:'Regulatory gaps or audit findings' },
+    { id:'no-mobile',              icon:'📱', title:'No Mobile Capability',      desc:'Lacks modern mobile or remote access' },
+    { id:'manual-processes',       icon:'📋', title:'Manual Processes',          desc:'High reliance on manual workarounds' },
+    { id:'data-silos',             icon:'🗄️', title:'Data Silos',               desc:'Systems don\'t connect or share data' },
+    { id:'cost',                   icon:'💸', title:'High Operating Cost',       desc:'Expensive to maintain, license, or run' },
+    { id:'scalability',            icon:'📈', title:"Can't Scale",               desc:'System breaks under increased load or growth' }
+  ]
+};
+
+// ════════════════════════════════════════════════════════
+// INDUSTRY-SPECIFIC KPI TILES
+// ════════════════════════════════════════════════════════
+const KPI_TILES = {
+  'government-retail': [
+    {id:'system-uptime',       label:'System Uptime',           icon:'🟢', desc:'% of time POS is live. Each % below 100% = quantifiable lost sales during every outage window.'},
+    {id:'transaction-speed',   label:'Transaction Speed',       icon:'⚡', desc:'Seconds per completed sale. >5s causes queue abandonment, especially during military payday surges.'},
+    {id:'mobile-payment',      label:'Mobile / Contactless',    icon:'📱', desc:'% of locations accepting Apple Pay, Google Pay & NFC. Growing expectation among younger service members.'},
+    {id:'compliance-status',   label:'Compliance Status',       icon:'✅', desc:'PCI-DSS / STIG certification level. Non-compliance = audit findings + potential service suspension.'},
+    {id:'mission-readiness',   label:'Mission Readiness',       icon:'🎖️', desc:'Ability to serve military members without system disruptions at critical service moments (deployments, PCS, etc.).'},
+    {id:'inventory-accuracy',  label:'Inventory Accuracy',      icon:'📦', desc:'% variance between system vs. physical stock count. Drives shrinkage losses and overstock carrying cost.'},
+    {id:'staff-productivity',  label:'Staff Productivity',      icon:'👥', desc:'Time spent on manual POS workarounds vs. customer service. Measured in wasted hours per week × headcount.'},
+    {id:'customer-wait',       label:'Customer Wait Time',      icon:'⏱️', desc:'Average queue-to-checkout time. Industry benchmark: < 3 min. Directly tied to CSAT and repeat visit rates.'},
+    {id:'audit-findings',      label:'Audit Finding Count',     icon:'📋', desc:'Number of open DoD audit findings. Third consecutive finding triggers mandatory remediation programme.'},
+    {id:'pci-cert-level',      label:'PCI-DSS Certification',   icon:'🔐', desc:'Level 1 = highest assurance, required for >6M transactions/year. Failure = card brand fines + restrictions.'},
+    {id:'oconus-availability', label:'OCONUS Availability',     icon:'🌐', desc:'Uptime at Korea, Germany, Japan & Guam locations — affected by satellite/network latency unique to overseas ops.'},
+    {id:'naf-roi',             label:'NAF ROI / Payback',       icon:'📊', desc:'Return on NAF capital investment. Board approval typically requires payback period under 5 years.'},
+    {id:'shrinkage-rate',      label:'Shrinkage / Loss Rate',   icon:'🔍', desc:'% of inventory lost to theft, damage or error. Industry average 1.5% of retail sales. Directly measurable.'},
+    {id:'returns-time',        label:'Returns Processing Time', icon:'↩️', desc:'End-to-end time to process a customer return. Slow returns lower CSAT scores and increase staff workload.'},
+    {id:'self-checkout',       label:'Self-Checkout Adoption',  icon:'🖥️', desc:'% of transactions through self-checkout. Reduces labour cost per transaction by ~35% when working reliably.'},
+    {id:'ecommerce-volume',    label:'E-Commerce Orders',       icon:'🛒', desc:'Online orders via ShopMyExchange.com. Growing channel — requires real-time in-store inventory sync.'},
+    {id:'avg-tx-value',        label:'Avg Transaction Value',   icon:'💰', desc:'Average $ per completed sale. Proxy for upsell programme effectiveness and basket size trends.'},
+    {id:'patch-compliance',    label:'Patch Compliance Rate',   icon:'🛡️', desc:'% of systems running current security patches. DoD STIG requires 100% — every gap is a finding.'}
+  ],
+  'commercial-retail': [
+    {id:'cart-conversion',     label:'Cart Conversion',         icon:'🛒', desc:'% of sessions completing a purchase. Industry average: 2–4% online, 60%+ in-store. 1% lift = significant revenue.'},
+    {id:'page-load',           label:'Page Load Time',          icon:'⚡', desc:'Seconds to load product pages. Every 1s delay reduces conversions by ~7%. Google benchmark: < 2s.'},
+    {id:'inventory-accuracy',  label:'Inventory Accuracy',      icon:'📦', desc:'% variance between system and physical stock. Drives overselling, stockouts, and customer complaints.'},
+    {id:'nps',                 label:'Net Promoter Score',      icon:'⭐', desc:'Customer loyalty metric from -100 to +100. Retail benchmark: 40+. Directly tied to repeat purchase rate.'},
+    {id:'order-processing',    label:'Order Processing Time',   icon:'📋', desc:'Time from order placed to shipment confirmed. Customer expectation: same-day or next-day confirmation.'},
+    {id:'compliance-status',   label:'Compliance Status',       icon:'✅', desc:'PCI-DSS / GDPR / CCPA status. Non-compliance = regulatory fines + reputational damage.'},
+    {id:'revenue-tx',          label:'Revenue / Transaction',   icon:'💰', desc:'Average revenue per completed transaction. Tracks upsell effectiveness and basket size over time.'},
+    {id:'staff-hours',         label:'Staff Hours Saved',       icon:'👥', desc:'Weekly hours recovered from manual processes after system improvement. Converts to headcount cost savings.'}
+  ],
+  'default': [
+    {id:'system-uptime',       label:'System Uptime',           icon:'🟢', desc:'% of time system is operational. Each minute of downtime has a quantifiable cost to the organisation.'},
+    {id:'processing-speed',    label:'Processing Speed',        icon:'⚡', desc:'Time to complete core transactions. Bottlenecks here drive user frustration, errors, and downstream delays.'},
+    {id:'compliance-status',   label:'Compliance Status',       icon:'✅', desc:'Regulatory certification status. Non-compliance creates audit risk, potential penalties, and board liability.'},
+    {id:'cost-reduction',      label:'Cost Reduction',          icon:'💰', desc:'Annual savings from removing manual steps, redundant systems, or inefficient processes. Directly measurable.'},
+    {id:'productivity',        label:'Productivity',            icon:'👥', desc:'Output per person-hour. Modern systems typically yield 15–40% productivity gains for affected staff.'},
+    {id:'error-rate',          label:'Error Rate',              icon:'🎯', desc:'% of transactions requiring manual correction. Drives rework cost, customer dissatisfaction, and audit risk.'},
+    {id:'user-adoption',       label:'User Adoption',           icon:'📈', desc:'% of intended users actively using the system. Low adoption is the #1 reason IT investments fail to deliver value.'},
+    {id:'roi',                 label:'ROI',                     icon:'📊', desc:'Return on total investment over the analysis period. Most boards require > 150% ROI over 5 years.'}
+  ]
+};
+
+// ════════════════════════════════════════════════════════
+// INDUSTRY-SPECIFIC STAKEHOLDER GROUPS
+// ════════════════════════════════════════════════════════
+const STAKEHOLDER_GROUPS = {
+  'government-retail': [
+    { group: 'HQ Leadership & Governance',
+      chips: ['Commander & CEO','Board of Directors','Chief Operating Officer','Chief Financial Officer','Chief Information Officer','Inspector General','General Counsel / SJA','Public Affairs Office','Congressional Affairs'] },
+    { group: 'HQ Directorates & Functional Offices',
+      chips: ['Retail & Merchandise Directorate','Services Directorate','IT Operations Directorate','Cybersecurity / ISSM Office','Enterprise Architecture','Finance & Accounting Directorate','Human Resources Directorate','Logistics & Supply Chain Directorate','Loss Prevention & Security Directorate','Real Estate & Engineering Directorate','Marketing & Advertising Directorate','Strategic Planning Office','Contracting Directorate','Internal Audit Office','Risk & Compliance Office'] },
+    { group: 'Business Divisions',
+      chips: ['Main Store / Department Store Ops','ShopMyExchange.com (E-Commerce)','Food & Beverage Operations','Services (Barber, Beauty, Optical, Flower)','Gas Station / Car Care Centers','Auto Parts Division','Category Management','Merchandise Planning & Allocation'] },
+    { group: 'Regional & Installation Commands',
+      chips: ['CONUS Exchange Locations (310+)','Europe Region (Germany HQ — Kaiserslautern)','Pacific Region HQ (Seoul, Korea)','Japan Exchanges (Yokota, Misawa, Kadena)','Guam & Pacific Island Exchanges','Hawaii Exchanges','Alaska Exchanges','Central Region','Eastern Region','Western Region','Distribution Center — Dallas TX','Distribution Center — Europe (Germany)'] },
+    { group: 'External, Oversight & Customers',
+      chips: ['DoD Office of Inspector General (DODIG)','DISA (Defense Information Systems Agency)','DFAS (Defense Finance & Accounting Service)','DCMA (Defense Contract Management Agency)','PCI Security Standards Council','Army G-1 (Personnel & MWR)','Air Force A-1 (Personnel & Services)','Space Force S-1','Congressional Armed Services Committees','Service Members & Dependants','Retirees & Veterans','Franchise Partners (McDonald\'s, Burger King, etc.)'] }
+  ],
+  'commercial-retail': [
+    { group: 'Internal',
+      chips: ['Operations','Finance','IT','Marketing','HR','Legal','Executive Leadership','Internal Audit','Procurement'] },
+    { group: 'External',
+      chips: ['Customers','Regulators','Board of Directors','Investors','Vendors / Suppliers','External Auditors'] }
+  ],
+  'default': [
+    { group: 'Internal',
+      chips: ['Operations','Finance','IT Security','Legal / Compliance','HR','Audit','Executive Sponsor','Programme Management'] },
+    { group: 'External',
+      chips: ['Customers','Regulators','Board of Directors','External Auditors','Vendors / Partners'] }
+  ]
+};
+
+// ════════════════════════════════════════════════════════
+// AAFES-SPECIFIC TECH STACK GROUPS (11 categories, ~55 chips)
+// ════════════════════════════════════════════════════════
+const TECH_GROUPS = [
+  { group: 'POS & In-Store',
+    chips: [
+      {id:'ncr-pos',       l:'NCR RealPOS / Emerald'},
+      {id:'toshiba-pos',   l:'Toshiba TCx POS'},
+      {id:'verifone',      l:'Verifone Terminal'},
+      {id:'ingenico',      l:'Ingenico Terminal'},
+      {id:'zebra-handheld',l:'Zebra Mobile / Handheld'}
+    ]
+  },
+  { group: 'Merchandising & ERP',
+    chips: [
+      {id:'oracle-rms',    l:'Oracle Retail (RMS)'},
+      {id:'sap-erp',       l:'SAP ERP'},
+      {id:'jde',           l:'JD Edwards'},
+      {id:'ms-dynamics',   l:'Microsoft Dynamics'},
+      {id:'peoplesoft-erp',l:'PeopleSoft ERP'}
+    ]
+  },
+  { group: 'Supply Chain & Logistics',
+    chips: [
+      {id:'blue-yonder',   l:'Blue Yonder WMS'},
+      {id:'oracle-otm',    l:'Oracle OTM'},
+      {id:'manhattan',     l:'Manhattan Associates'},
+      {id:'sap-ewm',       l:'SAP EWM'},
+      {id:'jda-supply',    l:'JDA / Blue Yonder Planning'}
+    ]
+  },
+  { group: 'Finance & Accounting',
+    chips: [
+      {id:'oracle-fin',    l:'Oracle Financials (OFSS)'},
+      {id:'sap-fi',        l:'SAP FI/CO'},
+      {id:'peoplesoft-fin',l:'PeopleSoft Financials'},
+      {id:'concur',        l:'SAP Concur'},
+      {id:'blackline',     l:'BlackLine Reconciliation'}
+    ]
+  },
+  { group: 'Data & Analytics',
+    chips: [
+      {id:'oracle-bi',     l:'Oracle BI / OBIEE'},
+      {id:'tableau',       l:'Tableau'},
+      {id:'powerbi',       l:'Power BI'},
+      {id:'snowflake',     l:'Snowflake'},
+      {id:'cognos',        l:'IBM Cognos'}
+    ]
+  },
+  { group: 'E-Commerce & CRM',
+    chips: [
+      {id:'salesforce',    l:'Salesforce CRM'},
+      {id:'sap-commerce',  l:'SAP Commerce / Hybris'},
+      {id:'magento',       l:'Magento / Adobe Commerce'},
+      {id:'sfcc',          l:'Salesforce Commerce Cloud'},
+      {id:'shopify',       l:'Shopify Plus'}
+    ]
+  },
+  { group: 'Credit Card & Payments',
+    chips: [
+      {id:'military-star', l:'Military Star / ECP'},
+      {id:'first-data',    l:'First Data / Fiserv'},
+      {id:'worldpay',      l:'Worldpay'},
+      {id:'stripe',        l:'Stripe'},
+      {id:'paypal',        l:'PayPal / Braintree'}
+    ]
+  },
+  { group: 'Workforce Management',
+    chips: [
+      {id:'ukgkronos',     l:'UKG / Kronos'},
+      {id:'workday',       l:'Workday HCM'},
+      {id:'adp',           l:'ADP Workforce'},
+      {id:'peoplesoft-hr', l:'PeopleSoft HCM'}
+    ]
+  },
+  { group: 'DoD Infrastructure',
+    chips: [
+      {id:'disa-milsuite', l:'DISA MilSuite'},
+      {id:'niprnet',       l:'NIPRNet'},
+      {id:'siprnet',       l:'SIPRNet'},
+      {id:'dod365',        l:'DoD Microsoft 365'},
+      {id:'cac-piv',       l:'CAC / PIV Authentication'}
+    ]
+  },
+  { group: 'Languages & Runtimes',
+    chips: [
+      {id:'java',          l:'Java'},
+      {id:'dotnet',        l:'.NET / C#'},
+      {id:'python',        l:'Python'},
+      {id:'nodejs',        l:'Node.js'},
+      {id:'plsql',         l:'T-SQL / PL-SQL'}
+    ]
+  },
+  { group: 'Infrastructure & Cloud',
+    chips: [
+      {id:'windows-server',l:'Windows Server'},
+      {id:'linux',         l:'Linux / RHEL'},
+      {id:'oracle-db',     l:'Oracle DB'},
+      {id:'sql-server',    l:'SQL Server'},
+      {id:'aws-gov',       l:'AWS GovCloud'},
+      {id:'azure-gov',     l:'Azure Government'},
+      {id:'on-prem',       l:'On-Premise / Data Centre'},
+      {id:'cisco',         l:'Cisco Network'},
+      {id:'vmware',        l:'VMware / vSphere'},
+      {id:'m365',          l:'M365 / SharePoint'}
+    ]
+  }
+];
+
+// ════════════════════════════════════════════════════════
+// QUESTION DEFINITIONS (14 questions)
+// ════════════════════════════════════════════════════════
+const QUESTIONS = [
+  { id:'q1',  step:1,  title:"Who are you and what's your organisation?",
+    hint:"This shapes the analysis — industry-specific symptoms, KPIs, and compliance requirements load based on your answers.",
+    type:'q1-org',
+    guide:"Your role tells BCA.AI how to weight financial vs. technical arguments. Your industry loads the right symptom cards, KPI options, and compliance requirements specific to your sector.",
+    guideExample:"IT Program Manager · Retail Operations · AAFES — loads government retail frameworks, STIG/PCI requirements, and mission-readiness KPIs." },
+  { id:'q2',  step:2,  title:"What's the name of this initiative?",
+    hint:"Name the capability or outcome, not the vendor. Include scope if relevant (# of locations, users, etc.)",
+    type:'text', field:'projectTitle',
+    placeholder:'e.g. Retail POS System Modernization — 312 Exchange Locations',
+    guide:"Use the outcome or capability name, not a vendor or technology name. Include scope indicators (number of locations, users, or value at stake) — this becomes the document title across all BCA outputs.",
+    guideExample:"Retail POS System Modernization — 312 Exchange Locations  (not 'NCR POS Upgrade')" },
+  { id:'q3',  step:3,  title:"What's causing the pain? Pick everything that applies.",
+    hint:"Select all that describe your situation — more context produces more targeted analysis.",
+    type:'symptoms', field:'symptoms',
+    guide:"Select every symptom that applies — even partial ones. Each selection activates specific risk models and cost-of-inaction calculations. Combining End-of-Life + Compliance Risk, for example, compounds the urgency score and triggers joint mitigation recommendations.",
+    guideExample:"End-of-Life + Compliance Risk + Performance Degradation → BCA models the combined 5-year risk cost and flags joint remediation opportunities." },
+  { id:'q4',  step:4,  title:"Tell me more about the problem.",
+    hint:"Be specific: name the system, the metric that's degrading, and the business impact in dollars if possible.",
+    type:'textarea', field:'currentState', rows:5,
+    placeholder:'e.g. Our POS system on Windows Server 2012 R2 crashes 2–3 times per month during peak hours, costing ~$45K per incident...',
+    guide:"The most valuable answers name the specific system, cite a metric that's degrading, and attach a dollar figure to the pain. This becomes the narrative anchor for every section of the analysis — the more precise, the more persuasive the output.",
+    guideExample:"Our POS runs on Windows Server 2012 R2 (EOL Oct 2023). Crashes 2–3× per month during peak hours. Each outage = 45–90 min recovery, ~$45,000 in lost sales across affected locations.",
+    promptScaffold: true },
+  { id:'q5',  step:5,  title:"How urgent is this?",
+    hint:"Urgency affects which alternatives we emphasise and the risk profile of each option.",
+    type:'urgency',
+    guide:"Urgency directly affects which alternatives the analysis emphasises and how prominently risk is featured. Immediate urgency (< 3 months) triggers compliance and continuity risk modelling. Name the specific event — a deadline, audit window, or contract expiry — driving it.",
+    guideExample:"PCI-DSS v4.0 audit window opens March 2025. A third consecutive finding triggers mandatory DoD remediation with potential service suspension." },
+  { id:'q6',  step:6,  title:"What have you already tried?",
+    hint:"This prevents us from recommending solutions you've already ruled out.",
+    type:'tried', field:'alternativesTried',
+    placeholder:'e.g. Applied emergency patches twice, evaluated an OS upgrade, contacted vendor for extended support...',
+    guide:"This prevents the analysis from recommending options you've already ruled out. It also demonstrates due diligence — important for audit trails and board approval. Be specific about why each attempt failed or was insufficient.",
+    guideExample:"Applied emergency patches twice (4-hr maintenance windows each). Vendor confirmed no extended support for Windows Server 2012. OS-only upgrade to 2019 failed — POS client incompatible." },
+  { id:'q7',  step:7,  title:"What does success look like? Pick your top Key Performance Indicators.",
+    hint:"Select the metrics that matter most to your stakeholders — targets can be added below.",
+    type:'kpis', field:'kpis',
+    guide:"These KPIs become the measurable outcomes in your business case. Select your top 3–5. After selecting, you can add specific current vs. target values — this data powers the benefit calculation in the financials section and the traceability matrix.",
+    guideExample:"System Uptime: 99.9% target (from current 96.2%). Transaction Speed: <2s (from avg 8.3s). PCI-DSS: Level 1 certified by March 2025." },
+  { id:'q8',  step:8,  title:"Who else is affected by this problem?",
+    hint:"Name departments, teams, or external parties — and how they're impacted.",
+    type:'stakeholders', field:'stakeholders',
+    placeholder:'e.g. Operations: 312 store locations. Finance: NAF capital accountability. IT Security: STIG compliance...',
+    guide:"List every team, division, or external party impacted — and how. Stakeholders who experience pain are allies in your approval process. External parties (auditors, regulators) add urgency. Each named stakeholder strengthens the business justification and appears in the RACI matrix.",
+    guideExample:"Finance: NAF capital accountability and ROI reporting. IT Security: DISA STIG compliance. DoD Audit Agency: third consecutive finding risk." },
+  { id:'q9',  step:9,  title:"Let's map your options — every CFO will ask about these.",
+    hint:"These 5 alternatives are always evaluated in a business case. Select the ones you want modelled, then mark your preferred recommendation.",
+    type:'alternatives',
+    guide:"Every robust business case evaluates all five alternatives — including doing nothing. Option 0 (Status Quo) cost is often the most persuasive number: the annual cost of inaction. Select which options to model, enter cost/timeline estimates for what you know, and mark your recommended option with ⭐.",
+    guideExample:"Status Quo: $540K/yr ongoing (downtime + compliance risk). Full Replacement: $3.2M / 18 months. BCA will calculate 5-year NPV, ROI, and payback for all selected options." },
+  { id:'q10', step:10, title:"Budget & financial parameters.",
+    hint:"Used to calculate ROI, NPV, and payback period. Estimates are fine — the model shows sensitivity.",
+    type:'financials',
+    guide:"These parameters drive the NPV, ROI, and payback period calculations. Estimates are acceptable — the model shows sensitivity ranges. For government/military projects, select the appropriate fund type (NAF/APF) as it affects how ROI is framed for approval bodies.",
+    guideExample:"$3.2M budget, $54M annual revenue, 12 staff impacted. 5-year horizon, 8% discount rate. NAF fund type — relevant for AAFES capital budget approval." },
+  { id:'q11', step:11, title:"What's your current tech stack?",
+    hint:"Helps identify integration complexity and vendor compatibility constraints.",
+    type:'techstack', field:'techStack',
+    guide:"Your existing tech stack determines integration complexity, migration risk, and vendor compatibility. Select everything currently in production — even legacy systems. This becomes the integration requirements section of the BRD and helps filter vendors that can't support your environment.",
+    guideExample:"Windows Server 2012, Oracle DB, Java POS client, Cisco network — flags legacy migration complexity, Java continuity requirements, and Oracle integration constraints." },
+  { id:'q12', step:12, title:"Any compliance or regulatory requirements?",
+    hint:"These become mandatory requirements in the BCA — not nice-to-haves.",
+    type:'compliance', field:'compliance',
+    guide:"These become mandatory requirements — not recommendations — in every option evaluated. Missing a compliance requirement is a common reason BCAs get rejected at review. Select all that apply, including standards you are working toward achieving.",
+    guideExample:"PCI-DSS v4.0 + DoD STIG + ITAR → filters out any vendor or architecture that can't meet all three simultaneously." },
+  { id:'q13', step:13, title:"What's your timeline expectation?",
+    hint:"When does this need to be live? Any hard deadlines or milestone dates?",
+    type:'timeline', field:'timeline',
+    placeholder:'e.g. Phase 1 pilot (10 locations) by Q2 FY2025. Full rollout by Q4 FY2025. Hard deadline: March 2025 audit.',
+    guide:"Set realistic expectations — not aspirational ones. If you have a hard deadline (audit window, contract expiry, legislation effective date), name it explicitly. Phased timelines are modelled more accurately than single-date targets.",
+    guideExample:"Phase 1 pilot (10 CONUS locations): Q2 FY2025. Full rollout including OCONUS: Q4 FY2025. Hard deadline: PCI audit March 2025." },
+  { id:'q14', step:14, title:"Anything else the analysis should know? (Optional)",
+    hint:"Budget constraints, political context, key dependencies, things to avoid — anything that shapes the recommendation.",
+    type:'textarea', field:'additionalContext', rows:3, optional:true,
+    placeholder:'e.g. HQ has pre-approved the NAF capital budget earmark. Vendor must be ITAR compliant...',
+    guide:"This is your chance to flag anything that would change the recommendation — pre-approved budgets, political context, key dependencies, or things to avoid. The analysis is only as good as the context you provide. This section often becomes the 'Assumptions & Constraints' section of the BRD.",
+    guideExample:"HQ has pre-approved NAF capital budget earmark contingent on approved BCA. Incumbent contract expires March 2025 — procurement timeline is critical. Vendor must demonstrate ITAR compliance." }
+];
+
+// ════════════════════════════════════════════════════════
+// RENDER ENGINE
+// ════════════════════════════════════════════════════════
+function renderQuestion(q) {
+  const stream = document.getElementById('chatStream');
+  if (document.getElementById('qcard-' + q.id)) return document.getElementById('qcard-' + q.id);
+
+  const card = document.createElement('div');
+  card.className = 'q-card';
+  card.id = 'qcard-' + q.id;
+
+  const guideHtml = q.guide ? `
+    <div style="margin-bottom:8px">
+      <button class="guide-btn" onclick="toggleGuide('${q.id}')">💡 Guide Me</button>
+      <div class="guide-panel" id="guide-${q.id}">
+        ${q.guide}
+        ${q.guideExample ? `<div class="guide-example">Example: ${q.guideExample}</div>` : ''}
+      </div>
+    </div>` : '';
+
+  card.innerHTML = `
+    <div class="q-header">
+      <div class="q-step-badge">${q.step || '↪'}</div>
+      <div style="flex:1">
+        <div class="q-text">${q.title}</div>
+        ${q.hint ? `<div class="q-hint">${q.hint}</div>` : ''}
+      </div>
+    </div>
+    <div class="q-body" id="qbody-${q.id}">${guideHtml}${renderBody(q)}</div>
+    <div class="q-answered-preview" id="qpreview-${q.id}">
+      <div class="q-preview-text" id="qpreview-text-${q.id}"></div>
+      <button class="q-edit-btn" onclick="editQuestion('${q.id}')">Edit</button>
+    </div>
+  `;
+  stream.appendChild(card);
+
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    card.classList.add('visible');
+    if (q.step) card.classList.add('current');
+  }));
+  return card;
+}
+
+function renderBody(q) {
+  switch (q.type) {
+    case 'q1-org':     return renderQ1();
+    case 'text':       return renderText(q);
+    case 'textarea':   return renderTextarea(q);
+    case 'symptoms':   return renderSymptoms();
+    case 'urgency':    return renderUrgency();
+    case 'tried':      return renderTried(q);
+    case 'kpis':       return renderKpis();
+    case 'stakeholders': return renderStakeholders(q);
+    case 'alternatives': return renderAlternatives();
+    case 'financials': return renderFinancials();
+    case 'techstack':  return renderTechStack();
+    case 'compliance': return renderCompliance();
+    case 'timeline':   return renderTimeline(q);
+    default:           return renderTextarea(q);
+  }
+}
+
+// ── Q1 — Org & Role ──────────────────────────────────
+function renderQ1() {
+  return `
+    <div class="field-row">
+      <div class="field-group">
+        <label class="field-label">Your Role</label>
+        <input class="field-input" id="inp-role" placeholder="e.g. IT Program Manager, CFO, Ops Director"
+          oninput="_collectedData.role=this.value">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Business Unit</label>
+        <input class="field-input" id="inp-businessUnit" placeholder="e.g. Retail Operations, Finance, IT"
+          oninput="_collectedData.businessUnit=this.value">
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Industry</label>
+      <div class="tile-grid" id="industry-tiles">
+        ${[
+          {id:'government-retail', label:'Govt / Military Retail', icon:'🏛️'},
+          {id:'commercial-retail', label:'Commercial Retail', icon:'🛍️'},
+          {id:'logistics', label:'Logistics & Supply Chain', icon:'🚚'},
+          {id:'financial', label:'Financial Services', icon:'🏦'},
+          {id:'healthcare', label:'Healthcare', icon:'🏥'},
+          {id:'manufacturing', label:'Manufacturing', icon:'🏭'},
+          {id:'technology', label:'Technology', icon:'💻'},
+          {id:'other', label:'Other', icon:'⚙️'}
+        ].map(o => `<div class="tile" id="industry-${o.id}" onclick="selectIndustry('${o.id}')">${o.icon} ${o.label}</div>`).join('')}
+      </div>
+    </div>
+    <div class="followup-block" id="q1-fu-orgname" style="display:none">
+      <div class="followup-label">↳ Follow-up</div>
+      <div class="followup-q">Which specific exchange or organisation?</div>
+      <input class="field-input" id="inp-orgName" placeholder="e.g. AAFES, NEXCOM, Marine Corps Exchange"
+        oninput="_collectedData.orgName=this.value">
+    </div>
+    <div style="margin-top:14px">
+      <button class="next-btn" onclick="advanceQ1()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Simple text ──────────────────────────────────────
+function renderText(q) {
+  return `
+    <input class="field-input" id="inp-${q.field}" placeholder="${q.placeholder||''}"
+      oninput="_collectedData['${q.field}']=this.value">
+    <div style="margin-top:12px">
+      <button class="next-btn" onclick="advanceText('${q.id}','${q.field}')">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Textarea ─────────────────────────────────────────
+function renderTextarea(q) {
+  const scaffoldHtml = q.promptScaffold ? `
+    <div style="margin-bottom:8px">
+      <div class="scaffold-label">Build your description — click a prompt, then fill in the brackets:</div>
+      <div class="prompt-scaffold">
+        <button class="prompt-chip" onclick="injectPrompt('inp-${q.field}','Our [SYSTEM NAME] runs on [PLATFORM / VERSION]. ')">📟 Name the system</button>
+        <button class="prompt-chip" onclick="injectPrompt('inp-${q.field}','The key metric failing is [METRIC] — currently [CURRENT VALUE], should be [TARGET VALUE]. ')">📉 The metric</button>
+        <button class="prompt-chip" onclick="injectPrompt('inp-${q.field}','Each incident costs approximately $[AMOUNT] in [lost sales / downtime / labour costs]. ')">💰 Dollar impact</button>
+        <button class="prompt-chip" onclick="injectPrompt('inp-${q.field}','This affects [X locations / X users / X business units] across [SCOPE]. ')">📍 Scope it</button>
+        <button class="prompt-chip" onclick="injectPrompt('inp-${q.field}','We must resolve this by [DATE] because [DEADLINE / REASON]. ')">⏰ Hard deadline</button>
+        <button class="prompt-chip" onclick="injectPrompt('inp-${q.field}','Additionally, [OTHER IMPACT OR SECONDARY EFFECT]. ')">➕ Add more</button>
+      </div>
+    </div>` : '';
+  return `
+    ${scaffoldHtml}
+    <textarea class="field-textarea" id="inp-${q.field}" placeholder="${q.placeholder||''}" rows="${q.rows||4}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,200)+'px';_collectedData['${q.field}']=this.value"></textarea>
+    <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+      <button class="next-btn" onclick="advanceSimple('${q.id}','${q.field}')">
+        ${q.optional?'Continue (optional)':'Continue'} <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+      ${q.optional?`<button class="skip-link" onclick="skipQ('${q.id}')">Skip →</button>`:''}
+    </div>`;
+}
+
+// ── Symptom cards ─────────────────────────────────────
+function renderSymptoms() {
+  const industry = _collectedData.industry || 'default';
+  const cards = SYMPTOM_CARDS[industry] || SYMPTOM_CARDS['default'];
+  return `
+    <div class="symptom-grid" id="symptom-grid">
+      ${cards.map(c => `
+        <div class="symptom-card" id="symptom-${c.id}" onclick="toggleSymptom('${c.id}')">
+          <div class="sc-icon">${c.icon}</div>
+          <div class="sc-title">${c.title}</div>
+          <div class="sc-desc">${c.desc}</div>
+        </div>`).join('')}
+    </div>
+    <div class="callout callout-info" style="margin-top:12px">💡 Select all that apply — more context = more targeted recommendations.</div>
+    <div style="margin-top:12px">
+      <button class="next-btn" onclick="advanceSymptoms()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Urgency tiles ─────────────────────────────────────
+function renderUrgency() {
+  return `
+    <div class="tile-grid" id="urgency-tiles" style="flex-direction:column">
+      ${[
+        {id:'immediate', label:'🔴 Immediate', sub:'< 3 months — compliance or system failure risk'},
+        {id:'high',      label:'🟠 High',      sub:'3–6 months — significant operational impact'},
+        {id:'medium',    label:'🟡 Medium',    sub:'6–12 months — manageable but growing'},
+        {id:'low',       label:'🟢 Low',       sub:'12+ months — strategic planning horizon'}
+      ].map(u => `
+        <div class="tile" id="urgency-${u.id}" onclick="selectUrgency('${u.id}')"
+          style="flex-direction:column;align-items:flex-start;padding:12px 16px;white-space:normal;width:100%">
+          <div style="font-weight:700">${u.label}</div>
+          <div style="font-size:11px;color:var(--slate-500);margin-top:2px;font-weight:400">${u.sub}</div>
+        </div>`).join('')}
+    </div>
+    <div class="followup-block" id="urgency-fu" style="display:none">
+      <div class="followup-label">↳ What's driving the urgency?</div>
+      <div class="followup-q">Name the specific deadline or risk event.</div>
+      <textarea class="field-textarea" id="inp-urgencyDriver" rows="2"
+        placeholder="e.g. PCI-DSS v4.0 audit window opens March 2025. Third audit finding triggers mandatory remediation."
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';_collectedData.urgencyDriver=this.value"></textarea>
+      <div style="margin-top:10px">
+        <button class="next-btn" onclick="advanceUrgency()">
+          Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>`;
+}
+
+// ── What you've tried ─────────────────────────────────
+const TRIED_CHIPS = {
+  'government-retail': [
+    'Emergency patches applied','Vendor EOL confirmed — no support','Extended support contract explored',
+    'OS-only upgrade evaluated — incompatible','Hardware refresh (RAM / storage)','Managed service / outsourcing scoped',
+    'Cloud migration evaluated','Replacement vendor shortlisted','Compliance waiver / exception filed',
+    'Staff workarounds trained','Procurement process started','Pilot / PoC tested',
+    'External consultant engaged','Internal IT fix attempted','Budget submitted — not approved',
+    'Risk formally accepted by leadership','Interim bridge tool deployed','Do-nothing risk analysis documented'
+  ],
+  'commercial-retail': [
+    'Patched existing system','Vendor support request','Manual workarounds documented',
+    'Previous upgrade attempt','OS upgrade evaluated','Interim tool deployed',
+    'External consultant engaged','Cloud migration scoped','Pilot tested',
+    'Replacement vendor shortlisted','Budget submitted','Risk formally accepted',
+    'Staff retraining completed','Process re-engineering attempted','Compliance waiver filed'
+  ],
+  'default': [
+    'Patched existing system','Vendor support request','Manual workarounds documented',
+    'Previous upgrade attempt','OS upgrade evaluated','Interim tool deployed',
+    'External consultant engaged','Cloud migration scoped','Pilot tested',
+    'Replacement vendor shortlisted','Budget submitted','Risk formally accepted',
+    'Staff retraining completed','Process re-engineering attempted','Compliance waiver filed'
+  ]
+};
+
+function renderTried(q) {
+  const industry = _collectedData.industry || 'default';
+  const chips = TRIED_CHIPS[industry] || TRIED_CHIPS['default'];
+  return `
+    <div class="scaffold-label" style="margin-bottom:5px">What you've already tried — click to add, then add detail below:</div>
+    <div class="chip-group" id="tried-chips" style="margin-bottom:10px">
+      ${chips.map(c => `<div class="chip" onclick="toggleTriedChip(this,'${c}')">${c}</div>`).join('')}
+    </div>
+    <textarea class="field-textarea" id="inp-alternativesTried" rows="3" placeholder="${q.placeholder||''}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,160)+'px';_collectedData.alternativesTried=this.value"></textarea>
+    <div class="callout callout-info" style="margin-top:8px">💡 Be specific about <em>why</em> each attempt failed — this prevents recommending options you've already ruled out and demonstrates due diligence for board approval.</div>
+    <div style="margin-top:10px">
+      <button class="next-btn" onclick="advanceSimple('${q.id}','alternativesTried')">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── KPI tiles ─────────────────────────────────────────
+function renderKpis() {
+  const industry = _collectedData.industry || 'default';
+  const tiles = KPI_TILES[industry] || KPI_TILES['default'];
+  return `
+    <div class="callout callout-info" style="margin-bottom:10px">
+      <strong>How to use this section:</strong> Select your top 3–5 KPIs — the ones your CFO, board, or audit committee will ask about. Each tile shows what it measures and why it matters. After selecting, add specific current → target values below. Those numbers drive the benefit model and appear in the traceability matrix and BRD.
+    </div>
+    <div class="kpi-grid" id="kpi-tiles">
+      ${tiles.map(k => `
+        <div class="kpi-tile" id="kpi-${k.id}" onclick="toggleKpi('${k.id}')">
+          <div class="kpi-tile-icon">${k.icon}</div>
+          <div class="kpi-tile-label">${k.label}</div>
+          ${k.desc ? `<div class="kpi-tile-desc">${k.desc}</div>` : ''}
+        </div>`).join('')}
+    </div>
+    <div class="followup-block" id="kpi-targets-fu" style="display:none">
+      <div class="followup-label">↳ Highly recommended: add current → target values</div>
+      <div style="font-size:11px;color:var(--slate-500);margin-bottom:6px">Format: <em>[KPI]: [current] → [target]</em>. These numbers flow directly into the financial model and the BRD requirements section.</div>
+      <textarea class="field-textarea" id="inp-kpiTargets" rows="2"
+        placeholder="e.g. System uptime: 96.2% → 99.9%. Transaction speed: 8.3s avg → &lt;2s. PCI-DSS: failing → Level 1 by March 2025."
+        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';_collectedData.kpiTargets=this.value"></textarea>
+    </div>
+    <div style="margin-top:12px">
+      <button class="next-btn" onclick="advanceKpis()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Stakeholders ──────────────────────────────────────
+function renderStakeholders(q) {
+  const industry = _collectedData.industry || 'default';
+  const groups = STAKEHOLDER_GROUPS[industry] || STAKEHOLDER_GROUPS['default'];
+  const groupsHtml = groups.map(g => `
+    <div class="group-section">
+      <span class="group-label">${g.group}</span>
+      <div class="chip-group">
+        ${g.chips.map(s => `<div class="chip" onclick="appendStakeholder(this,'${s}')">${s}</div>`).join('')}
+      </div>
+    </div>`).join('');
+  return `
+    <div style="margin-bottom:10px">${groupsHtml}</div>
+    <textarea class="field-textarea" id="inp-stakeholders" rows="3" placeholder="${q.placeholder||''}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,160)+'px';_collectedData.stakeholders=this.value"></textarea>
+    <div style="margin-top:10px">
+      <button class="next-btn" onclick="advanceSimple('${q.id}','stakeholders')">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── 5-Option Alternatives ─────────────────────────────
+function renderAlternatives() {
+  const coiHtml = `
+    <div class="coi-section" onclick="event.stopPropagation()">
+      <div class="coi-toggle" onclick="toggleCoi()">
+        <span>📊 Help me calculate the annual cost of staying put</span>
+        <span id="coi-arrow">▼</span>
+      </div>
+      <div class="coi-body" id="coi-body">
+        <p style="font-size:11px;color:var(--slate-600);margin-bottom:10px;line-height:1.55">Inaction is a financial decision. Quantify what staying put costs every year — this becomes the most persuasive slide in your business case. Enter what you know; leave blanks empty.</p>
+        <div class="coi-row">
+          <span class="coi-row-label">📉 System outages / year</span>
+          <input class="coi-input" type="number" id="coi-incidents" placeholder="e.g. 24" oninput="updateCoiTotal()">
+          <span class="coi-multiplier">×</span>
+          <span style="font-size:11px;color:var(--slate-600);font-weight:600">Cost per outage ($)</span>
+          <input class="coi-input" type="number" id="coi-outage-cost" placeholder="e.g. 45000" oninput="updateCoiTotal()">
+        </div>
+        <div class="coi-row">
+          <span class="coi-row-label">⚖️ Annual compliance risk ($)</span>
+          <input class="coi-input" type="number" id="coi-compliance" placeholder="e.g. 500000" oninput="updateCoiTotal()">
+          <span class="coi-hint">potential fines, remediation, audit cost</span>
+        </div>
+        <div class="coi-row">
+          <span class="coi-row-label">💸 Revenue opportunity lost / year ($)</span>
+          <input class="coi-input" type="number" id="coi-revenue" placeholder="e.g. 200000" oninput="updateCoiTotal()">
+          <span class="coi-hint">customers leaving, contactless sales missed</span>
+        </div>
+        <div class="coi-row">
+          <span class="coi-row-label">👥 Staff productivity loss / year ($)</span>
+          <input class="coi-input" type="number" id="coi-staff" placeholder="e.g. 80000" oninput="updateCoiTotal()">
+          <span class="coi-hint">manual workaround hours × avg hourly rate</span>
+        </div>
+        <div class="coi-row">
+          <span class="coi-row-label">😤 Customer satisfaction cost / year ($)</span>
+          <input class="coi-input" type="number" id="coi-cx" placeholder="e.g. 100000" oninput="updateCoiTotal()">
+          <span class="coi-hint">churn, NPS drop, loyalty value lost</span>
+        </div>
+        <div class="coi-total-bar">
+          <span class="coi-total-label">Estimated annual cost of inaction:</span>
+          <span class="coi-total-value" id="coi-total-display">$0</span>
+        </div>
+        <button class="coi-use-btn" onclick="useCoiTotal()">→ Suggest this as my Est. Annual Cost (you can override it)</button>
+      </div>
+    </div>`;
+
+  const alts = [
+    {n:0, t:'Status Quo — Do Nothing',              d:'Continue as-is. All existing risks, costs, and constraints remain. Establishes the cost-of-inaction baseline that every CFO needs to see.',          tag:'Baseline',    costPh:'e.g. 540000',  tlPh:'e.g. Ongoing / no change'},
+    {n:1, t:'Process Fix — Workaround Only',         d:'Process changes or manual workarounds without replacing the system. Often tried first; rarely sufficient long-term.',                                 tag:'Partial',     costPh:'e.g. 150000',  tlPh:'e.g. 1–3 months'},
+    {n:2, t:'Bridge — Extend the Current Life',      d:'Patches, component upgrades, or extended vendor support to buy time. Defers full cost but not the underlying risk.',                                  tag:'Partial',     costPh:'e.g. 600000',  tlPh:'e.g. 3–6 months'},
+    {n:3, t:'Hybrid — Modernise Core, Keep Legacy',  d:'Replace the most critical components while retaining stable parts. Phased approach with lower Year 1 spend.',                                        tag:'Partial',     costPh:'e.g. 1800000', tlPh:'e.g. 12–15 months'},
+    {n:4, t:'Full Replacement — End-to-End',         d:'Replace entirely with a modern platform. Highest upfront cost; lowest long-term risk, technical debt, and maintenance burden.',                      tag:'Recommended', costPh:'e.g. 3200000', tlPh:'e.g. 18 months'}
+  ];
+  return `
+    <p style="font-size:12px;color:var(--slate-500);margin-bottom:4px">Click a card to <strong>select</strong> it for modelling. Mark your recommendation with ⭐.</p>
+    <p style="font-size:11px;color:var(--slate-400);margin-bottom:12px">Every CFO asks about all five — including the cost of doing nothing. Fill in costs & timelines for what you know.</p>
+    <div class="alt-grid">
+      ${alts.map(a => `
+        <div class="alt-card" id="altcard-${a.n}" style="flex-direction:column;gap:0">
+          <div class="alt-header-row" onclick="toggleAlt(${a.n})">
+            <div class="alt-check" id="alt-check-${a.n}">✓</div>
+            <div class="alt-num" id="altnum-${a.n}">${a.n}</div>
+            <div class="alt-content">
+              <div class="alt-title">${a.t}</div>
+              <div class="alt-desc">${a.d}</div>
+            </div>
+            <span class="alt-tag ${a.tag==='Recommended'?'tag-rec':a.tag==='Baseline'?'tag-base':'tag-part'}">${a.tag}</span>
+          </div>
+          ${a.n === 0 ? coiHtml : ''}
+          <div style="display:flex;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--slate-200);width:100%" onclick="event.stopPropagation()">
+            <div style="flex:1">
+              <div style="font-size:10px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">💰 Est. Cost ($)</div>
+              <input type="number" class="num-input" id="alt-cost-${a.n}" placeholder="${a.costPh}"
+                oninput="setAltDetail(${a.n},'cost',this.value)" style="width:100%">
+            </div>
+            <div style="flex:1">
+              <div style="font-size:10px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">📅 Timeline</div>
+              <input type="text" class="field-input" id="alt-tl-${a.n}" placeholder="${a.tlPh}"
+                oninput="setAltDetail(${a.n},'timeline',this.value)" style="font-size:12px">
+            </div>
+          </div>
+          <div class="alt-prefer-row" onclick="event.stopPropagation()">
+            <button class="alt-prefer-btn" id="alt-prefer-${a.n}" onclick="setPreferred(${a.n})">⭐ Set as Preferred</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="callout callout-warn" style="margin-top:12px">⚠️ Option 0 (Status Quo) annual cost is often the most persuasive number in the business case — use the calculator above to build it from real data.</div>
+    <div style="margin-top:14px">
+      <button class="next-btn" onclick="advanceAlternatives()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Financials ────────────────────────────────────────
+function fieldHelp(id, text) {
+  return `<span class="field-help-wrap"><button class="field-help-icon" onclick="event.stopPropagation();toggleFieldHelp('fh-${id}')">i</button><div class="field-help-panel" id="fh-${id}">${text}</div></span>`;
+}
+function toggleFieldHelp(id) {
+  document.querySelectorAll('.field-help-panel.open').forEach(p => { if (p.id !== id) p.classList.remove('open'); });
+  const panel = document.getElementById(id); if (panel) panel.classList.toggle('open');
+}
+
+function renderFinancials() {
+  return `
+    <div class="num-row">
+      <div>
+        <div class="field-label-row">
+          <span class="num-label">Total Budget ($)</span>
+          ${fieldHelp('budget','Total investment for this initiative — hardware, software licenses, implementation, training, change management & contingency (budget 15–20% for contingency). Include all multi-year commitments. Estimates are fine — the model shows sensitivity ranges.')}
+        </div>
+        <input class="num-input" id="inp-budget" type="number" placeholder="e.g. 3200000"
+          oninput="_collectedData.budget=this.value;updatePanel('budget','$'+Number(this.value).toLocaleString())">
+      </div>
+      <div>
+        <div class="field-label-row">
+          <span class="num-label">Annual Revenue ($)</span>
+          ${fieldHelp('revenue','Total annual revenue of the organisation or business unit affected by this problem. Used to calculate ROI as % of revenue and to size the financial impact of downtime. For AAFES, use the revenue of the affected exchange network or division.')}
+        </div>
+        <input class="num-input" id="inp-revenue" type="number" placeholder="e.g. 54000000"
+          oninput="_collectedData.revenue=this.value">
+      </div>
+      <div>
+        <div class="field-label-row">
+          <span class="num-label">Headcount Impacted</span>
+          ${fieldHelp('headcount','Full-time equivalents (FTEs) whose daily work is materially affected by this system — both direct users and staff spending time on manual workarounds. Used to value productivity gains in the benefit model.')}
+        </div>
+        <input class="num-input" id="inp-headcount" type="number" placeholder="e.g. 12"
+          oninput="_collectedData.headcount=this.value">
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <div class="field-label-row">
+          <span class="field-label" style="margin-bottom:0">Time Horizon</span>
+          ${fieldHelp('timeHorizon','Years over which costs and benefits are modelled. 5 years is standard for IT/retail systems. Use 3 years if your organisation has a strict short-term payback requirement. Use 7–10 years for major infrastructure with long asset life.')}
+        </div>
+        <select class="field-input" id="inp-timeHorizon" onchange="_collectedData.timeHorizon=this.value">
+          <option value="3">3 years</option>
+          <option value="5" selected>5 years (standard)</option>
+          <option value="7">7 years</option>
+          <option value="10">10 years</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label-row">
+          <span class="field-label" style="margin-bottom:0">Discount Rate</span>
+          ${fieldHelp('discountRate','Used to calculate Net Present Value (NPV) — the rate at which future money is discounted to today\'s value. 8% is the DoD NAF standard for government projects. 10–12% for commercial organisations. Higher rate = more conservative NPV.')}
+        </div>
+        <select class="field-input" id="inp-discountRate" onchange="_collectedData.discountRate=this.value">
+          <option value="6">6%</option>
+          <option value="8" selected>8% (DoD NAF standard)</option>
+          <option value="10">10%</option>
+          <option value="12">12%</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <div class="field-label-row">
+          <span class="field-label" style="margin-bottom:0">Fund Type</span>
+          ${fieldHelp('fundType','How this project is funded — affects how ROI is framed for approval bodies. NAF = AAFES self-generated revenue, must demonstrate business case to board. APF = Congressional appropriated budget. OpEx = operating budget, no capital approval needed. Grant = externally funded.')}
+        </div>
+        <select class="field-input" id="inp-fundType" onchange="_collectedData.fundType=this.value">
+          <option value="general">General Capital</option>
+          <option value="naf">NAF (Non-Appropriated)</option>
+          <option value="apf">APF (Appropriated)</option>
+          <option value="grant">Grant Funded</option>
+          <option value="opex">OpEx</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <button class="next-btn" onclick="advanceFinancials()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Tech stack ────────────────────────────────────────
+function renderTechStack() {
+  const groupsHtml = TECH_GROUPS.map(g => `
+    <div class="group-section">
+      <span class="group-label">${g.group}</span>
+      <div class="chip-group">
+        ${g.chips.map(t => `<div class="chip tech-chip" id="tech-${t.id}" onclick="toggleTech('${t.id}')">${t.l}</div>`).join('')}
+      </div>
+    </div>`).join('');
+  return `
+    <div id="techstack-groups">${groupsHtml}</div>
+    <div class="field-group" style="margin-top:12px">
+      <label class="field-label">Other (type and press Enter)</label>
+      <input class="field-input" id="inp-techOther" placeholder="e.g. Custom Java POS client, Cisco Meraki"
+        onkeydown="if(event.key==='Enter'&&this.value.trim()){addCustomTech(this.value.trim());this.value=''}">
+    </div>
+    <div style="margin-top:10px">
+      <button class="next-btn" onclick="advanceTechStack()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Compliance ────────────────────────────────────────
+function renderCompliance() {
+  const presets = {
+    'government-retail': ['PCI-DSS v4.0','DoD STIG','DISA Requirements','ITAR','FedRAMP'],
+    'commercial-retail': ['PCI-DSS','GDPR','CCPA','SOC 2'],
+    'default':           ['PCI-DSS','GDPR','ISO 27001','SOC 2','HIPAA']
+  };
+  const chips = presets[_collectedData.industry] || presets['default'];
+  return `
+    <div class="chip-group" id="compliance-chips">
+      ${chips.map(c => {
+        const cid = c.replace(/[^a-z0-9]/gi,'-').toLowerCase();
+        return `<div class="chip" id="comp-${cid}" onclick="toggleCompliance(this,'${c}')">${c}</div>`;
+      }).join('')}
+    </div>
+    <div class="field-group" style="margin-top:10px">
+      <label class="field-label">Other (type and press Enter)</label>
+      <input class="field-input" id="inp-complianceOther" placeholder="e.g. State-specific requirements, internal security policy"
+        onkeydown="if(event.key==='Enter'&&this.value.trim()){addCustomCompliance(this.value.trim());this.value=''}">
+    </div>
+    <div style="margin-top:10px">
+      <button class="next-btn" onclick="advanceCompliance()">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ── Timeline ──────────────────────────────────────────
+function renderTimeline(q) {
+  return `
+    <div class="chip-group" id="timeline-chips" style="margin-bottom:10px">
+      ${['< 6 months','6–12 months','12–18 months','18–24 months','24+ months'].map(t =>
+        `<div class="chip" onclick="setTimelineChip(this,'${t}')">${t}</div>`).join('')}
+    </div>
+    <textarea class="field-textarea" id="inp-timeline" rows="3" placeholder="${q.placeholder||''}"
+      oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,160)+'px';_collectedData.timeline=this.value;updatePanel('timeline',this.value.substring(0,60))"></textarea>
+    <div style="margin-top:10px;display:flex;align-items:center;gap:8px">
+      <button class="next-btn" onclick="advanceSimple('${q.id}','timeline')">
+        Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════
+// INTERACTION HANDLERS
+// ════════════════════════════════════════════════════════
+function selectIndustry(id) {
+  document.querySelectorAll('#industry-tiles .tile').forEach(t => t.classList.remove('selected'));
+  const el = document.getElementById('industry-' + id);
+  if (el) el.classList.add('selected');
+  _collectedData.industry = id;
+  const fu = document.getElementById('q1-fu-orgname');
+  if (fu) fu.style.display = (id === 'government-retail' || id === 'military') ? 'block' : 'none';
+}
+
+function advanceQ1() {
+  const parts = [];
+  if (_collectedData.role) parts.push(_collectedData.role);
+  if (_collectedData.businessUnit) parts.push(_collectedData.businessUnit);
+  if (_collectedData.orgName) parts.push(_collectedData.orgName);
+  else if (_collectedData.industry) parts.push(_collectedData.industry.replace(/-/g,' '));
+  const preview = parts.join(' · ') || 'Role not specified';
+  markAnswered('q1', preview);
+  updatePanel('role', preview);
+  showNextQ(1);
+}
+
+function advanceText(qid, field) {
+  const val = (_collectedData[field] || '').trim();
+  if (!val) { const el = document.getElementById('inp-' + field); if (el) el.focus(); return; }
+  markAnswered(qid, val.substring(0,100) + (val.length>100?'…':''));
+  updatePanel(field, val);
+  const q = QUESTIONS.find(x => x.id === qid);
+  if (q) showNextQ(q.step);
+}
+
+function advanceSimple(qid, field) {
+  const val = (_collectedData[field] || '').trim();
+  markAnswered(qid, val ? val.substring(0,100) + (val.length>100?'…':'') : '(skipped)');
+  if (field === 'timeline') updatePanel('timeline', val.substring(0,60));
+  const q = QUESTIONS.find(x => x.id === qid);
+  if (q) showNextQ(q.step);
+}
+
+function toggleSymptom(id) {
+  const el = document.getElementById('symptom-' + id);
+  if (!el) return;
+  el.classList.toggle('selected');
+  _collectedData.symptoms = Array.from(document.querySelectorAll('.symptom-card.selected')).map(c => c.id.replace('symptom-',''));
+}
+
+function advanceSymptoms() {
+  const cards = SYMPTOM_CARDS[_collectedData.industry || 'default'] || SYMPTOM_CARDS['default'];
+  const labels = (_collectedData.symptoms||[]).map(id => { const c = cards.find(x=>x.id===id); return c?c.title:id; });
+  const preview = labels.length ? labels.join(', ') : 'None selected';
+  markAnswered('q3', preview);
+  updatePanel('pain', preview.substring(0,60));
+  showNextQ(3);
+}
+
+function selectUrgency(id) {
+  document.querySelectorAll('#urgency-tiles .tile').forEach(t => t.classList.remove('selected'));
+  const el = document.getElementById('urgency-' + id);
+  if (el) el.classList.add('selected');
+  _collectedData.urgency = id;
+  updatePanel('urgency', id.charAt(0).toUpperCase() + id.slice(1));
+  const fu = document.getElementById('urgency-fu');
+  if (fu) fu.style.display = (id === 'immediate' || id === 'high') ? 'block' : 'none';
+  if (id === 'medium' || id === 'low') setTimeout(advanceUrgency, 300);
+}
+
+function advanceUrgency() {
+  if (!_collectedData.urgency) return;
+  const label = _collectedData.urgency.charAt(0).toUpperCase() + _collectedData.urgency.slice(1);
+  const driver = _collectedData.urgencyDriver ? ' — ' + _collectedData.urgencyDriver.substring(0,70) : '';
+  markAnswered('q5', label + driver);
+  showNextQ(5);
+}
+
+function toggleKpi(id) {
+  const el = document.getElementById('kpi-' + id);
+  if (!el) return;
+  el.classList.toggle('selected');
+  _collectedData.kpis = Array.from(document.querySelectorAll('#kpi-tiles .kpi-tile.selected')).map(t => t.id.replace('kpi-',''));
+  const fu = document.getElementById('kpi-targets-fu');
+  if (fu && _collectedData.kpis.length >= 2) fu.style.display = 'block';
+}
+
+function advanceKpis() {
+  const tiles = KPI_TILES[_collectedData.industry || 'default'] || KPI_TILES['default'];
+  const labels = (_collectedData.kpis||[]).map(id => { const t = tiles.find(x=>x.id===id); return t?t.label:id; });
+  const preview = labels.join(', ') || 'Not specified';
+  markAnswered('q7', preview);
+  updatePanel('kpis', preview.substring(0,60));
+  showNextQ(7);
+}
+
+function toggleTriedChip(el, label) {
+  el.classList.toggle('selected');
+  const ta = document.getElementById('inp-alternativesTried');
+  if (!ta) return;
+  ta.value = el.classList.contains('selected')
+    ? (ta.value ? ta.value + '; ' + label : label)
+    : ta.value.replace('; ' + label,'').replace(label,'').trim();
+  _collectedData.alternativesTried = ta.value;
+}
+
+function appendStakeholder(el, label) {
+  el.classList.toggle('selected');
+  const ta = document.getElementById('inp-stakeholders');
+  if (!ta || !el.classList.contains('selected')) return;
+  ta.value = ta.value ? ta.value + '\n' + label + ': ' : label + ': ';
+  _collectedData.stakeholders = ta.value;
+  ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight,160) + 'px';
+}
+
+function toggleGuide(qid) {
+  const panel = document.getElementById('guide-' + qid);
+  if (panel) panel.classList.toggle('open');
+}
+
+function toggleCoi() {
+  const body = document.getElementById('coi-body');
+  const arrow = document.getElementById('coi-arrow');
+  if (!body) return;
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function updateCoiTotal() {
+  const incidents  = parseFloat(document.getElementById('coi-incidents')?.value   || 0);
+  const outageCost = parseFloat(document.getElementById('coi-outage-cost')?.value || 0);
+  const compliance = parseFloat(document.getElementById('coi-compliance')?.value  || 0);
+  const revenue    = parseFloat(document.getElementById('coi-revenue')?.value     || 0);
+  const staff      = parseFloat(document.getElementById('coi-staff')?.value       || 0);
+  const cx         = parseFloat(document.getElementById('coi-cx')?.value          || 0);
+  const total = (incidents * outageCost) + compliance + revenue + staff + cx;
+  const display = document.getElementById('coi-total-display');
+  if (display) display.textContent = '$' + Math.round(total).toLocaleString();
+}
+
+function useCoiTotal() {
+  const incidents  = parseFloat(document.getElementById('coi-incidents')?.value   || 0);
+  const outageCost = parseFloat(document.getElementById('coi-outage-cost')?.value || 0);
+  const compliance = parseFloat(document.getElementById('coi-compliance')?.value  || 0);
+  const revenue    = parseFloat(document.getElementById('coi-revenue')?.value     || 0);
+  const staff      = parseFloat(document.getElementById('coi-staff')?.value       || 0);
+  const cx         = parseFloat(document.getElementById('coi-cx')?.value          || 0);
+  const total = Math.round((incidents * outageCost) + compliance + revenue + staff + cx);
+  if (total === 0) { alert('Enter at least one value above to calculate.'); return; }
+  const costInput = document.getElementById('alt-cost-0');
+  if (costInput) costInput.value = total;
+  setAltDetail(0, 'cost', String(total));
+  // Collapse the calculator
+  const body = document.getElementById('coi-body');
+  const arrow = document.getElementById('coi-arrow');
+  if (body) body.classList.remove('open');
+  if (arrow) arrow.textContent = '▼';
+}
+
+function injectPrompt(fieldId, text) {
+  const el = document.getElementById(fieldId);
+  if (!el) return;
+  const start = el.selectionStart != null ? el.selectionStart : el.value.length;
+  const end   = el.selectionEnd   != null ? el.selectionEnd   : start;
+  const before = el.value.substring(0, start);
+  const after  = el.value.substring(end);
+  const spacer = (before.length > 0 && !before.endsWith('\n') && !before.endsWith(' ')) ? '\n' : '';
+  el.value = before + spacer + text + after;
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+  const newPos = before.length + spacer.length + text.length;
+  el.setSelectionRange(newPos, newPos);
+  el.focus();
+  const field = el.id.replace('inp-', '');
+  _collectedData[field] = el.value;
+}
+
+function toggleAlt(n) {
+  const card = document.getElementById('altcard-' + n);
+  if (!card) return;
+  const isPreferred = card.classList.contains('alt-preferred');
+  if (isPreferred) return; // preferred can't be deselected by click — use setPreferred on another to change
+  const wasSelected = card.classList.contains('alt-selected');
+  if (wasSelected) {
+    card.classList.remove('alt-selected');
+  } else {
+    card.classList.add('alt-selected');
+  }
+  _collectedData.selectedAlternatives = Array.from(
+    document.querySelectorAll('.alt-card.alt-selected, .alt-card.alt-preferred')
+  ).map(c => parseInt(c.id.replace('altcard-', ''))).filter((v, i, a) => a.indexOf(v) === i);
+}
+
+function setPreferred(n) {
+  // Clear all preferred states
+  [0,1,2,3,4].forEach(i => {
+    const c = document.getElementById('altcard-' + i);
+    const btn = document.getElementById('alt-prefer-' + i);
+    if (c) c.classList.remove('alt-preferred');
+    if (btn) { btn.classList.remove('is-preferred'); btn.textContent = '⭐ Set as Preferred'; }
+  });
+  // Apply preferred to selected card (also marks it selected)
+  const card = document.getElementById('altcard-' + n);
+  const btn = document.getElementById('alt-prefer-' + n);
+  if (card) { card.classList.add('alt-selected', 'alt-preferred'); }
+  if (btn) { btn.classList.add('is-preferred'); btn.textContent = '⭐ Preferred'; }
+  _collectedData.preferredAlternative = n;
+  // Ensure it's in selectedAlternatives
+  if (!Array.isArray(_collectedData.selectedAlternatives)) _collectedData.selectedAlternatives = [];
+  if (!_collectedData.selectedAlternatives.includes(n)) _collectedData.selectedAlternatives.push(n);
+}
+
+function setAltDetail(n, field, val) {
+  if (!_collectedData.alternativeDetails) _collectedData.alternativeDetails = {};
+  if (!_collectedData.alternativeDetails[n]) _collectedData.alternativeDetails[n] = {};
+  _collectedData.alternativeDetails[n][field] = val;
+}
+
+function advanceAlternatives() {
+  const selected = _collectedData.selectedAlternatives || [];
+  const preferred = _collectedData.preferredAlternative;
+  const details = _collectedData.alternativeDetails || {};
+  const names = ['Status Quo','Process Fix','Bridge','Hybrid','Full Replacement'];
+  _collectedData.alternatives = selected.length > 0 ? selected : 'all-five';
+  const modelled = selected.length > 0 ? selected : [0,1,2,3,4];
+  const parts = modelled.map(i => {
+    const d = details[i] || {};
+    const cost = d.cost ? '$' + Number(d.cost).toLocaleString() : '';
+    const tl   = d.timeline || '';
+    const extra = [cost, tl].filter(Boolean).join(', ');
+    const prefMark = preferred === i ? ' ⭐' : '';
+    return names[i] + prefMark + (extra ? ` (${extra})` : '');
+  });
+  markAnswered('q9', parts.join(' · '));
+  showNextQ(9);
+}
+
+function advanceFinancials() {
+  const b = _collectedData.budget ? '$' + Number(_collectedData.budget).toLocaleString() : '—';
+  const h = (_collectedData.timeHorizon || '5') + '-yr horizon';
+  const ft = _collectedData.fundType ? ' (' + _collectedData.fundType.toUpperCase() + ')' : '';
+  markAnswered('q10', b + ft + ' · ' + h);
+  updatePanel('budget', b);
+  showNextQ(10);
+}
+
+function toggleTech(id) {
+  const el = document.getElementById('tech-' + id);
+  if (!el) return;
+  el.classList.toggle('selected');
+  _collectedData.techStack = Array.from(document.querySelectorAll('.tech-chip.selected')).map(c => c.id.replace('tech-', ''));
+}
+function addCustomTech(val) {
+  if (!Array.isArray(_collectedData.techStack)) _collectedData.techStack = [];
+  _collectedData.techStack.push(val);
+}
+function advanceTechStack() {
+  // Get labels from selected chips
+  const chipLabels = Array.from(document.querySelectorAll('.tech-chip.selected')).map(c => c.textContent.trim());
+  const allTech = [...chipLabels, ...(_collectedData._customTech || [])];
+  markAnswered('q11', allTech.join(', ') || 'Not specified');
+  showNextQ(11);
+}
+
+function toggleCompliance(el, label) {
+  el.classList.toggle('selected');
+  if (el.classList.contains('selected')) { if (!_selectedCompliance.includes(label)) _selectedCompliance.push(label); }
+  else { _selectedCompliance = _selectedCompliance.filter(x => x !== label); }
+  _collectedData.compliance = [..._selectedCompliance];
+}
+function addCustomCompliance(val) {
+  _selectedCompliance.push(val);
+  _collectedData.compliance = [..._selectedCompliance];
+}
+function advanceCompliance() {
+  const preview = _selectedCompliance.join(', ') || 'None specified';
+  markAnswered('q12', preview);
+  updatePanel('compliance', preview.substring(0,60));
+  showNextQ(12);
+}
+
+function setTimelineChip(el, label) {
+  document.querySelectorAll('#timeline-chips .chip').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const ta = document.getElementById('inp-timeline');
+  if (ta) { ta.value = label; _collectedData.timeline = label; }
+}
+
+function skipQ(qid) {
+  markAnswered(qid, '(skipped)');
+  const q = QUESTIONS.find(x => x.id === qid);
+  if (q) showNextQ(q.step);
+}
+
+function editQuestion(qid) {
+  const card = document.getElementById('qcard-' + qid);
+  if (!card) return;
+  card.classList.remove('answered');
+  card.classList.add('current');
+  document.getElementById('qbody-' + qid).style.display = '';
+  document.getElementById('qpreview-' + qid).style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════
+function showNextQ(completedStep) {
+  const nextQ = QUESTIONS.find(q => q.step === completedStep + 1);
+  document.querySelectorAll('.q-card.current').forEach(c => c.classList.remove('current'));
+  if (nextQ) {
+    setTimeout(() => {
+      const card = renderQuestion(nextQ);
+      // In demo mode: fill immediately — DOM is ready since renderQuestion appends synchronously
+      if (_demoMode) fillDemoAnswer(nextQ, DEMO_SCENARIOS[0].answers);
+      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+    }, 180);
+  } else {
+    const cta = document.getElementById('generateCta');
+    if (cta) {
+      if (_demoMode) document.getElementById('demoNote').style.display = 'block';
+      cta.classList.add('visible');
+      setTimeout(() => cta.scrollIntoView({ behavior: 'smooth', block: 'center' }), 250);
+    }
+  }
+  updateProgress(completedStep);
+}
+
+function markAnswered(qid, previewText) {
+  const card = document.getElementById('qcard-' + qid);
+  if (!card) return;
+  card.classList.remove('current');
+  card.classList.add('answered');
+  const pt = document.getElementById('qpreview-text-' + qid);
+  if (pt) pt.textContent = previewText;
+  _answeredCount = document.querySelectorAll('.q-card.answered').length;
+}
+
+function updateProgress(completedStep) {
+  const pct = Math.round((completedStep / TOTAL_Q) * 100);
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('progressPct');
+  if (fill) fill.style.width = Math.min(pct,100) + '%';
+  if (label) label.textContent = completedStep + ' of ' + TOTAL_Q + ' complete';
+}
+
+function updatePanel(field, value) {
+  const map = {
+    projectTitle:'dp-projectTitle', role:'dp-role', businessUnit:'dp-role',
+    currentState:'dp-pain', pain:'dp-pain', symptoms:'dp-pain',
+    urgency:'dp-urgency', budget:'dp-budget', timeline:'dp-timeline',
+    kpis:'dp-kpis', compliance:'dp-compliance'
+  };
+  const dpId = map[field]; if (!dpId) return;
+  const el = document.getElementById(dpId); if (!el) return;
+  const short = value ? value.toString().substring(0,65) + (value.toString().length>65?'…':'') : '';
+  el.textContent = short || '—';
+  el.className = 'data-val ' + (short ? 'filled' : 'empty');
+}
+
+// ════════════════════════════════════════════════════════
+// DEMO MODE
+// ════════════════════════════════════════════════════════
+function startDemo() {
+  _demoMode = true;
+  document.getElementById('demoBanner').classList.add('visible');
+  document.getElementById('demoTriggerBtn').style.display = 'none';
+  // Reset everything
+  const stream = document.getElementById('chatStream');
+  stream.innerHTML = '';
+  _collectedData = {}; _selectedCompliance = []; _answeredCount = 0;
+  updateProgress(0);
+  document.getElementById('generateCta').classList.remove('visible');
+  document.getElementById('demoNote').style.display = 'none';
+  resetPanels();
+  // Show Q1 pre-filled — user clicks Next to advance, same as real mode
+  // renderQuestion adds to DOM synchronously; fill immediately (animation is CSS-only)
+  renderQuestion(QUESTIONS[0]);
+  fillDemoAnswer(QUESTIONS[0], DEMO_SCENARIOS[0].answers);
+}
+
+function clearDemo() {
+  _demoMode = false;
+  document.getElementById('demoBanner').classList.remove('visible');
+  document.getElementById('demoTriggerBtn').style.display = 'flex';
+  const stream = document.getElementById('chatStream');
+  stream.innerHTML = '';
+  _collectedData = {}; _selectedCompliance = []; _answeredCount = 0;
+  updateProgress(0);
+  document.getElementById('generateCta').classList.remove('visible');
+  document.getElementById('demoNote').style.display = 'none';
+  resetPanels();
+  renderQuestion(QUESTIONS[0]);
+}
+
+function resetPanels() {
+  ['dp-projectTitle','dp-role','dp-pain','dp-urgency','dp-budget','dp-timeline','dp-kpis','dp-compliance'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.textContent = 'Not yet entered'; el.className = 'data-val empty'; }
+  });
+}
+
+function fillDemoAnswer(q, ans) {
+  switch (q.type) {
+    case 'q1-org':
+      setVal('inp-role', ans.role); _collectedData.role = ans.role;
+      setVal('inp-businessUnit', ans.businessUnit); _collectedData.businessUnit = ans.businessUnit;
+      selectIndustry(ans.industry); // shows the org-name follow-up field
+      setVal('inp-orgName', ans.orgName); _collectedData.orgName = ans.orgName; // inp-orgName is in DOM even when hidden
+      break;
+    case 'text':
+      setVal('inp-' + q.field, ans[q.field]||''); _collectedData[q.field] = ans[q.field]||'';
+      break;
+    case 'textarea':
+      setTA('inp-' + q.field, ans[q.field]||''); _collectedData[q.field] = ans[q.field]||'';
+      break;
+    case 'symptoms':
+      (ans.symptoms||[]).forEach(id => { const el = document.getElementById('symptom-'+id); if(el) el.classList.add('selected'); });
+      _collectedData.symptoms = ans.symptoms||[];
+      break;
+    case 'urgency':
+      selectUrgency(ans.urgency||'immediate');
+      _collectedData.urgency = ans.urgency;
+      setTimeout(() => { setTA('inp-urgencyDriver', ans.urgencyDriver||''); _collectedData.urgencyDriver = ans.urgencyDriver; }, 80);
+      break;
+    case 'tried':
+      setTA('inp-alternativesTried', ans.alternativesTried||''); _collectedData.alternativesTried = ans.alternativesTried||'';
+      break;
+    case 'kpis':
+      (ans.kpis||[]).forEach(id => { const el = document.getElementById('kpi-'+id); if(el) el.classList.add('selected'); });
+      _collectedData.kpis = ans.kpis||[];
+      const fu = document.getElementById('kpi-targets-fu'); if(fu && ans.kpis?.length >= 2) fu.style.display = 'block';
+      setTimeout(() => { setTA('inp-kpiTargets', ans.kpiTargets||''); _collectedData.kpiTargets = ans.kpiTargets; }, 80);
+      break;
+    case 'stakeholders':
+      setTA('inp-stakeholders', ans.stakeholders||''); _collectedData.stakeholders = ans.stakeholders||'';
+      break;
+    case 'alternatives':
+      _collectedData.alternativeDetails = ans.alternativeDetails || {};
+      // Select all 5 alternatives
+      [0,1,2,3,4].forEach(n => {
+        const card = document.getElementById('altcard-' + n);
+        if (card) card.classList.add('alt-selected');
+      });
+      _collectedData.selectedAlternatives = [0,1,2,3,4];
+      _collectedData.alternatives = [0,1,2,3,4];
+      // Mark preferred
+      if (ans.preferredAlternative != null) setPreferred(ans.preferredAlternative);
+      // Populate cost & timeline inputs
+      Object.entries(ans.alternativeDetails || {}).forEach(([n, d]) => {
+        setVal('alt-cost-' + n, d.cost || '');
+        setVal('alt-tl-' + n,   d.timeline || '');
+      });
+      break;
+    case 'financials':
+      setVal('inp-budget', ans.budget||''); _collectedData.budget = ans.budget;
+      setVal('inp-revenue', ans.revenue||''); _collectedData.revenue = ans.revenue;
+      setVal('inp-headcount', ans.headcount||''); _collectedData.headcount = ans.headcount;
+      setSel('inp-timeHorizon', ans.timeHorizon||'5'); _collectedData.timeHorizon = ans.timeHorizon;
+      setSel('inp-discountRate', ans.discountRate||'8'); _collectedData.discountRate = ans.discountRate;
+      setSel('inp-fundType', ans.fundType||'naf'); _collectedData.fundType = ans.fundType;
+      break;
+    case 'techstack':
+      (ans.techStack||[]).forEach(id => { const el = document.getElementById('tech-'+id); if(el) el.classList.add('selected'); });
+      _collectedData.techStack = ans.techStack||[];
+      break;
+    case 'compliance':
+      (ans.compliance||[]).forEach(label => {
+        const cid = label.replace(/[^a-z0-9]/gi,'-').toLowerCase();
+        const el = document.getElementById('comp-'+cid);
+        if(el) { el.classList.add('selected'); if(!_selectedCompliance.includes(label)) _selectedCompliance.push(label); }
+      });
+      _collectedData.compliance = ans.compliance||[];
+      break;
+    case 'timeline':
+      setTA('inp-timeline', ans.timeline||''); _collectedData.timeline = ans.timeline||'';
+      break;
+  }
+}
+
+function buildDemoPreview(q, ans) {
+  switch (q.type) {
+    case 'q1-org':       return `${ans.role} · ${ans.businessUnit} · ${ans.orgName}`;
+    case 'text':         return (ans[q.field]||'').substring(0,100);
+    case 'textarea':     return (ans[q.field]||'').substring(0,100) + '…';
+    case 'symptoms': {
+      const cards = SYMPTOM_CARDS[ans.industry]||SYMPTOM_CARDS['default'];
+      return (ans.symptoms||[]).map(id => { const c=cards.find(x=>x.id===id); return c?c.title:id; }).join(', ');
+    }
+    case 'urgency':      return 'Immediate — ' + (ans.urgencyDriver||'').substring(0,80) + '…';
+    case 'tried':        return (ans.alternativesTried||'').substring(0,100) + '…';
+    case 'kpis': {
+      const tiles = KPI_TILES[ans.industry]||KPI_TILES['default'];
+      return (ans.kpis||[]).map(id => { const t=tiles.find(x=>x.id===id); return t?t.label:id; }).join(', ');
+    }
+    case 'stakeholders': return (ans.stakeholders||'').substring(0,100) + '…';
+    case 'alternatives': return 'All 5 options mapped — Status Quo · Process Fix · Bridge · Hybrid · Full Replacement';
+    case 'financials':   return `$${Number(ans.budget).toLocaleString()} budget · $${Number(ans.revenue).toLocaleString()} revenue · ${ans.timeHorizon}-yr horizon (NAF)`;
+    case 'techstack':    return (ans.techStack||[]).join(', ');
+    case 'compliance':   return (ans.compliance||[]).join(', ');
+    case 'timeline':     return (ans.timeline||'').substring(0,100) + '…';
+    default:             return (ans[q.field]||'').substring(0,100);
+  }
+}
+
+function updateDemoPanels(q, ans) {
+  switch (q.type) {
+    case 'q1-org':      updatePanel('role', `${ans.role} · ${ans.businessUnit} · ${ans.orgName}`); break;
+    case 'text':        if(q.field==='projectTitle') updatePanel('projectTitle', ans.projectTitle); break;
+    case 'symptoms': {
+      const cards = SYMPTOM_CARDS[ans.industry]||SYMPTOM_CARDS['default'];
+      updatePanel('pain', (ans.symptoms||[]).map(id=>{const c=cards.find(x=>x.id===id);return c?c.title:id;}).join(', '));
+      break;
+    }
+    case 'urgency':     updatePanel('urgency', 'Immediate'); break;
+    case 'kpis': {
+      const tiles = KPI_TILES[ans.industry]||KPI_TILES['default'];
+      updatePanel('kpis', (ans.kpis||[]).map(id=>{const t=tiles.find(x=>x.id===id);return t?t.label:id;}).join(', '));
+      break;
+    }
+    case 'financials':  updatePanel('budget', '$' + Number(ans.budget).toLocaleString()); break;
+    case 'compliance':  updatePanel('compliance', (ans.compliance||[]).join(', ')); break;
+    case 'timeline':    updatePanel('timeline', (ans.timeline||'').substring(0,60)); break;
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════════════
+function setVal(id, val) { const el = document.getElementById(id); if(el && val != null) el.value = val; }
+function setTA(id, val) {
+  const el = document.getElementById(id);
+  if(el && val != null) {
+    el.value = val; el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 200) + 'px';
+  }
+}
+function setSel(id, val) { const el = document.getElementById(id); if(el && val) el.value = val; }
+
+// ════════════════════════════════════════════════════════
+// SUBMIT
+// ════════════════════════════════════════════════════════
+function submitIntake() {
+  if (_demoMode) {
+    alert('Demo Mode Active\n\nIn a live session, clicking this button would:\n1. Send your collected data to BCA.AI\n2. Run Phase 1 Discovery via Claude\n3. Unlock Financials → Traceability → Ranking → Report → BRD tabs\n\nYour collected data would include:\n• Project: ' + (_collectedData.projectTitle||'—') + '\n• Role: ' + (_collectedData.role||'—') + '\n• Budget: $' + (Number(_collectedData.budget||0).toLocaleString()) + '\n\nClear the demo and enter your real data to run an actual analysis.');
+    return;
+  }
+  const data = { ..._collectedData };
+  if (window.opener) {
+    window.opener.postMessage({ type: 'BCA_CONVERSATIONAL_DATA', data }, '*');
+    window.close();
+  } else {
+    sessionStorage.setItem('bcaIntakeData', JSON.stringify(data));
+    window.location.href = '/';
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  renderQuestion(QUESTIONS[0]);
+});
+</script>
+</body>
+</html>

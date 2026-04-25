@@ -71,8 +71,25 @@ async function trackA_Narrative(data) {
   const wizard = data.validatedData || data.raw?.validatedData || {}
   const financialsP4 = data.financialsP4 || {}
   const recommendation = data.recommendation || {}
+  const ranking = recommendation.ranking || []
+  const sensitivity = data.sensitivity || []
+  const benefitSens = data.benefitSensitivity || []
 
-  const prompt = `Given the following business context, generate a formal BRD narrative.
+  const rankingTable = ranking.length > 0
+    ? ranking.map(r =>
+        `  #${r.rank} ${r.name}: Score=${r.score} | NPV=$${Math.round((r.npv || 0) / 1000)}K | ROI=${Math.round(r.roiPct || 0)}% | Risk=${r.riskLevel} | Confidence=${r.confidenceScore}% | Payback=${r.paybackMonths ? r.paybackMonths + 'mo' : 'N/A'} | Vendor=${r.vendorName || 'N/A'} | VendorFit=${r.vendorFitScore != null ? r.vendorFitScore : 'N/A'}\n  Rationale: ${r.rationale || ''}`
+      ).join('\n\n')
+    : 'Ranking data not available.'
+
+  const sensitivitySummary = sensitivity.length > 0
+    ? sensitivity.map(s => `  Rate ${Math.round((s.discountRate || 0) * 100)}%: Portfolio PV = $${Math.round((s.portfolioPVBenefit || 0) / 1000)}K`).join('\n')
+    : 'Not available.'
+
+  const benefitScenarios = benefitSens.length > 0
+    ? benefitSens.map(s => `  ${s.label} (${Math.round((s.multiplier || 1) * 100)}% of estimate): Portfolio PV = $${Math.round((s.portfolioPV || 0) / 1000)}K | ROI = ${s.portfolioROI || 0}%`).join('\n')
+    : 'Not available.'
+
+  const prompt = `Given the following business context, generate a formal BRD narrative. Reference specific financial metrics, composite scores, and sensitivity results where relevant.
 
 BUSINESS CONTEXT:
 - Current State: ${wizard.currentState || 'Not specified'}
@@ -80,18 +97,29 @@ BUSINESS CONTEXT:
 - Current Pain Points: ${JSON.stringify(wizard.currentPainPoints || [])}
 
 FINANCIAL SUMMARY:
-- NPV: $${fmt(financialsP4.totalPVBenefit3y || financialsP4.npv || 0)}
-- Average ROI: ${financialsP4.avgROIPct || 'N/A'}%
-- Discount Rate: ${financialsP4.discountRate || 0.12}
-- Horizon: ${financialsP4.horizonYears || 3} years
+- Total Portfolio NPV (${financialsP4.horizonYears || 3}Y): $${fmt(financialsP4.totalPVBenefit3y || 0)}
+- Total Investment: $${fmt(financialsP4.totalCost || 0)}
+- Average Portfolio ROI: ${financialsP4.avgROIPct || 0}%
+- Discount Rate (industry-adjusted): ${Math.round((financialsP4.discountRate || 0.12) * 100)}%
+- Applied Benefit Multiplier: ${financialsP4.appliedBenefitMult || 1.0}
+- Applied Risk Penalty: ${financialsP4.appliedRiskPenalty || 0.08}
 
-PHASE 4 RECOMMENDATION:
-- Recommended Solution: ${recommendation.recommendedSolutionName || recommendation.recommendedSolutionId || 'N/A'}
-- Rationale: ${recommendation.recommendationRationale || 'N/A'}
+SOLUTION RANKING (Composite Score = NPV×35% + ROI×20% + Confidence×15% + (1−Risk)×15% + VendorFit×15%):
+${rankingTable}
+
+DISCOUNT RATE SENSITIVITY (±4% range):
+${sensitivitySummary}
+
+BENEFIT SCENARIOS (pessimistic/base/optimistic):
+${benefitScenarios}
+
+RECOMMENDED SOLUTION:
+- Name: ${recommendation.recommendedSolutionName || recommendation.recommendedSolutionId || 'N/A'}
+- Is User Override: ${recommendation.isOverride ? 'Yes — user overrode AI recommendation' : 'No'}
 
 Respond with a JSON object containing exactly these keys:
 {
-  "businessJustification": "3-4 paragraphs of formal business justification prose",
+  "businessJustification": "3-4 paragraphs of formal business justification prose — explicitly reference the composite score, NPV, ROI, and payback period of the recommended solution. Mention the scoring methodology weights to demonstrate analytical rigour. Cite sensitivity scenarios to show range of outcomes.",
   "projectObjectives": ["SMART objective 1", "SMART objective 2", ... (4-6 objectives)],
   "riskAssessment": [
     {"risk": "description", "impact": "High|Medium|Low", "likelihood": "High|Medium|Low", "mitigation": "strategy"},
@@ -170,6 +198,11 @@ function trackC_Assembly(data) {
   const timeline = data.timeline || {}
   const report = data.report || data.raw?.report || {}
   const descopedPortfolio = data.descopedPortfolio || data.raw?.descopedPortfolio || []
+  const sensitivity = data.sensitivity || []
+  const benefitSensitivity = data.benefitSensitivity || []
+  const budgetAnalysis = data.budgetAnalysis || {}
+  const scoringWeights = recommendation.scoringWeights || { npv: 0.35, roi: 0.20, confidence: 0.15, riskPenalty: 0.15, vendorFit: 0.15 }
+  const ranking = recommendation.ranking || []
 
   // ── Section 1: Executive Summary ──────────────────────────────
   let executiveSummaryContent = ''
@@ -326,15 +359,45 @@ function trackC_Assembly(data) {
     { role: 'Procurement Approver', name: '', title: '', date: '' }
   ]
 
+  // ── Section 12: Financial Analysis & Scoring Methodology ──────────
   const section12 = {
     id: 12,
+    title: 'Financial Analysis & Scoring Methodology',
+    scoringMethodology: {
+      weights: scoringWeights,
+      formula: 'Composite Score = (NPV_norm × 35%) + (ROI_norm × 20%) + (Confidence_norm × 15%) + ((1 − Risk_norm) × 15%) + (VendorFit_norm × 15%)',
+      note: 'Each dimension is normalised to 0–1 across all evaluated solutions before weighting. Risk penalty is inverted so lower risk yields a higher score.'
+    },
+    ranking,
+    sensitivity,
+    benefitSensitivity,
+    budgetSummary: {
+      totalCost: financialsP4.totalCost || 0,
+      budget: budgetAnalysis.budget || 0,
+      utilizationPct: budgetAnalysis.budgetUtilizationPct ?? null,
+      withinBudget: budgetAnalysis.withinBudget ?? null,
+      withinCeiling: budgetAnalysis.withinCeiling ?? null,
+      pvBenefit3y: financialsP4.totalPVBenefit3y || 0,
+      avgROIPct: financialsP4.avgROIPct || 0,
+      discountRate: financialsP4.discountRate || 0.12,
+      horizonYears: financialsP4.horizonYears || 3,
+      appliedBenefitMult: financialsP4.appliedBenefitMult || 1.0,
+      appliedRiskPenalty: financialsP4.appliedRiskPenalty || 0.08
+    },
+    source: 'phase4',
+    editable: true
+  }
+
+  // ── Section 13: Approval & Sign-off ───────────────────────────
+  const section13 = {
+    id: 13,
     title: 'Approval & Sign-off',
     signatories,
     source: 'template',
     editable: true
   }
 
-  return { section1, section3, section5, section8, section9, section11, section12 }
+  return { section1, section3, section5, section8, section9, section11, section12, section13 }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -407,8 +470,11 @@ function mergeSections(trackAResult, trackBResult, trackCResult) {
     // 11. Assumptions & Constraints (Track C)
     trackCResult.section11,
 
-    // 12. Approval & Sign-off (Track C)
-    trackCResult.section12
+    // 12. Financial Analysis & Scoring Methodology (Track C)
+    trackCResult.section12,
+
+    // 13. Approval & Sign-off (Track C)
+    trackCResult.section13
   ]
 
   return sections
@@ -430,6 +496,10 @@ router.post('/phase6', async (req, res) => {
       requirements: raw.requirements || [],
       recommendation: raw.recommendation || {},
       financialsP4: raw.financialsP4 || {},
+      sensitivity: raw.sensitivity || [],
+      benefitSensitivity: raw.benefitSensitivity || [],
+      budgetAnalysis: raw.budgetAnalysis || {},
+      traceabilityCoverage: raw.traceabilityCoverage || {},
       timeline: raw.timeline || {},
       report: raw.report || {},
       descopedPortfolio: raw.descopedPortfolio || []
@@ -956,7 +1026,163 @@ router.post('/phase6/download', async (req, res) => {
           break
         }
 
-        case 12: // Approval & Sign-off — Table with blank signature fields
+        case 12: // Financial Analysis & Scoring Methodology
+        {
+          const sm = section.scoringMethodology || {}
+          const weights = sm.weights || {}
+          const sectionRanking = section.ranking || []
+          const sectionSensitivity = section.sensitivity || []
+          const sectionBenefitSens = section.benefitSensitivity || []
+          const budget = section.budgetSummary || {}
+
+          // ─ Scoring Formula ────────────────────────────────────
+          contentParagraphs.push(new Paragraph({
+            spacing: { before: 200, after: 80 },
+            children: [new TextRun({ text: 'Scoring Formula', bold: true, font: 'Calibri', size: 24 })]
+          }))
+          contentParagraphs.push(bodyParagraph(sm.formula || ''))
+          contentParagraphs.push(bodyParagraph(sm.note || ''))
+
+          // Weights table
+          if (Object.keys(weights).length > 0) {
+            const wRows = [
+              new TableRow({ children: [headerCell('Dimension'), headerCell('Weight'), headerCell('Description')] })
+            ]
+            const wDesc = {
+              npv: 'Net Present Value of benefits (discounted)',
+              roi: 'Return on Investment over analysis horizon',
+              confidence: 'Confidence score from Phase 1 analysis',
+              riskPenalty: 'Risk level penalty (inverted — lower risk = higher score)',
+              vendorFit: 'Vendor fit score from market assessment'
+            }
+            for (const [key, val] of Object.entries(weights)) {
+              wRows.push(new TableRow({
+                children: [
+                  bodyCell(key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')),
+                  bodyCell(Math.round(val * 100) + '%'),
+                  bodyCell(wDesc[key] || '')
+                ]
+              }))
+            }
+            contentParagraphs.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: wRows }))
+          }
+
+          // ─ Solution Ranking ───────────────────────────────────
+          if (sectionRanking.length > 0) {
+            contentParagraphs.push(new Paragraph({
+              spacing: { before: 280, after: 80 },
+              children: [new TextRun({ text: 'Solution Ranking', bold: true, font: 'Calibri', size: 24 })]
+            }))
+            const rRows = [
+              new TableRow({
+                children: [
+                  headerCell('Rank'), headerCell('Solution'), headerCell('Score'),
+                  headerCell('NPV'), headerCell('ROI%'), headerCell('Payback'),
+                  headerCell('Risk'), headerCell('Confidence'), headerCell('Vendor Fit')
+                ]
+              })
+            ]
+            for (const r of sectionRanking) {
+              rRows.push(new TableRow({
+                children: [
+                  bodyCell(String(r.rank || '')),
+                  bodyCell(r.name || ''),
+                  bodyCell(String(r.score || '')),
+                  bodyCell(r.npv != null ? '$' + Math.round((r.npv || 0) / 1000) + 'K' : '-'),
+                  bodyCell(r.roiPct != null ? Math.round(r.roiPct || 0) + '%' : '-'),
+                  bodyCell(r.paybackMonths ? r.paybackMonths + ' mo' : 'N/A'),
+                  bodyCell(r.riskLevel || '-'),
+                  bodyCell(r.confidenceScore != null ? r.confidenceScore + '%' : '-'),
+                  bodyCell(r.vendorFitScore != null ? String(r.vendorFitScore) : '-')
+                ]
+              }))
+              // Rationale row spanning all columns via a wide cell
+              if (r.rationale) {
+                rRows.push(new TableRow({
+                  children: [
+                    bodyCell(''),
+                    new TableCell({
+                      borders: BORDER_STYLE,
+                      columnSpan: 8,
+                      children: [new Paragraph({
+                        spacing: { after: 40 },
+                        children: [new TextRun({ text: `Rationale: ${r.rationale}`, font: 'Calibri', size: 18, italics: true, color: '555555' })]
+                      })]
+                    })
+                  ]
+                }))
+              }
+            }
+            contentParagraphs.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: rRows }))
+          }
+
+          // ─ Discount Rate Sensitivity ──────────────────────────
+          if (sectionSensitivity.length > 0) {
+            contentParagraphs.push(new Paragraph({
+              spacing: { before: 280, after: 80 },
+              children: [new TextRun({ text: 'Discount Rate Sensitivity', bold: true, font: 'Calibri', size: 24 })]
+            }))
+            const sRows = [
+              new TableRow({ children: [headerCell('Discount Rate'), headerCell('Portfolio PV Benefit'), headerCell('Horizon (Years)')] })
+            ]
+            for (const s of sectionSensitivity) {
+              sRows.push(new TableRow({
+                children: [
+                  bodyCell(Math.round((s.discountRate || 0) * 100) + '%'),
+                  bodyCell('$' + Math.round((s.portfolioPVBenefit || 0) / 1000) + 'K'),
+                  bodyCell(String(s.horizonYears || '-'))
+                ]
+              }))
+            }
+            contentParagraphs.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: sRows }))
+          }
+
+          // ─ Benefit Scenarios ──────────────────────────────────
+          if (sectionBenefitSens.length > 0) {
+            contentParagraphs.push(new Paragraph({
+              spacing: { before: 280, after: 80 },
+              children: [new TextRun({ text: 'Benefit Scenarios', bold: true, font: 'Calibri', size: 24 })]
+            }))
+            const bRows = [
+              new TableRow({ children: [headerCell('Scenario'), headerCell('Benefit Multiplier'), headerCell('Portfolio PV'), headerCell('Portfolio ROI%')] })
+            ]
+            for (const b of sectionBenefitSens) {
+              bRows.push(new TableRow({
+                children: [
+                  bodyCell(b.label || ''),
+                  bodyCell(Math.round((b.multiplier || 1) * 100) + '%'),
+                  bodyCell('$' + Math.round((b.portfolioPV || 0) / 1000) + 'K'),
+                  bodyCell((b.portfolioROI || 0) + '%')
+                ]
+              }))
+            }
+            contentParagraphs.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: bRows }))
+          }
+
+          // ─ Budget Summary ─────────────────────────────────────
+          contentParagraphs.push(new Paragraph({
+            spacing: { before: 280, after: 80 },
+            children: [new TextRun({ text: 'Budget Summary', bold: true, font: 'Calibri', size: 24 })]
+          }))
+          const budgetRows = [
+            new TableRow({ children: [headerCell('Metric'), headerCell('Value')] }),
+            new TableRow({ children: [bodyCell('Total Investment'), bodyCell('$' + Math.round(budget.totalCost || 0).toLocaleString())] }),
+            new TableRow({ children: [bodyCell('PV Benefit (' + (budget.horizonYears || 3) + 'Y)'), bodyCell('$' + Math.round(budget.pvBenefit3y || 0).toLocaleString())] }),
+            new TableRow({ children: [bodyCell('Average ROI'), bodyCell((budget.avgROIPct || 0) + '%')] }),
+            new TableRow({ children: [bodyCell('Discount Rate'), bodyCell(Math.round((budget.discountRate || 0.12) * 100) + '%')] }),
+            new TableRow({ children: [bodyCell('Applied Benefit Multiplier'), bodyCell(budget.appliedBenefitMult != null ? budget.appliedBenefitMult : 'N/A')] }),
+            new TableRow({ children: [bodyCell('Applied Risk Penalty'), bodyCell(budget.appliedRiskPenalty != null ? budget.appliedRiskPenalty : 'N/A')] }),
+          ]
+          if (budget.budget > 0) {
+            budgetRows.push(new TableRow({ children: [bodyCell('Approved Budget'), bodyCell('$' + Math.round(budget.budget || 0).toLocaleString())] }))
+            budgetRows.push(new TableRow({ children: [bodyCell('Budget Utilisation'), bodyCell(budget.utilizationPct != null ? budget.utilizationPct + '%' : 'N/A')] }))
+            budgetRows.push(new TableRow({ children: [bodyCell('Within Budget'), bodyCell(budget.withinBudget === true ? 'Yes' : budget.withinBudget === false ? 'No — exceeds budget' : 'N/A')] }))
+          }
+          contentParagraphs.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: budgetRows }))
+          break
+        }
+
+        case 13: // Approval & Sign-off — Table with blank signature fields
         {
           const signatories = section.signatories || []
           const rows = [
