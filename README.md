@@ -60,6 +60,36 @@ Open [http://localhost:3001](http://localhost:3001)
 | `CLAUDE_API_KEY` | ✅ Yes | Your Anthropic API key |
 | `PORT` | No | Server port (default: 3001) |
 | `ADMIN_SECRET` | Recommended | Secret key for the admin reset endpoint |
+| `TURNSTILE_SECRET` | Recommended | Cloudflare Turnstile secret key (CAPTCHA) |
+| `ALLOWED_ORIGINS` | Recommended | Comma-separated CORS origins (blank = allow all) |
+
+---
+
+## Security
+
+The following security measures are active on all API routes (`/api/*`):
+
+| Measure | Detail |
+|---------|--------|
+| **Rate limiting** | 5 requests per IP per hour |
+| **CAPTCHA** | Cloudflare Turnstile (invisible challenge on registration modal) |
+| **User registration** | Name + email required before app access; logged to console |
+| **VPN / proxy blocking** | ip-api.com check; VPNs, proxies, and hosting IPs are blocked (fail-open) |
+| **Helmet.js** | Secure HTTP headers on all responses |
+| **Body size limit** | 1 MB maximum request body |
+| **Request logging** | All requests logged with timestamp + IP |
+| **CORS restriction** | Set `ALLOWED_ORIGINS` env var to lock down to your domain |
+| **Input sanitization** | Control characters stripped from all string fields |
+
+### Setting Up Cloudflare Turnstile
+
+1. Go to [dash.cloudflare.com](https://dash.cloudflare.com) → **Turnstile**
+2. Click **Add site** → enter your domain → choose **Invisible** widget type
+3. Copy the **Site Key** and **Secret Key**
+4. In `phase1-viewer.html`, replace `data-sitekey="0x4AAAAAAA..."` with your Site Key
+5. Add `TURNSTILE_SECRET=<your-secret-key>` to your Render environment variables
+
+> **Local development:** `TURNSTILE_SECRET` is optional locally — verification is skipped if the variable is not set.
 
 ---
 
@@ -73,23 +103,25 @@ Open [http://localhost:3001](http://localhost:3001)
 6. Add environment variables:
    - `CLAUDE_API_KEY` = your Anthropic API key
    - `ADMIN_SECRET` = a secret string you choose (e.g. `mySecretReset42`)
+   - `TURNSTILE_SECRET` = your Cloudflare Turnstile secret key
+   - `ALLOWED_ORIGINS` = `https://your-app.onrender.com`
 7. Deploy
 
 ---
 
 ## Rate Limiting
 
-API routes (`/api/*`) are rate limited to **10 requests per IP per hour**.
+API routes (`/api/*`) are rate limited to **5 requests per IP per hour**.
 
 - Localhost (`127.0.0.1`) is whitelisted — no limit during local development
 - Limit resets automatically after 1 hour
-- To change the limit: update `max: 10` in `index.js` and redeploy
+- To change the limit: update `max: 5` in `index.js` and redeploy
 
 ---
 
 ## Admin Reset Endpoint
 
-Reset all rate limit counters without restarting the server:
+Reset all rate limit counters and VPN cache without restarting the server:
 
 ```bash
 curl -X POST "https://your-app.onrender.com/admin/reset?key=YOUR_ADMIN_SECRET"
@@ -99,12 +131,18 @@ curl -X POST "https://your-app.onrender.com/admin/reset?key=YOUR_ADMIN_SECRET"
 ```json
 {
   "success": true,
-  "message": "All rate limit counters have been cleared.",
+  "message": "All rate limit counters and VPN cache have been cleared.",
   "timestamp": "2026-04-22T10:00:00.000Z"
 }
 ```
 
 > The `ADMIN_SECRET` is set as an environment variable on Render — it never appears in code.
+
+### Changing the Admin Secret (no redeploy needed)
+
+1. Log in to [render.com](https://render.com) → your service → **Environment**
+2. Update the `ADMIN_SECRET` value and click **Save Changes**
+3. Render restarts the service automatically — takes ~30 seconds
 
 ---
 
@@ -112,6 +150,7 @@ curl -X POST "https://your-app.onrender.com/admin/reset?key=YOUR_ADMIN_SECRET"
 
 | Method | Route | Description |
 |--------|-------|-------------|
+| POST | `/api/register` | Registration gate — validates name/email, verifies Turnstile |
 | POST | `/api/analyze` | Phase 1 — intake analysis |
 | POST | `/api/phase2` | Phase 2 — vendor assessment |
 | POST | `/api/phase3` | Phase 3 — cost analysis |
@@ -119,7 +158,7 @@ curl -X POST "https://your-app.onrender.com/admin/reset?key=YOUR_ADMIN_SECRET"
 | POST | `/api/phase5` | Phase 5 — recommendations |
 | POST | `/api/phase6` | Phase 6 — BRD generation |
 | GET | `/health` | Health check |
-| POST | `/admin/reset?key=SECRET` | Reset rate limits |
+| POST | `/admin/reset?key=SECRET` | Reset rate limits + VPN cache |
 
 ---
 

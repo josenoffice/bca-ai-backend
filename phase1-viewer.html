@@ -9,6 +9,48 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<!-- Cloudflare Turnstile CAPTCHA -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>
+  /* ─── Registration Modal ────────────────────────────────────────────── */
+  #reg-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(10, 18, 40, 0.92);
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  #reg-overlay.active { display: flex; }
+  #reg-modal {
+    background: #fff; border-radius: 16px; padding: 44px 48px 40px;
+    width: 100%; max-width: 460px; box-shadow: 0 24px 60px rgba(0,0,0,0.35);
+    text-align: center; position: relative;
+  }
+  #reg-modal .reg-logo { font-size: 26px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; margin-bottom: 4px; }
+  #reg-modal .reg-logo span { color: #003087; }
+  #reg-modal .reg-tagline { font-size: 13px; color: #64748b; margin-bottom: 28px; }
+  #reg-modal h2 { font-size: 19px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }
+  #reg-modal p { font-size: 13px; color: #64748b; margin-bottom: 24px; line-height: 1.5; }
+  .reg-field { text-align: left; margin-bottom: 16px; }
+  .reg-field label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .reg-field input {
+    width: 100%; padding: 11px 14px; border: 1.5px solid #d1d5db; border-radius: 8px;
+    font-size: 14px; font-family: inherit; color: #0f172a; outline: none;
+    transition: border-color 160ms;
+  }
+  .reg-field input:focus { border-color: #003087; box-shadow: 0 0 0 3px rgba(0,48,135,0.1); }
+  #reg-turnstile { display: flex; justify-content: center; margin: 18px 0 20px; }
+  #reg-submit {
+    width: 100%; padding: 13px; background: #003087; color: #fff; border: none;
+    border-radius: 9px; font-size: 15px; font-weight: 700; cursor: pointer;
+    letter-spacing: 0.2px; transition: background 160ms, transform 80ms;
+  }
+  #reg-submit:hover { background: #002070; }
+  #reg-submit:active { transform: scale(0.98); }
+  #reg-submit:disabled { background: #94a3b8; cursor: not-allowed; }
+  #reg-error { font-size: 13px; color: #dc2626; margin-top: 12px; min-height: 18px; }
+  .reg-divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0 20px; }
+  .reg-privacy { font-size: 11px; color: #9ca3af; line-height: 1.5; }
+</style>
 <style>
   /* ─── Reset & Base ──────────────────────────────────────────────── */
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -10111,6 +10153,125 @@ showSection = function(name) {
   <span class="fab-icon">🔄</span>
   <span>Re-Analysis</span>
 </div>
+
+<!-- ─── Registration / CAPTCHA Modal ─────────────────────────────── -->
+<div id="reg-overlay">
+  <div id="reg-modal">
+    <div class="reg-logo">BCA<span>.</span>AI</div>
+    <div class="reg-tagline">Business Case Analysis Platform</div>
+    <h2>Welcome — Let's Get Started</h2>
+    <p>Enter your name and email to access the platform.<br>We use this to keep you informed of updates.</p>
+    <div class="reg-field">
+      <label for="reg-name">Full Name</label>
+      <input type="text" id="reg-name" placeholder="Jane Smith" autocomplete="name" maxlength="120">
+    </div>
+    <div class="reg-field">
+      <label for="reg-email">Work Email</label>
+      <input type="email" id="reg-email" placeholder="jane@company.com" autocomplete="email" maxlength="254">
+    </div>
+    <!-- Cloudflare Turnstile widget -->
+    <div id="reg-turnstile">
+      <div class="cf-turnstile"
+           data-sitekey="0x4AAAAAAA..."
+           data-callback="onTurnstileSuccess"
+           data-theme="light">
+      </div>
+    </div>
+    <button id="reg-submit" onclick="submitRegistration()" disabled>Access Platform</button>
+    <div id="reg-error"></div>
+    <hr class="reg-divider">
+    <div class="reg-privacy">By continuing you agree this information may be used to contact you about BCA.AI. We do not sell or share your data.</div>
+  </div>
+</div>
+
+<script>
+// ─── Registration Gate ────────────────────────────────────────────
+(function () {
+  const STORAGE_KEY = 'bca_registered_v1'
+  const overlay = document.getElementById('reg-overlay')
+
+  // Show modal unless user has already registered in this browser
+  if (!localStorage.getItem(STORAGE_KEY)) {
+    overlay.classList.add('active')
+    // Disable body scroll while modal is open
+    document.body.style.overflow = 'hidden'
+  }
+})();
+
+// Called by Turnstile when the challenge is passed
+function onTurnstileSuccess() {
+  document.getElementById('reg-submit').disabled = false
+}
+
+async function submitRegistration() {
+  const nameEl  = document.getElementById('reg-name')
+  const emailEl = document.getElementById('reg-email')
+  const errEl   = document.getElementById('reg-error')
+  const btn     = document.getElementById('reg-submit')
+
+  const name  = nameEl.value.trim()
+  const email = emailEl.value.trim()
+
+  // Get Turnstile token
+  let turnstileToken = ''
+  try {
+    const widgets = document.querySelectorAll('.cf-turnstile iframe')
+    // turnstile.getResponse() is the official API
+    if (typeof turnstile !== 'undefined') {
+      turnstileToken = turnstile.getResponse() || ''
+    }
+  } catch { /* ignore */ }
+
+  // Client-side validation
+  if (!name || name.length < 2) {
+    errEl.textContent = 'Please enter your full name.'
+    nameEl.focus(); return
+  }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    errEl.textContent = 'Please enter a valid email address.'
+    emailEl.focus(); return
+  }
+
+  errEl.textContent = ''
+  btn.disabled = true
+  btn.textContent = 'Verifying…'
+
+  try {
+    const res = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, turnstileToken })
+    })
+    const data = await res.json()
+
+    if (!res.ok) {
+      errEl.textContent = data.error || 'Something went wrong. Please try again.'
+      btn.disabled = false
+      btn.textContent = 'Access Platform'
+      // Reset Turnstile widget so user can try again
+      if (typeof turnstile !== 'undefined') turnstile.reset()
+      return
+    }
+
+    // Success — dismiss modal
+    localStorage.setItem('bca_registered_v1', '1')
+    document.getElementById('reg-overlay').classList.remove('active')
+    document.body.style.overflow = ''
+  } catch {
+    errEl.textContent = 'Network error. Please check your connection and try again.'
+    btn.disabled = false
+    btn.textContent = 'Access Platform'
+  }
+}
+
+// Allow Enter key to submit
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('reg-overlay').classList.contains('active')) {
+    const btn = document.getElementById('reg-submit')
+    if (!btn.disabled) submitRegistration()
+  }
+})
+</script>
 
 </body>
 </html>
