@@ -10172,8 +10172,11 @@ showSection = function(name) {
     <!-- Cloudflare Turnstile widget -->
     <div id="reg-turnstile">
       <div class="cf-turnstile"
-           data-sitekey="0x4AAAAAAA..."
+           data-sitekey="0x4AAAAAADDL2wINQPz0Jwo1"
            data-callback="onTurnstileSuccess"
+           data-error-callback="onTurnstileError"
+           data-expired-callback="onTurnstileExpired"
+           data-execution="render"
            data-theme="light">
       </div>
     </div>
@@ -10202,6 +10205,25 @@ showSection = function(name) {
 function onTurnstileSuccess() {
   document.getElementById('reg-submit').disabled = false
 }
+
+// If Turnstile errors or expires, still allow submission (server verifies)
+function onTurnstileError() {
+  console.warn('[turnstile] widget error — enabling button anyway')
+  document.getElementById('reg-submit').disabled = false
+}
+function onTurnstileExpired() {
+  document.getElementById('reg-submit').disabled = false
+}
+
+// Fallback: if Turnstile hasn't responded within 5 seconds, unlock the button
+// Server-side verification is the real security gate
+setTimeout(function() {
+  const btn = document.getElementById('reg-submit')
+  if (btn && btn.disabled) {
+    console.warn('[turnstile] timeout — enabling button as fallback')
+    btn.disabled = false
+  }
+}, 5000)
 
 async function submitRegistration() {
   const nameEl  = document.getElementById('reg-name')
