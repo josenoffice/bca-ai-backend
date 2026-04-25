@@ -10215,15 +10215,20 @@ function onTurnstileExpired() {
   document.getElementById('reg-submit').disabled = false
 }
 
-// Fallback: if Turnstile hasn't responded within 5 seconds, unlock the button
-// Server-side verification is the real security gate
+// Fallback: if Turnstile script fails to load at all (ad blocker, network error),
+// unlock the button after 8 seconds ONLY if the overlay is still visible
+// Server-side is the real security gate
 setTimeout(function() {
+  const overlay = document.getElementById('reg-overlay')
   const btn = document.getElementById('reg-submit')
-  if (btn && btn.disabled) {
-    console.warn('[turnstile] timeout — enabling button as fallback')
-    btn.disabled = false
+  if (btn && btn.disabled && overlay && overlay.classList.contains('active')) {
+    // Only unlock if Turnstile script itself didn't load
+    if (typeof turnstile === 'undefined') {
+      console.warn('[turnstile] script not loaded — enabling button as fallback')
+      btn.disabled = false
+    }
   }
-}, 5000)
+}, 8000)
 
 async function submitRegistration() {
   const nameEl  = document.getElementById('reg-name')
