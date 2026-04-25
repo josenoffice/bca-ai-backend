@@ -2867,6 +2867,110 @@ function buildCompositeCalc(solution, weights) {
     calcNote('Each dimension is min-max normalised across all solutions. If all values are equal, 0.5 is used. Risk is inverted (lower risk = higher score).');
 }
 
+// ─── Phase A: Industry Benchmarks ────────────────────────────────
+const INDUSTRY_BENCHMARKS = {
+  retail:        { roi: 150, payback: 24, irr: 25, label: 'Retail',        note: 'Retail digital investments typically target 150%+ ROI with payback under 2 years.' },
+  government:    { roi: 80,  payback: 36, irr: 12, label: 'Government',    note: 'Government projects prioritise risk mitigation and compliance over financial returns.' },
+  healthcare:    { roi: 100, payback: 30, irr: 18, label: 'Healthcare',    note: 'Healthcare investments balance compliance requirements with operational efficiency gains.' },
+  finance:       { roi: 120, payback: 24, irr: 20, label: 'Financial Services', note: 'Financial services target 120%+ ROI with strict payback and regulatory compliance.' },
+  banking:       { roi: 120, payback: 24, irr: 20, label: 'Banking',       note: 'Banking sector targets 120%+ ROI with strong emphasis on compliance and risk control.' },
+  technology:    { roi: 200, payback: 18, irr: 30, label: 'Technology',    note: 'Tech sector expects aggressive 200%+ ROI given competitive pace of innovation.' },
+  manufacturing: { roi: 100, payback: 30, irr: 15, label: 'Manufacturing', note: 'Manufacturing targets steady returns focused on operational efficiency and reliability.' },
+  education:     { roi: 60,  payback: 48, irr: 10, label: 'Education',     note: 'Education sector focuses on long-term impact; financial returns are secondary to outcomes.' },
+  logistics:     { roi: 120, payback: 24, irr: 20, label: 'Logistics',     note: 'Logistics investments target operational efficiency with medium-term payback expectations.' },
+  insurance:     { roi: 110, payback: 28, irr: 18, label: 'Insurance',     note: 'Insurance investments prioritise risk reduction and process efficiency.' },
+  default:       { roi: 120, payback: 30, irr: 18, label: 'General',       note: 'Cross-industry benchmark: 120%+ ROI and payback under 30 months is considered strong.' }
+};
+
+function getIndustryBenchmark(industry) {
+  const key = (industry || '').toLowerCase().replace(/[^a-z]/g, '');
+  return INDUSTRY_BENCHMARKS[key] || INDUSTRY_BENCHMARKS.default;
+}
+
+// ─── Phase A: Plain-English metric interpretation ─────────────────
+function buildMetricInterpretation(type, value, industry, extraData) {
+  const bm = getIndustryBenchmark(industry);
+  let icon = '', heading = '', body = '', color = 'var(--primary)';
+
+  if (type === 'npv') {
+    const v = value || 0;
+    if (v > 500000) { icon = '🟢'; heading = 'Exceptional value'; color = 'var(--success)'; body = `A Net Present Value of ${fmt(v)} means this investment is projected to generate <strong>${fmt(v)} more than it costs</strong> over the analysis period, in today\'s money. This is well above typical thresholds — a strong financial case.`; }
+    else if (v > 100000) { icon = '🟢'; heading = 'Strong positive return'; color = 'var(--success)'; body = `NPV of ${fmt(v)} means this investment is expected to create <strong>${fmt(v)} of net value</strong> after recovering all costs. Every dollar invested returns more than a dollar back.`; }
+    else if (v > 0) { icon = '🟡'; heading = 'Modest positive return'; color = '#d97706'; body = `NPV of ${fmt(v)} is positive, meaning the investment should recover its costs — but the margin is modest. Consider whether confidence in the benefit estimates is high enough to proceed.`; }
+    else { icon = '🔴'; heading = 'Investment may not recover costs'; color = 'var(--danger)'; body = `A negative NPV of ${fmt(v)} suggests the projected benefits may not fully recover the investment cost at the current discount rate. Review benefit assumptions or consider a lower-cost option.`; }
+  }
+
+  if (type === 'roi') {
+    const v = value || 0;
+    const bmLabel = bm.label + ' benchmark: ' + bm.roi + '%';
+    const vsLabel = v >= bm.roi ? 'above' : 'below';
+    const vsColor = v >= bm.roi ? 'var(--success)' : '#d97706';
+    if (v >= 200) { icon = '🟢'; heading = 'Excellent return'; color = 'var(--success)'; }
+    else if (v >= 100) { icon = '🟢'; heading = 'Strong return'; color = 'var(--success)'; }
+    else if (v >= 0) { icon = '🟡'; heading = 'Marginal return'; color = '#d97706'; }
+    else { icon = '🔴'; heading = 'Negative return'; color = 'var(--danger)'; }
+    body = `For every $100 invested, this solution is projected to return <strong>$${Math.round(v)} in net benefit</strong> over the analysis horizon. This is <strong style="color:${vsColor};">${vsLabel} the ${bmLabel}</strong>.`;
+  }
+
+  if (type === 'confidence') {
+    const v = value || 0;
+    if (v >= 80) { icon = '🟢'; heading = 'High confidence'; color = 'var(--success)'; body = `${v}% confidence means the AI assessed the benefit estimates as <strong>well-supported</strong> — strong market evidence, clear pain point data, and realistic implementation scope.`; }
+    else if (v >= 65) { icon = '🟡'; heading = 'Moderate confidence'; color = '#d97706'; body = `${v}% confidence reflects <strong>reasonable but not fully validated</strong> benefit estimates. Some assumptions may need strengthening before presenting to a decision committee.`; }
+    else { icon = '🔴'; heading = 'Lower confidence — review assumptions'; color = 'var(--danger)'; body = `${v}% confidence is relatively low. The benefit estimates carry more uncertainty than ideal. Consider gathering stronger evidence or running a proof-of-concept before full commitment.`; }
+  }
+
+  if (type === 'payback') {
+    const v = value || 0;
+    const bmLabel = bm.label + ' benchmark: ' + bm.payback + ' months';
+    const vsLabel = v > 0 && v <= bm.payback ? 'faster than' : 'slower than';
+    const vsColor = v > 0 && v <= bm.payback ? 'var(--success)' : '#d97706';
+    if (v > 0 && v <= 12) { icon = '🟢'; heading = 'Very fast payback'; color = 'var(--success)'; }
+    else if (v > 0 && v <= 24) { icon = '🟢'; heading = 'Strong payback period'; color = 'var(--success)'; }
+    else if (v > 0 && v <= 36) { icon = '🟡'; heading = 'Standard payback period'; color = '#d97706'; }
+    else { icon = '🔴'; heading = 'Long payback period'; color = 'var(--danger)'; }
+    body = `The investment is projected to <strong>recover its full cost in ${v} months</strong>. This is <strong style="color:${vsColor};">${vsLabel} the ${bmLabel}</strong>. Shorter payback reduces financial risk.`;
+  }
+
+  return `<div style="margin-top:10px;padding:10px 14px;border-radius:8px;border-left:3px solid ${color};background:${color === 'var(--success)' ? 'var(--success-light)' : color === 'var(--danger)' ? '#fef2f2' : '#fffbeb'};">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:${color};margin-bottom:4px;">${icon} ${heading}</div>
+    <div style="font-size:12px;color:var(--text);line-height:1.5;">${body}</div>
+  </div>`;
+}
+
+// ─── Phase A: Vendor Fit Score breakdown ─────────────────────────
+function buildVendorFitBreakdown(vendor, complianceRequired, techStack) {
+  const score = vendor.fitScore || vendor.score || 0;
+  const label = score >= 90 ? 'Near-perfect fit' : score >= 75 ? 'Strong fit' : score >= 60 ? 'Good fit' : 'Marginal fit';
+  const compCoverage = vendor.complianceCoverage || [];
+  const intCompat = vendor.integrationCompatibility || [];
+  const required = complianceRequired || [];
+  const stack = techStack || [];
+  const compGaps = required.filter(c => !compCoverage.includes(c));
+  const intGaps = stack.filter(t => !intCompat.includes(t));
+
+  const dimRow = (icon, label, detail, ok) =>
+    `<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--border-light);">
+      <span style="font-size:14px;margin-top:1px;">${ok === true ? '✅' : ok === false ? '⚠️' : '📋'}</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;">${label}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${detail}</div>
+      </div>
+    </div>`;
+
+  return `<div style="padding:4px 0;">
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Fit Score: ${score}/100 — ${label}</div>
+    ${dimRow('', 'Use Case & Industry Alignment', 'AI-assessed match between vendor specialisation and your solution category, industry, and business context.', null)}
+    ${dimRow('', 'Compliance Coverage', compGaps.length === 0
+      ? (compCoverage.length > 0 ? 'Covers: ' + compCoverage.join(', ') : 'No specific compliance requirements flagged.')
+      : 'Gaps: ' + compGaps.join(', ') + '. May require supplementary tooling.', compGaps.length === 0)}
+    ${dimRow('', 'Tech Stack Compatibility', intGaps.length === 0
+      ? (intCompat.length > 0 ? 'Compatible with: ' + intCompat.join(', ') : 'Compatibility assessed from vendor documentation.')
+      : 'Limited support for: ' + intGaps.join(', ') + '. Custom integration may be needed.', intGaps.length === 0)}
+    ${dimRow('', 'Budget Alignment', 'Cost range assessed against your project budget and company size tier.', null)}
+    <div style="margin-top:8px;font-size:11px;color:var(--text-muted);">Score guide: 90–100 Near-perfect · 75–89 Strong · 60–74 Good · &lt;60 Excluded</div>
+  </div>`;
+}
+
 function buildPortfolioPVCalc(solutions, rate, years) {
   let steps = [];
   let total = 0;
@@ -6180,6 +6284,10 @@ async function runPhase16() {
 
 // ─── Per-solution provider section renderer ──────────────────────
 function renderProviderSection(solutionId, r) {
+  // Grab compliance and tech stack from the wizard context for fit breakdown
+  const _complianceCtx = window._phase1Results?.validatedData?.complianceRequirements || wizardData?.complianceRequirements || [];
+  const _techStackCtx  = window._phase1Results?.validatedData?.technicalStack || wizardData?.technicalStack || [];
+
   const narrativesHTML = (r.marketContext || r.budgetNote || r.implementationNote)
     ? `<div class="provider-section-narratives">
         ${r.marketContext ? `<strong>Market:</strong> ${r.marketContext}<br>` : ''}
@@ -6192,6 +6300,7 @@ function renderProviderSection(solutionId, r) {
     const compTags = (v.complianceCoverage || []).map(c => `<span class="badge badge-success" style="font-size:10px;">${c}</span>`).join('');
     const intTags = (v.integrationCompatibility || []).map(i => `<span class="badge badge-info" style="font-size:10px;">${i}</span>`).join('');
     const costModel = (v.typicalCostRange?.model || '').replace(/_/g, ' ');
+    const fitBreakdown = calcToggle('How is this score determined?', buildVendorFitBreakdown(v, _complianceCtx, _techStackCtx));
     return `
       <div class="vendor-card" id="vcard-${solutionId}-${v.rank}">
         <div class="vendor-card-top">
@@ -6199,7 +6308,10 @@ function renderProviderSection(solutionId, r) {
             <div class="vendor-rank ${v.rank === 1 ? 'rank-1' : ''}">${v.rank}</div>
             <div><div class="vendor-name">${v.name}</div><div class="vendor-meta"><span class="badge ${fitBadgeClass(v.fitScore)}">${v.fitLabel}</span><span class="badge badge-muted">${v.category.replace(/_/g,' ')}</span></div></div>
           </div>
-          <div class="fit-score-circle" style="color:${scoreCol};border-color:${scoreCol};">${v.fitScore}</div>
+          <div style="text-align:center;">
+            <div class="fit-score-circle" style="color:${scoreCol};border-color:${scoreCol};">${v.fitScore}</div>
+            <div style="margin-top:4px;">${fitBreakdown}</div>
+          </div>
         </div>
         <div class="vendor-card-body">
           <div class="vendor-cost-row"><div><div class="vendor-cost-range">${fmt(v.typicalCostRange?.low)} &ndash; ${fmt(v.typicalCostRange?.high)}</div><div class="vendor-cost-model">${costModel}</div></div>${v.implementationMonths ? `<div class="vendor-cost-months">${v.implementationMonths} months</div>` : ''}</div>
@@ -6240,11 +6352,15 @@ function renderVendorResults(r) {
         ${r.implementationNote ? `<p><strong>Implementation:</strong> ${r.implementationNote}</p>` : ''}
       </div>` : '';
 
+  const _compCtx2  = window._phase1Results?.validatedData?.complianceRequirements || wizardData?.complianceRequirements || [];
+  const _techCtx2  = window._phase1Results?.validatedData?.technicalStack || wizardData?.technicalStack || [];
+
   const vendorCards = (r.vendors || []).map(v => {
     const isSelected = r.selectedVendor && v.name === r.selectedVendor.name;
     const scoreCol = fitScoreColor(v.fitScore);
     const compTags = (v.complianceCoverage || []).map(c => `<span class="badge badge-success" style="font-size:10px;">${c}</span>`).join('');
     const intTags = (v.integrationCompatibility || []).map(i => `<span class="badge badge-info" style="font-size:10px;">${i}</span>`).join('');
+    const fitBreakdown2 = calcToggle('How is this score determined?', buildVendorFitBreakdown(v, _compCtx2, _techCtx2));
     let timelineHTML = '';
     if (v.deliveryTimeline && v.deliveryTimeline.phases) {
       const total = v.deliveryTimeline.totalMonths || v.deliveryTimeline.phases.reduce((s, p) => s + p.months, 0);
@@ -6262,7 +6378,10 @@ function renderVendorResults(r) {
             <div class="vendor-rank ${v.rank === 1 ? 'rank-1' : ''}">${v.rank}</div>
             <div><div class="vendor-name">${v.name}</div><div class="vendor-meta"><span class="badge ${fitBadgeClass(v.fitScore)}">${v.fitLabel}</span><span class="badge badge-muted">${v.category.replace(/_/g,' ')}</span></div></div>
           </div>
-          <div class="fit-score-circle" style="color:${scoreCol};border-color:${scoreCol};">${v.fitScore}</div>
+          <div style="text-align:center;">
+            <div class="fit-score-circle" style="color:${scoreCol};border-color:${scoreCol};">${v.fitScore}</div>
+            <div style="margin-top:4px;">${fitBreakdown2}</div>
+          </div>
         </div>
         <div class="vendor-card-body">
           <div class="vendor-cost-row"><div><div class="vendor-cost-range">${fmt(v.typicalCostRange?.low)} &ndash; ${fmt(v.typicalCostRange?.high)}</div><div class="vendor-cost-model">${costModel}</div></div>${v.implementationMonths ? `<div class="vendor-cost-months">${v.implementationMonths} months</div>` : ''}</div>
@@ -7382,6 +7501,8 @@ function renderPhase4(d, el) {
   const statusIcon  = s => s === 'green' ? '&#10003;' : s === 'amber' ? '!' : '&#10007;';
   const statusBg    = s => s === 'green' ? 'var(--success-light)' : s === 'amber' ? '#fef3c7' : '#fef2f2';
   const riskColor   = r => r === 'Low' ? 'var(--success)' : r === 'Medium' ? '#d97706' : 'var(--danger)';
+  const industry    = d.validatedData?.industry || d.project?.industry || d.projectMeta?.industry || '';
+  const bm          = getIndustryBenchmark(industry);
 
   // Find winner details
   const winner = ranked[0] || {};
@@ -7422,13 +7543,15 @@ function renderPhase4(d, el) {
           <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700;margin-bottom:4px;">NPV (${fp.horizonYears || 3}Y)</div>
           <div style="font-size:20px;font-weight:800;">${fmt(winner.npv)}</div>
         </div>
+        ${buildMetricInterpretation('npv', winner.npv, industry)}
         <div style="margin-top:8px;">${calcToggle('Show calculation', calcFormula('PV = \u03A3 (AnnualNet / (1+r)\u207F) for n=1..' + (fp.horizonYears||3)) + calcSteps([['Discount Rate', ((fp.discountRate||0.12)*100).toFixed(0) + '%'], ['Risk Penalty', (fp.appliedRiskPenalty||'\u2014')], ['Benefit Multiplier', (fp.appliedBenefitMult||'\u2014')], ['PV Benefit', '<strong>' + fmt(winner.npv) + '</strong>']]) + calcNote('Phase 4 recalculates PV with industry-adjusted benefit multiplier and risk penalty.'))}</div>
       </div>
       <div style="background:var(--surface-alt);padding:14px 18px;border-radius:10px;">
         <div style="text-align:center;">
-          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700;margin-bottom:4px;">ROI</div>
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700;margin-bottom:4px;">ROI <span style="font-size:9px;font-weight:400;">(${bm.label} bmark: ${bm.roi}%)</span></div>
           <div style="font-size:20px;font-weight:800;">${winner.roiPct != null ? Math.round(winner.roiPct) + '%' : '-'}</div>
         </div>
+        ${buildMetricInterpretation('roi', winner.roiPct, industry)}
         <div style="margin-top:8px;">${calcToggle('Show calculation', calcFormula('ROI = ((AnnualNet \u00D7 Years \u2212 Cost) / Cost) \u00D7 100') + calcSteps([['ROI', '<strong>' + Math.round(winner.roiPct||0) + '%</strong>']]) + calcNote('Uses Phase 4 adjusted net benefit after risk penalty and benefit multiplier.'))}</div>
       </div>
       <div style="background:var(--surface-alt);padding:14px 18px;border-radius:10px;">
@@ -7436,33 +7559,44 @@ function renderPhase4(d, el) {
           <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;font-weight:700;margin-bottom:4px;">Confidence</div>
           <div style="font-size:20px;font-weight:800;">${winner.confidenceScore || '-'}%</div>
         </div>
+        ${buildMetricInterpretation('confidence', winner.confidenceScore, industry)}
         <div style="margin-top:8px;">${calcToggle('Show calculation', calcFormula('Confidence = AI-assessed benefit realisation likelihood') + calcSteps([['Score', '<strong>' + (winner.confidenceScore||'\u2014') + '%</strong>']]) + calcNote('Set by Phase 1 AI based on evidence quality, market data, and implementation complexity.'))}</div>
       </div>
     </div>
-    <div style="font-size:13px;color:var(--text-muted);line-height:1.5;padding:10px 14px;background:var(--surface-alt);border-radius:8px;">
+    ${winner.paybackMonths ? buildMetricInterpretation('payback', winner.paybackMonths, industry) : ''}
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.5;padding:10px 14px;background:var(--surface-alt);border-radius:8px;margin-top:12px;">
       <strong style="color:var(--text);">Rationale:</strong> ${winner.rationale || '-'}
     </div>
   </div>`;
 
   // ── Scoring Weights (5 bars) ─────────────────────────────────
   const weightItems = [
-    { label: 'NPV',         pct: (weights.npv || 0) * 100,        color: 'var(--primary)' },
-    { label: 'ROI',         pct: (weights.roi || 0) * 100,        color: '#6366f1' },
-    { label: 'Confidence',  pct: (weights.confidence || 0) * 100, color: 'var(--success)' },
-    { label: 'Risk Penalty',pct: (weights.riskPenalty || 0) * 100, color: '#d97706' },
-    { label: 'Vendor Fit',  pct: (weights.vendorFit || 0) * 100,  color: '#8b5cf6' }
+    { label: 'NPV',          pct: (weights.npv || 0) * 100,        color: 'var(--primary)', desc: 'Total financial value created, adjusted to today\'s money. The biggest driver — does the money make sense?' },
+    { label: 'ROI',          pct: (weights.roi || 0) * 100,        color: '#6366f1',        desc: 'Return on every dollar invested. How efficient is the spend?' },
+    { label: 'Confidence',   pct: (weights.confidence || 0) * 100, color: 'var(--success)', desc: 'How certain are we that the stated benefits will actually materialise?' },
+    { label: 'Risk Penalty', pct: (weights.riskPenalty || 0) * 100, color: '#d97706',       desc: 'Solutions with higher implementation risk are penalised. Safer bets score higher.' },
+    { label: 'Vendor Fit',   pct: (weights.vendorFit || 0) * 100,  color: '#8b5cf6',        desc: 'How well does the recommended vendor align to your industry, compliance, and tech stack?' }
   ];
   html += `<div class="card" style="margin-bottom:28px;padding:24px 28px;">
-    <h4 style="font-size:15px;font-weight:700;margin:0 0 18px;">Scoring Weights ${guideBtn('What are the scoring weights?')}</h4>
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
+      <h4 style="font-size:15px;font-weight:700;margin:0;">Scoring Weights ${guideBtn('What are the scoring weights?')}</h4>
+      <span style="font-size:11px;color:var(--text-muted);background:var(--surface-alt);padding:4px 10px;border-radius:20px;">How is the winner chosen?</span>
+    </div>
     ${weightItems.map(w => `
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
-        <span style="font-size:12px;font-weight:600;width:100px;text-align:right;">${w.label}</span>
-        <div style="flex:1;height:22px;background:var(--surface-alt);border-radius:6px;overflow:hidden;position:relative;">
-          <div style="height:100%;width:${w.pct}%;background:${w.color};border-radius:6px;transition:width .6s;"></div>
+      <div style="margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:700;width:100px;text-align:right;color:${w.color};">${w.label}</span>
+          <div style="flex:1;height:22px;background:var(--surface-alt);border-radius:6px;overflow:hidden;">
+            <div style="height:100%;width:${w.pct}%;background:${w.color};border-radius:6px;transition:width .6s;"></div>
+          </div>
+          <span style="font-size:13px;font-weight:700;width:42px;">${w.pct}%</span>
         </div>
-        <span style="font-size:13px;font-weight:700;width:42px;">${w.pct}%</span>
+        <div style="margin-left:112px;font-size:11px;color:var(--text-muted);line-height:1.4;">${w.desc}</div>
       </div>
     `).join('')}
+    <div style="margin-top:10px;padding:10px 14px;background:#eff6ff;border-radius:8px;border-left:3px solid var(--primary);font-size:12px;color:#1e3a5f;line-height:1.5;">
+      <strong>How to read this:</strong> Each solution is scored 0–1 on all five dimensions, then multiplied by these weights to produce a composite score. The highest composite score wins. NPV and ROI together account for 55% of the decision — financial performance dominates, but risk and vendor quality matter too.
+    </div>
   </div>`;
 
   // ── Live Recalculation Panel ──────────────────────────────────
@@ -7488,6 +7622,38 @@ function renderPhase4(d, el) {
     }
   };
   html += buildLrPanel(4, _lrPhase4Data._lrDefaults);
+
+  // ── Industry Benchmark Context ────────────────────────────────
+  const avgROI = fp.avgROIPct || 0;
+  const topPayback = ranked[0]?.paybackMonths || null;
+  const roiVsBm = avgROI >= bm.roi ? 'above' : 'below';
+  const roiVsBmColor = avgROI >= bm.roi ? 'var(--success)' : '#d97706';
+  const paybackVsBm = topPayback && topPayback <= bm.payback ? 'faster than' : 'slower than';
+  const paybackVsBmColor = topPayback && topPayback <= bm.payback ? 'var(--success)' : '#d97706';
+  html += `<div class="card business-emphasis" style="margin-bottom:28px;padding:20px 24px;background:linear-gradient(135deg,#f0f9ff 0%,#eff6ff 100%);border:1.5px solid #93c5fd;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <span style="font-size:16px;">📊</span>
+      <h4 style="font-size:14px;font-weight:700;margin:0;color:#1e3a5f;">How does this compare to ${bm.label} industry benchmarks?</h4>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;">
+      <div style="background:white;border-radius:8px;padding:12px 14px;text-align:center;border:1px solid #dbeafe;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:4px;">Portfolio Avg ROI</div>
+        <div style="font-size:18px;font-weight:800;color:${roiVsBmColor};">${Math.round(avgROI)}%</div>
+        <div style="font-size:10px;color:${roiVsBmColor};margin-top:2px;">${roiVsBm} the ${bm.roi}% benchmark</div>
+      </div>
+      <div style="background:white;border-radius:8px;padding:12px 14px;text-align:center;border:1px solid #dbeafe;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:4px;">Winner Payback</div>
+        <div style="font-size:18px;font-weight:800;color:${paybackVsBmColor};">${topPayback ? topPayback + 'mo' : '—'}</div>
+        <div style="font-size:10px;color:${paybackVsBmColor};margin-top:2px;">${topPayback ? paybackVsBm + ' the ' + bm.payback + 'mo benchmark' : 'No payback data'}</div>
+      </div>
+      <div style="background:white;border-radius:8px;padding:12px 14px;text-align:center;border:1px solid #dbeafe;">
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#6b7280;margin-bottom:4px;">Discount Rate</div>
+        <div style="font-size:18px;font-weight:800;color:#1e3a5f;">${Math.round((fp.discountRate||0.12)*100)}%</div>
+        <div style="font-size:10px;color:#6b7280;margin-top:2px;">Cost of capital (hurdle rate)</div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:#374151;line-height:1.5;padding:8px 12px;background:rgba(255,255,255,0.6);border-radius:6px;">${bm.note}</div>
+  </div>`;
 
   // ── Ranked Table ─────────────────────────────────────────────
   html += `<div class="card" style="margin-bottom:28px;padding:24px 28px;overflow-x:auto;">
