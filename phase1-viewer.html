@@ -50,6 +50,22 @@
   #reg-error { font-size: 13px; color: #dc2626; margin-top: 12px; min-height: 18px; }
   .reg-divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0 20px; }
   .reg-privacy { font-size: 11px; color: #9ca3af; line-height: 1.5; }
+  /* T&C checkbox row */
+  .reg-tnc-row { display: flex; align-items: flex-start; gap: 10px; text-align: left; margin: 0 0 18px; }
+  .reg-tnc-row input[type=checkbox] { width: 16px; height: 16px; min-width: 16px; margin-top: 1px; accent-color: #003087; cursor: pointer; }
+  .reg-tnc-row label { font-size: 12px; color: #374151; line-height: 1.5; cursor: pointer; }
+  .reg-tnc-row label a { color: #003087; text-decoration: underline; cursor: pointer; }
+  /* T&C scroll box */
+  #tnc-box {
+    display: none; text-align: left; background: #f8fafc; border: 1px solid #d1d5db;
+    border-radius: 8px; padding: 16px 18px; max-height: 260px; overflow-y: auto;
+    font-size: 11.5px; color: #374151; line-height: 1.65; margin-bottom: 16px;
+  }
+  #tnc-box h4 { font-size: 12px; font-weight: 700; color: #0f172a; margin: 12px 0 4px; }
+  #tnc-box h4:first-child { margin-top: 0; }
+  #tnc-box p { margin-bottom: 8px; }
+  #tnc-box ul { padding-left: 16px; margin-bottom: 8px; }
+  #tnc-box li { margin-bottom: 3px; }
 </style>
 <style>
   /* ─── Reset & Base ──────────────────────────────────────────────── */
@@ -1508,6 +1524,175 @@
     .p2-sens-grid { grid-template-columns: 1fr; }
     .p2-kpi-row { grid-template-columns: 1fr 1fr; }
   }
+
+  /* ─── Phase B: Contextual AI Explain Buttons ─── */
+  .explain-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 11px; font-weight: 600; color: #7c3aed;
+    background: #f5f3ff; border: 1px solid #c4b5fd;
+    border-radius: 16px; padding: 4px 10px; cursor: pointer;
+    transition: all .15s; white-space: nowrap; line-height: 1.4;
+  }
+  .explain-btn:hover { background: #ede9fe; border-color: #a78bfa; transform: translateY(-1px); }
+  .explain-btn:disabled { opacity: 0.6; cursor: wait; }
+  .explain-bubble {
+    display: none; margin-top: 8px; padding: 14px 16px;
+    background: #faf5ff; border: 1px solid #e9d5ff;
+    border-left: 3px solid #7c3aed; border-radius: 8px;
+    font-size: 13px; line-height: 1.65; color: var(--text);
+    position: relative;
+  }
+  .explain-bubble.open { display: block; }
+  .explain-loading { color: var(--text-muted); font-style: italic; font-size: 12px; }
+  .explain-close {
+    position: absolute; top: 8px; right: 10px;
+    background: none; border: none; cursor: pointer;
+    font-size: 14px; color: var(--text-muted); padding: 0 4px; line-height: 1;
+  }
+  .explain-close:hover { color: var(--text); }
+
+  /* ─── Phase C: Plain English View Toggle ─── */
+  .view-toggle-bar {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding: 10px 0 14px; margin-bottom: 4px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .view-toggle-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 12px; font-weight: 600; padding: 6px 14px;
+    border-radius: 20px; border: 1.5px solid var(--border-light);
+    background: var(--surface); color: var(--text-muted);
+    cursor: pointer; transition: all .15s; white-space: nowrap;
+  }
+  .view-toggle-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .vtb-active {
+    background: var(--primary); border-color: var(--primary);
+    color: #fff !important;
+  }
+  .vtb-active:hover { background: var(--primary-dark, #1d4ed8); }
+  .view-toggle-hint {
+    font-size: 11px; color: var(--text-muted); margin-left: 8px;
+    font-style: italic;
+  }
+  .tech-view { }
+  .pe-view { padding: 4px 0; }
+  .pe-panel {
+    background: var(--surface); border: 1px solid var(--border-light);
+    border-radius: 12px; overflow: hidden;
+  }
+  .pe-headline {
+    font-size: 18px; font-weight: 800; line-height: 1.35;
+    padding: 24px 28px 16px; color: var(--text-strong);
+    border-bottom: 1px solid var(--border-light);
+    background: linear-gradient(135deg, #f0f9ff 0%, #faf5ff 100%);
+  }
+  .pe-body {
+    padding: 20px 28px;
+  }
+  .pe-lead {
+    font-size: 14px; line-height: 1.7; color: var(--text);
+    margin: 0 0 16px;
+  }
+  .pe-bullets {
+    list-style: none; padding: 0; margin: 0 0 16px;
+  }
+  .pe-bullets li {
+    font-size: 13px; line-height: 1.6; color: var(--text);
+    padding: 8px 12px 8px 32px; position: relative;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .pe-bullets li:last-child { border-bottom: none; }
+  .pe-bullets li::before {
+    content: '→'; position: absolute; left: 10px;
+    color: var(--primary); font-weight: 700;
+  }
+  .pe-recommendation {
+    background: #f0fdf4; border-left: 3px solid #16a34a;
+    border-radius: 6px; padding: 12px 16px; margin-bottom: 12px;
+    font-size: 13px; line-height: 1.6;
+  }
+  .pe-confidence {
+    font-size: 12px; color: var(--text-muted); font-style: italic;
+    padding-top: 4px;
+  }
+  .pe-footer {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 28px; background: var(--surface-alt);
+    border-top: 1px solid var(--border-light);
+    font-size: 12px; color: var(--text-muted);
+  }
+  .pe-footer .view-toggle-btn {
+    font-size: 11px; padding: 4px 12px;
+  }
+  .pe-loading {
+    padding: 32px; text-align: center;
+    color: var(--text-muted); font-style: italic; font-size: 13px;
+  }
+  .pe-error {
+    padding: 16px; color: var(--danger); font-size: 13px;
+  }
+
+  /* ─── Phase D: Enhanced Intake Help ─── */
+  .wtf-hint-panel {
+    margin: 6px 0 10px; padding: 0; background: none; border: none;
+  }
+  .wtf-hint-panel > summary {
+    font-size: 11px; font-weight: 600; color: var(--primary);
+    cursor: pointer; list-style: none; display: inline-flex;
+    align-items: center; gap: 5px; padding: 2px 0; user-select: none;
+  }
+  .wtf-hint-panel > summary::-webkit-details-marker { display: none; }
+  .wtf-hint-panel > summary::before { content: '💡'; font-size: 11px; }
+  .wtf-hint-panel[open] > summary::before { content: '💡'; }
+  .wtf-hint-body {
+    margin-top: 6px; padding: 10px 14px;
+    background: #eff6ff; border-left: 3px solid var(--primary);
+    border-radius: 6px; font-size: 12px; line-height: 1.65;
+    color: var(--text);
+  }
+  .wtf-hint-body strong { color: var(--primary); }
+  .wtf-skip-warn {
+    margin-top: 8px; padding: 8px 12px;
+    background: #fffbeb; border-left: 3px solid #d97706;
+    border-radius: 6px; font-size: 11px; line-height: 1.5;
+    color: #92400e;
+  }
+  .wtf-field-note {
+    font-size: 10px; color: var(--text-muted); margin-top: 3px;
+    line-height: 1.4;
+  }
+  .wtf-field-note.note-warn { color: #d97706; font-weight: 600; }
+
+  /* Input Trace Panel (result phases) */
+  .input-trace-panel {
+    margin-bottom: 16px;
+    background: var(--surface-alt); border: 1px solid var(--border-light);
+    border-left: 3px solid var(--primary); border-radius: 8px;
+    overflow: hidden; font-size: 12px;
+  }
+  .input-trace-panel > summary {
+    padding: 8px 14px; cursor: pointer; list-style: none;
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 600; color: var(--primary); user-select: none;
+  }
+  .input-trace-panel > summary::-webkit-details-marker { display: none; }
+  .input-trace-count {
+    font-size: 10px; font-weight: 600; background: var(--primary);
+    color: #fff; padding: 1px 8px; border-radius: 10px; margin-left: auto;
+  }
+  .input-trace-body {
+    padding: 2px 14px 10px;
+    border-top: 1px solid var(--border-light);
+  }
+  .input-trace-item {
+    display: grid; grid-template-columns: 130px 1fr;
+    gap: 2px 10px; padding: 5px 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .input-trace-item:last-child { border-bottom: none; }
+  .it-label { font-weight: 700; color: var(--text); }
+  .it-value { color: var(--primary); font-weight: 600; }
+  .it-effect { grid-column: 2; color: var(--text-muted); font-size: 11px; }
 </style>
 </head>
 <body>
@@ -1607,6 +1792,10 @@
           <span class="wtf-section-title">Strategic Alignment</span>
           <span class="wtf-section-badge">1 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">Your <strong>role</strong> calibrates the tone of recommendations — a CFO gets ROI focus, a CTO gets architecture detail. <strong>Urgency</strong> drives delivery sequencing and flags regulatory deadline risk in the Phase 4 ranking.</div>
+        </details>
         <div class="wtf-row">
           <div class="wtf-field-group">
             <label class="wtf-label">Project Title</label>
@@ -1640,6 +1829,11 @@
           <span class="wtf-section-title">Current State</span>
           <span class="wtf-section-badge">2 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">This is the most important field. Be specific — include <strong>system names, age, metrics</strong> (e.g. "68% cart abandonment"), who is affected, and how long the problem has existed. The AI extracts requirements and solution categories directly from this description.</div>
+        </details>
+        <div class="wtf-skip-warn">⚠️ <strong>If you're vague here:</strong> the AI generates generic requirements that may not match your actual situation — solution recommendations will be less targeted and benefit values harder to defend.</div>
         <div class="wtf-field-group">
           <label class="wtf-label">Describe what is broken today — include systems, duration, who is affected, and metrics</label>
           <textarea class="wtf-textarea" id="wtf-currentState" rows="5">Our ecommerce platform is 6 years old (Node.js + Shopify hybrid, built 2018). Cart abandonment is at 68% — industry average for optimised platforms is 38%. Page load averages 3.2 seconds (Google Core Web Vitals: Poor on 68% of pages). Order processing is manual, taking 4 hours per day across 3 systems. Infrastructure is AWS EC2 single-region with no auto-scaling or CDN. No formal PCI-DSS certification — last security audit was 18 months ago with GDPR gaps identified in Q1 review.</textarea>
@@ -1653,6 +1847,11 @@
           <span class="wtf-section-title">Business Impact</span>
           <span class="wtf-section-badge">3 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">Include <strong>dollar amounts</strong> wherever possible. The AI uses these figures to anchor benefit values in Phase 2. Even rough estimates ("$50K–$100K risk exposure") are far more defensible than leaving it blank.</div>
+        </details>
+        <div class="wtf-skip-warn">⚠️ <strong>If you leave this empty:</strong> benefit values are estimated from industry benchmarks — they'll be conservative and weaker in a board presentation than numbers drawn from your own data.</div>
         <div class="wtf-field-group">
           <label class="wtf-label">What is this costing you — include specific figures where possible</label>
           <textarea class="wtf-textarea" id="wtf-businessImpact" rows="5">68% cart abandonment = $340,000/yr in lost revenue. Manual order processing: 4 hrs/day × $40/hr × 250 days = $40,000/yr in staff time. PCI-DSS breach fines: $5K–$100K per incident. GDPR fines up to 4% of annual turnover ($200K exposure). 3.2s page load = estimated 15% bounce rate increase = ~$51,000/yr in lost conversion. Total annual risk exposure: $591,000.</textarea>
@@ -1666,6 +1865,10 @@
           <span class="wtf-section-title">Business Goals</span>
           <span class="wtf-section-badge">4 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">Write <strong>one goal per line</strong>. Use measurable targets where possible ("reduce cart abandonment from 68% to 40%"). Phase 3 traceability checks that every goal here is covered by at least one solution — unlinked goals flag as quality issues.</div>
+        </details>
         <div class="wtf-field-group">
           <label class="wtf-label">What success looks like — one goal per line</label>
           <textarea class="wtf-textarea" id="wtf-businessGoals" rows="5">Achieve PCI-DSS Level 1 certification and GDPR compliance by Q3 2026
@@ -1683,6 +1886,10 @@ Carbon-neutral brand positioning to support ESG disclosure requirements</textare
           <span class="wtf-section-title">Compliance Requirements</span>
           <span class="wtf-section-badge">5 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">Selected compliance requirements <strong>filter and score vendors in Phase 1.6</strong> — only vendors covering your requirements rank highly. Missing a requirement here means a non-compliant vendor could be recommended.</div>
+        </details>
         <label class="wtf-label">Select all that apply — click to toggle</label>
         <div class="wtf-checkbox-grid">
           <label class="wtf-chip checked"><input type="checkbox" id="wtf-comp-pcidss" checked onchange="this.closest('.wtf-chip').classList.toggle('checked',this.checked)">PCI-DSS</label>
@@ -1703,6 +1910,10 @@ Carbon-neutral brand positioning to support ESG disclosure requirements</textare
           <span class="wtf-section-title">Technical Stack</span>
           <span class="wtf-section-badge">6 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">Your tech stack is used to <strong>score vendor integration compatibility in Phase 1.6</strong>. Accurate stack details improve vendor recommendations significantly — vendors that don't integrate with your environment are ranked down.</div>
+        </details>
         <div class="wtf-row">
           <div class="wtf-field-group">
             <label class="wtf-label">Current Tech Stack (comma-separated)</label>
@@ -1722,6 +1933,13 @@ Carbon-neutral brand positioning to support ESG disclosure requirements</textare
           <span class="wtf-section-title">Financial Parameters</span>
           <span class="wtf-section-badge">7 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters — Financial Parameters are the engine of Phase 2, 3, and 4</summary>
+          <div class="wtf-hint-body">
+            <strong>Budget:</strong> Solutions that exceed this are flagged as over-budget in Phase 1.5 and Phase 4. <strong>Discount rate:</strong> Directly controls every NPV calculation in Phase 2 and Phase 4 — 1% change shifts NPV by 3–8%. Industry standard is 8–12%. <strong>Time horizon:</strong> All DCF projections, payback comparisons, and IRR calculations run over this number of years. <strong>Annual revenue:</strong> Used to calibrate benefit estimates — a 1% uplift at $5M/yr = $50K; at $50M/yr = $500K.
+          </div>
+        </details>
+        <div class="wtf-skip-warn">⚠️ <strong>Discount rate matters most:</strong> The default 12% is a conservative mid-market rate. If your company has a known WACC or hurdle rate, use it — it directly changes the NPV and composite score in Phase 4.</div>
         <div class="wtf-row">
           <div class="wtf-field-group">
             <label class="wtf-label">Total Budget ($)</label>
@@ -1761,6 +1979,10 @@ Carbon-neutral brand positioning to support ESG disclosure requirements</textare
           <span class="wtf-section-title">Constraints &amp; Pain Points</span>
           <span class="wtf-section-badge">8 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">Include <strong>alternatives already considered and rejected</strong>. This prevents the AI from recommending options you've already ruled out (e.g. "full platform rewrite rejected — $1.2M, 24 months"). The more context, the more targeted the solutions.</div>
+        </details>
         <div class="wtf-field-group">
           <label class="wtf-label">Key problems today — one per line</label>
           <textarea class="wtf-textarea" id="wtf-currentPainPoints" rows="4">68% cart abandonment rate
@@ -1782,6 +2004,10 @@ GDPR compliance gaps in customer data handling</textarea>
           <span class="wtf-section-title">Success Measures</span>
           <span class="wtf-section-badge">9 / 9</span>
         </div>
+        <details class="wtf-hint-panel">
+          <summary>Why this matters</summary>
+          <div class="wtf-hint-body">KPIs from this section appear in the <strong>Phase 5 executive report</strong> and the <strong>Phase 3 traceability check</strong>. Be specific: include current baseline and target (e.g. "page load under 1s — baseline 3.2s"). Vague KPIs weaken the traceability score.</div>
+        </details>
         <div class="wtf-field-group">
           <label class="wtf-label">KPIs that will prove the project succeeded — one per line</label>
           <textarea class="wtf-textarea" id="wtf-successMeasures" rows="5">PCI-DSS Level 1 certified and GDPR audit passed — measured at Q3 2026
@@ -2796,6 +3022,174 @@ function calcToggle(label, panelHtml) {
 
 function calcFormula(formula) {
   return '<div class="calc-formula">' + formula + '</div>';
+}
+
+// ─── Phase B: Contextual AI Explanations ─────────────────────────
+const EXPLAIN_REGISTRY = new Map();
+
+function explainBtn(id, phase, metric, ctxFactory) {
+  EXPLAIN_REGISTRY.set(id, { phase, metric, ctxFactory });
+  return '<button class="explain-btn" onclick="doExplain(event,\'' + id + '\')" title="Get a personalised AI explanation of this result">💬 Explain This</button>' +
+         '<div id="eb-' + id + '" class="explain-bubble"></div>';
+}
+
+async function doExplain(evt, id) {
+  evt.stopPropagation();
+  const btn = evt.currentTarget;
+  const bubble = document.getElementById('eb-' + id);
+  if (!bubble) return;
+  if (bubble.classList.contains('open')) { bubble.classList.remove('open'); return; }
+  bubble.classList.add('open');
+  bubble.innerHTML = '<div class="explain-loading">💭 Generating a personalised explanation…</div>';
+  btn.disabled = true;
+  const orig = btn.innerHTML;
+  btn.innerHTML = '⏳ Thinking…';
+  try {
+    const { phase, metric, ctxFactory } = EXPLAIN_REGISTRY.get(id) || {};
+    const extra = ctxFactory ? ctxFactory() : {};
+    const resp = await fetch('/api/explain', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phase, metric, ...extra })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.explanation) {
+      bubble.innerHTML = '<button class="explain-close" onclick="this.parentElement.classList.remove(\'open\')">✕</button>' +
+        '<div style="padding-right:20px;">' + data.explanation + '</div>';
+    } else {
+      bubble.innerHTML = '<div style="color:var(--danger);">⚠️ ' + (data.error || 'Could not generate explanation. Please try again.') + '</div>';
+    }
+  } catch (e) {
+    bubble.innerHTML = '<div style="color:var(--danger);">⚠️ Connection error. Please try again.</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = orig;
+  }
+}
+
+// ─── Phase C: Plain English Summary View ──────────────────────────
+const PE_CACHE = new Map();
+const PE_DATA_FNS = new Map();
+
+function addPEToggle(el, phaseId, phaseDataFn) {
+  PE_DATA_FNS.set(phaseId, phaseDataFn);
+  const tech = el.innerHTML;
+  el.innerHTML =
+    '<div class="view-toggle-bar" id="vtb-' + phaseId + '">' +
+      '<button class="view-toggle-btn vtb-active" onclick="showTechView(\'' + phaseId + '\')">📊 Technical View</button>' +
+      '<button class="view-toggle-btn" onclick="showPEView(\'' + phaseId + '\')">📖 Plain English</button>' +
+      '<span class="view-toggle-hint">Switch for stakeholder presentations</span>' +
+    '</div>' +
+    '<div class="tech-view" id="tv-' + phaseId + '">' + tech + '</div>' +
+    '<div class="pe-view" id="pv-' + phaseId + '" style="display:none"></div>';
+}
+
+async function showPEView(phaseId) {
+  const bar = document.getElementById('vtb-' + phaseId);
+  const techDiv = document.getElementById('tv-' + phaseId);
+  const peDiv = document.getElementById('pv-' + phaseId);
+  if (!techDiv || !peDiv) return;
+  if (bar) bar.querySelectorAll('.view-toggle-btn').forEach((b, i) => b.classList.toggle('vtb-active', i === 1));
+  techDiv.style.display = 'none';
+  peDiv.style.display = 'block';
+  if (PE_CACHE.has(phaseId)) { peDiv.innerHTML = PE_CACHE.get(phaseId); return; }
+  peDiv.innerHTML = '<div class="pe-loading">📖 Writing your plain English summary…</div>';
+  try {
+    const dataFn = PE_DATA_FNS.get(phaseId) || (() => ({}));
+    const resp = await fetch('/api/plain-english', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phase: phaseId, phaseData: dataFn() })
+    });
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    const html = buildPEPanel(data, phaseId);
+    PE_CACHE.set(phaseId, html);
+    peDiv.innerHTML = html;
+  } catch (e) {
+    peDiv.innerHTML = '<div class="pe-error">⚠️ Could not generate summary. Please try again.</div>';
+  }
+}
+
+function showTechView(phaseId) {
+  const bar = document.getElementById('vtb-' + phaseId);
+  const techDiv = document.getElementById('tv-' + phaseId);
+  const peDiv = document.getElementById('pv-' + phaseId);
+  if (!techDiv || !peDiv) return;
+  if (bar) bar.querySelectorAll('.view-toggle-btn').forEach((b, i) => b.classList.toggle('vtb-active', i === 0));
+  techDiv.style.display = 'block';
+  peDiv.style.display = 'none';
+}
+
+function buildInputTrace(vd, phase) {
+  if (!vd || typeof vd !== 'object') return '';
+  const industry  = (vd.industry || '').replace(/\b\w/g, c => c.toUpperCase()) || 'Not set';
+  const budget    = vd.budget    ? '$' + Number(vd.budget).toLocaleString()    : 'Not set';
+  const dr        = (vd.discountRatePct != null ? vd.discountRatePct : (vd.discountRate ? Math.round(vd.discountRate * 100) : null));
+  const drStr     = dr != null ? dr + '%' : 'Default (12%)';
+  const hy        = vd.timeHorizonYears || 3;
+  const hc        = vd.headcount ? vd.headcount + ' employees' : 'Not set';
+  const rev       = vd.annualRevenue ? '$' + Number(vd.annualRevenue).toLocaleString() : 'Not set';
+  const comp      = (vd.complianceRequirements || []).join(', ') || 'None selected';
+  const stack     = Array.isArray(vd.technicalStack) ? vd.technicalStack.join(', ') : (vd.technicalStack || 'Not specified');
+
+  const TRACE = {
+    phase1:     [ {l:'Industry',        v:industry, e:'AI uses industry-specific benefit benchmarks and solution patterns'},
+                  {l:'Budget',          v:budget,   e:'solutions are scored for budget fit; anything over this cap is flagged'},
+                  {l:'Time horizon',    v:hy + ' years', e:'payback and ROI targets are calibrated to this period'} ],
+    phase15:    [ {l:'Budget',          v:budget,   e:'cost utilisation and ceiling breach are calculated against this'},
+                  {l:'Headcount',       v:hc,       e:'labour estimates are benchmarked to this company size'},
+                  {l:'Industry',        v:industry, e:'implementation cost ranges are drawn from industry data'} ],
+    phase16:    [ {l:'Compliance',      v:comp,     e:'vendors are filtered and ranked on coverage of these frameworks'},
+                  {l:'Tech stack',      v:stack,    e:'vendor integration compatibility is scored against this environment'},
+                  {l:'Budget',          v:budget,   e:'vendor cost ranges are checked against this ceiling'} ],
+    reflection: [ {l:'Budget',          v:budget,   e:'quality score is penalised if total cost exceeds 85% of this'},
+                  {l:'Compliance',      v:comp,     e:'gate checks that at least one solution covers each requirement'},
+                  {l:'Goals defined',   v:'Phase 1 intake', e:'every business goal is checked for solution coverage'} ],
+    phase2:     [ {l:'Discount rate',   v:drStr,    e:'every NPV and IRR calculation applies this hurdle rate'},
+                  {l:'Time horizon',    v:hy + ' years', e:'all DCF projections run over this number of years'},
+                  {l:'Industry',        v:industry, e:'ROI, payback, and IRR benchmarks come from this sector'} ],
+    phase3:     [ {l:'Industry',        v:industry, e:'confidence thresholds are calibrated to this sector'},
+                  {l:'Time horizon',    v:hy + ' years', e:'delivery timeline is generated for this investment horizon'},
+                  {l:'Requirements',    v:'Phase 1 intake', e:'traceability verifies every requirement has a solution'} ],
+    phase4:     [ {l:'Discount rate',   v:drStr,    e:'NPV (35% of composite score) is calculated at this rate — higher rate lowers NPV'},
+                  {l:'Industry',        v:industry, e:'benchmark ROI determines whether returns are competitive for this sector'},
+                  {l:'Annual revenue',  v:rev,      e:'benefit estimates are calibrated to your revenue base'} ],
+    phase5:     [ {l:'Industry',        v:industry, e:'all benchmarks in this report use your sector's standards'},
+                  {l:'Discount rate',   v:drStr,    e:'financial returns and NPV are presented at this rate'},
+                  {l:'Budget',          v:budget,   e:'investment efficiency (ROI) is measured against this approved spend'} ],
+  };
+
+  const items = TRACE[phase] || [];
+  if (!items.length) return '';
+  const rows = items.map(i =>
+    '<div class="input-trace-item">' +
+      '<span class="it-label">' + i.l + '</span>' +
+      '<span class="it-value">' + i.v + '</span>' +
+      '<span class="it-effect">→ ' + i.e + '</span>' +
+    '</div>'
+  ).join('');
+  return '<details class="input-trace-panel"><summary>📋 Driven by your Phase 1 inputs' +
+    '<span class="input-trace-count">' + items.length + ' inputs active</span></summary>' +
+    '<div class="input-trace-body">' + rows + '</div></details>';
+}
+
+function buildPEPanel(data, phaseId) {
+  const bullets = (data.key_numbers || []).map(b => '<li>' + b + '</li>').join('');
+  return '<div class="pe-panel">' +
+    '<div class="pe-headline">' + (data.headline || '') + '</div>' +
+    '<div class="pe-body">' +
+      (data.what_it_means ? '<p class="pe-lead">' + data.what_it_means + '</p>' : '') +
+      (bullets ? '<ul class="pe-bullets">' + bullets + '</ul>' : '') +
+      (data.recommendation ? '<div class="pe-recommendation"><strong>💡 Decision:</strong> ' + data.recommendation + '</div>' : '') +
+      (data.confidence ? '<div class="pe-confidence">📊 ' + data.confidence + '</div>' : '') +
+    '</div>' +
+    '<div class="pe-footer"><span>Want the numbers?</span>' +
+      '<button class="view-toggle-btn" onclick="showTechView(\'' + phaseId + '\')">Switch to Technical View →</button>' +
+    '</div>' +
+  '</div>';
 }
 
 function calcSteps(steps) {
@@ -5477,22 +5871,86 @@ function renderResults(r) {
   const warningsHTML = allWarnings.length > 0
     ? `<div class="section"><div class="section-title">Warnings &amp; Recommendations</div><div class="warnings-list">${allWarnings.map(w => `<div class="alert alert-warning"><span class="alert-icon">&#9888;</span><div>${w}</div></div>`).join('')}</div></div>` : '';
 
+  // ── Phase A: Discovery at a Glance ──────────────────────────────
+  const p1Industry = (r.validatedData?.industry || r.projectMeta?.industry || '').toLowerCase();
+  const p1QScore   = r.qualityMetrics?.overallScore || 0;
+  const p1BudgUtil = r.budgetAnalysis?.budgetUtilizationPct || 0;
+  const p1Ready    = !!(r.reflection?.readyForPhase2);
+  const p1AllGood  = p1QScore >= 70 && p1BudgUtil <= 85 && r.solutions.length > 0 && p1Ready;
+  const p1SomeGood = p1QScore >= 50 && p1BudgUtil <= 100 && r.solutions.length > 0;
+  const p1GlanceColor = p1AllGood ? '#16a34a' : p1SomeGood ? '#d97706' : '#dc2626';
+  const p1GlanceBg    = p1AllGood ? '#f0fdf4' : p1SomeGood ? '#fffbeb' : '#fef2f2';
+  const p1GlanceIcon  = p1AllGood ? '🟢' : p1SomeGood ? '🟡' : '🔴';
+  const p1GlanceVerdict = p1AllGood
+    ? 'Analysis Complete — Ready to Proceed'
+    : p1SomeGood ? 'Analysis Complete — Review Recommended'
+    : 'Analysis Incomplete — Action Required';
+  const p1GlanceBanner = `
+    <div style="background:${p1GlanceBg};border:1px solid ${p1GlanceColor};border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:16px;">
+      <div style="font-size:22px;line-height:1;">${p1GlanceIcon}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;color:${p1GlanceColor};margin-bottom:8px;">Discovery at a Glance — ${p1GlanceVerdict}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 20px;font-size:13px;color:var(--text-muted);">
+          <div>${r.solutions.length > 0 ? '✅' : '❌'} ${r.solutions.length} solution${r.solutions.length !== 1 ? 's' : ''} identified</div>
+          <div>${r.benefits.length > 0 ? '✅' : '⚠️'} ${r.benefits.length} benefit${r.benefits.length !== 1 ? 's' : ''} quantified</div>
+          <div>${p1BudgUtil <= 85 ? '✅' : p1BudgUtil <= 100 ? '⚠️' : '❌'} Budget utilisation: ${pct(p1BudgUtil)}</div>
+          <div>${p1Ready ? '✅' : '❌'} ${p1Ready ? 'Passed quality gate' : 'Quality gate not passed'}</div>
+        </div>
+      </div>
+    </div>`;
+  const p1QualInterp = buildMetricInterpretation('quality', p1QScore, p1Industry);
+  const p1BudgetInterp = (() => {
+    const u = p1BudgUtil;
+    const color = u <= 70 ? '#16a34a' : u <= 85 ? '#d97706' : '#dc2626';
+    const icon  = u <= 70 ? '🟢' : u <= 85 ? '🟡' : '🔴';
+    const label = u <= 70 ? 'Healthy — well within budget'
+      : u <= 85 ? 'Acceptable — within the recommended 85% ceiling'
+      : u <= 100 ? 'Caution — approaching budget limit'
+      : 'Over Budget — cost exceeds approved spend';
+    const tip = u <= 70
+      ? 'Remaining headroom provides a buffer for scope changes or vendor price variation.'
+      : u <= 85 ? 'This sits within the 85% ceiling rule — a standard PMO control that reserves 15% for contingency.'
+      : u <= 100 ? 'Consider descoping low-priority solutions or negotiating vendor pricing before proceeding.'
+      : 'A re-scoping exercise is required. Phase 2 and beyond may be blocked until the budget ceiling is resolved.';
+    return `<div style="background:#f8fafc;border-left:3px solid ${color};border-radius:6px;padding:12px 16px;margin-top:10px;font-size:13px;">
+      <div style="font-weight:700;color:${color};margin-bottom:4px;">${icon} ${label}</div>
+      <div style="color:var(--text-muted);line-height:1.5;">${tip}</div>
+    </div>`;
+  })();
+
   el.innerHTML = `
     <div class="role-bar ${_currentRole}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">${_currentRole === 'analyst' ? '<span><span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns</span>' : '<span><span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations</span>'}<button class="reanalysis-btn" onclick="reAnalysis()" title="Clear all results and restart from Discovery">🔄 Re-Analysis</button></div>
     ${statusAlert}
+    ${buildInputTrace(r.validatedData || r.projectMeta || {}, 'phase1')}
+    ${p1GlanceBanner}
+    ${explainBtn('p1-glance','phase1','overall',()=>({projectContext:{industry:p1Industry,budget:r.projectMeta?.budget||r.validatedData?.budget||0},metricValue:p1QScore,additionalContext:{solutions:r.solutions.length,benefits:r.benefits.length,budgetUtil:Math.round(p1BudgUtil),verdict:p1GlanceVerdict}}))}
     ${kpiRow}
+    ${p1QualInterp}
     <div class="section"><div class="section-title">Solutions (${r.solutions.length})</div><div class="sol-grid">${solCards}</div></div>
     <div class="section analyst-emphasis"><div class="section-title">Benefits (${r.benefits.length}) ${guideBtn('What do the Benefits rows show?')}</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Value</th><th>Confidence</th><th>Source</th></tr></thead><tbody>${benRows}</tbody></table></div></div>
     <div class="section"><div class="section-title">Requirements (${r.requirements.length}) ${guideBtn('What are Requirements?')}</div><div class="req-list">${reqItems}</div></div>
     <div class="section">${buildValueChainSection(r.solutions, r.benefits, r.requirements, 'Value Chain — Solution → Requirement → Benefit ' + guideBtn('What does the Value Chain diagram show?'))}</div>
     <div class="section">${buildTraceabilityNarrative(r.solutions, r.benefits, r.requirements)}</div>
-    <div class="section analyst-emphasis"><div class="section-title">Budget Analysis ${guideBtn('What is the Budget Analysis section?')}</div><div class="budget-panel"><div class="budget-grid"><div><div class="budget-stat-label">Total Cost</div><div class="budget-stat-value">${fmt(ba.totalCost)}</div></div><div><div class="budget-stat-label">Budget</div><div class="budget-stat-value">${fmt(ba.budget)}</div></div><div><div class="budget-stat-label">Cost Range</div><div class="budget-stat-value" style="font-size:14px;">${fmt(r.portfolioCostSummary.totalLow)} &ndash; ${fmt(r.portfolioCostSummary.totalHigh)}</div></div></div><div class="progress-wrap"><div class="progress-header"><span class="progress-label">Budget Utilisation</span><span class="progress-pct" style="color:${progressColor(utilPct)}">${pct(utilPct)}</span></div><div class="progress-track"><div class="progress-fill" style="width:${Math.min(utilPct, 100)}%;background:${progressColor(utilPct)}"></div></div></div><div class="budget-badges">${withinBudgetBadge}${ceilingBadge}</div>${ceilingAlert}</div></div>
+    <div class="section analyst-emphasis"><div class="section-title">Budget Analysis ${guideBtn('What is the Budget Analysis section?')}</div><div class="budget-panel"><div class="budget-grid"><div><div class="budget-stat-label">Total Cost</div><div class="budget-stat-value">${fmt(ba.totalCost)}</div></div><div><div class="budget-stat-label">Budget</div><div class="budget-stat-value">${fmt(ba.budget)}</div></div><div><div class="budget-stat-label">Cost Range</div><div class="budget-stat-value" style="font-size:14px;">${fmt(r.portfolioCostSummary.totalLow)} &ndash; ${fmt(r.portfolioCostSummary.totalHigh)}</div></div></div><div class="progress-wrap"><div class="progress-header"><span class="progress-label">Budget Utilisation</span><span class="progress-pct" style="color:${progressColor(utilPct)}">${pct(utilPct)}</span></div><div class="progress-track"><div class="progress-fill" style="width:${Math.min(utilPct, 100)}%;background:${progressColor(utilPct)}"></div></div></div>${p1BudgetInterp}<div class="budget-badges">${withinBudgetBadge}${ceilingBadge}</div>${ceilingAlert}</div></div>
     <div class="section business-emphasis"><div class="section-title">Delivery Sequence ${guideBtn('What is the Delivery Sequence?')}</div><div class="delivery-flow">${deliveryPhases}</div></div>
     <div class="section business-emphasis"><div class="section-title">Reflection ${guideBtn('What is the Reflection quality gate?')}</div><div class="reflection-panel"><div class="reflection-score" style="color:${scoreColor};border-color:${scoreColor};">${score}</div><div class="reflection-body"><div class="reflection-summary">${r.reflection.summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;">${readyBadge}<span class="badge badge-muted">Tracking: ${r.trackingId}</span><span class="badge badge-muted">Cost Estimation: ${r.costEstimationStatus}</span></div>${reflectionError}</div></div></div>
     ${warningsHTML}
   `;
 
   el.style.display = 'block';
+  addPEToggle(el, 'phase1', () => ({
+    industry: (_phase1Results?.validatedData?.industry || ''),
+    companySize: (_phase1Results?.validatedData?.companySize || ''),
+    budget: (_phase1Results?.validatedData?.budget || 0),
+    solutions: (_phase1Results?.solutions || []).map(s => ({name: s.name, type: s.solutionType || s.type || ''})),
+    benefitCount: (_phase1Results?.benefits || []).length,
+    totalBenefitValue: (_phase1Results?.benefits || []).reduce((sum, b) => sum + (b.annualValue || b.value || 0), 0),
+    budgetUtil: Math.round(_phase1Results?.budgetAnalysis?.budgetUtilizationPct || 0),
+    qualityScore: _phase1Results?.qualityMetrics?.overallScore || 0,
+    verdict: _phase1Results?.reflection?.verdict || '',
+    reflectionSummary: (_phase1Results?.reflection?.summary || '').slice(0, 200),
+    readyForPhase2: _phase1Results?.reflection?.readyForPhase2 || false
+  }));
   _phase1Results = r;
   _providerSelections = {}; // reset provider selections on new Phase 1
   renderSolutionPicker(r.solutions);
@@ -6377,6 +6835,30 @@ function renderVendorResults(r) {
   const _compCtx2  = window._phase1Results?.validatedData?.complianceRequirements || wizardData?.complianceRequirements || [];
   const _techCtx2  = window._phase1Results?.validatedData?.technicalStack || wizardData?.technicalStack || [];
 
+  // ── Phase A: Vendor Selection at a Glance ─────────────────────
+  const topFit   = (r.vendors || [])[0]?.fitScore || 0;
+  const p16GlanceColor = topFit >= 80 ? '#16a34a' : topFit >= 60 ? '#d97706' : '#dc2626';
+  const p16GlanceBg    = topFit >= 80 ? '#f0fdf4' : topFit >= 60 ? '#fffbeb' : '#fef2f2';
+  const p16GlanceIcon  = topFit >= 80 ? '🟢' : topFit >= 60 ? '🟡' : '🔴';
+  const p16GlanceVerdict = topFit >= 80
+    ? `Top vendor fit score of ${topFit}/100 — strong alignment with your compliance and technical requirements. Proceed to cost analysis with confidence.`
+    : topFit >= 60
+    ? `Top vendor fit score of ${topFit}/100 — moderate alignment. Review the amber gaps below before committing to a vendor.`
+    : `Top vendor fit score of ${topFit}/100 — weak alignment. Significant compliance or integration gaps exist. Consider alternative vendors or adjusting requirements.`;
+  const p16GlanceBanner = `
+    <div style="background:${p16GlanceBg};border:1px solid ${p16GlanceColor};border-radius:10px;padding:14px 18px;margin-bottom:16px;">
+      <div style="font-size:12px;font-weight:700;color:${p16GlanceColor};margin-bottom:4px;">${p16GlanceIcon} Vendor Selection at a Glance</div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:8px;">${p16GlanceVerdict}</div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        ${[
+          { label: 'Top fit ≥80',   ok: topFit >= 80 },
+          { label: 'Vendor ranked', ok: (r.vendors||[]).length > 0 },
+          { label: 'Vendor selected', ok: !!r.selectedVendor },
+          { label: 'No critical gaps', ok: !(r.complianceGaps||[]).length && !(r.integrationGaps||[]).length }
+        ].map(item => `<span style="font-size:11px;font-weight:600;color:${item.ok ? '#16a34a' : '#6b7280'};">${item.ok ? '✓' : '○'} ${item.label}</span>`).join('')}
+      </div>
+    </div>`;
+
   const vendorCards = (r.vendors || []).map(v => {
     const isSelected = r.selectedVendor && v.name === r.selectedVendor.name;
     const scoreCol = fitScoreColor(v.fitScore);
@@ -6433,12 +6915,22 @@ function renderVendorResults(r) {
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--purple);">Phase 1.6 — Software Solution Providers &bull; ${r.solutionId}: ${r.solutionName} ${guideBtn('Why is the top-ranked provider recommended?')}</div>
-      ${selectedSummary}${narrativesHTML}
+      ${buildInputTrace(window._phase1Results?.validatedData || {}, 'phase16')}
+      ${p16GlanceBanner}
+      ${selectedSummary}${narrativesHTML}${explainBtn('p16-glance','phase1_6','vendor_selection',()=>({projectContext:{industry:(window._phase1Results?.validatedData?.industry||'')},metricValue:((r.vendors||[])[0]?.fitScore||0),additionalContext:{topVendor:((r.vendors||[])[0]?.name||'--'),selectedVendor:(r.selectedVendor?.name||'--'),vendorCount:(r.vendors||[]).length,solutionName:(r.solutionName||'')}}))}
       <div class="vendor-grid">${vendorCards}</div>
       ${gapAlerts}
     </div>`;
 
   el.style.display = 'block';
+  addPEToggle(el, 'phase16', () => ({
+    solutionName: r.solutionName || '',
+    industry: (window._phase1Results?.validatedData?.industry || ''),
+    vendors: (r.vendors || []).map(v => ({name: v.name, rank: v.rank, fitScore: v.fitScore, fitLabel: v.fitLabel || '', costLow: v.typicalCostRange?.low || 0, costHigh: v.typicalCostRange?.high || 0, whyRecommended: (v.whyRecommended || '').slice(0, 100)})),
+    selectedVendor: r.selectedVendor?.name || '',
+    complianceGaps: r.complianceGaps || [],
+    integrationGaps: r.integrationGaps || []
+  }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -6536,12 +7028,61 @@ function renderCostResults(r) {
     return `<div class="delivery-phase"><div class="delivery-phase-num">Phase ${ps.phase}</div><div class="delivery-phase-theme">${ps.theme}</div><div class="delivery-phase-sols">${solBadges}</div></div>`;
   }).join('');
 
+  // ── Phase A: Cost Estimation at a Glance ────────────────────────
+  const costIndustry = (r.validatedData?.industry || '').toLowerCase();
+  const costUtil = ba.budgetUtilizationPct || 0;
+  const costAllGood = ba.withinBudget === true && !r.budgetCeilingBreached;
+  const costSomeGood = ba.withinCeiling !== false && !r.budgetCeilingBreached;
+  const costGlanceColor = costAllGood ? '#16a34a' : costSomeGood ? '#d97706' : '#dc2626';
+  const costGlanceBg    = costAllGood ? '#f0fdf4' : costSomeGood ? '#fffbeb' : '#fef2f2';
+  const costGlanceIcon  = costAllGood ? '🟢' : costSomeGood ? '🟡' : '🔴';
+  const costGlanceVerdict = costAllGood
+    ? 'Cost Estimation Complete — Portfolio Is Within Budget'
+    : costSomeGood ? 'Cost Estimation Complete — Within Ceiling, Review Recommended'
+    : 'Cost Estimation Complete — Budget Issues Detected';
+  const costSolCount = (r.solutions || []).length;
+  const tcoDataA = ba.tco || {};
+  const costGlanceBanner = `
+    <div style="background:${costGlanceBg};border:1px solid ${costGlanceColor};border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:16px;">
+      <div style="font-size:22px;line-height:1;">${costGlanceIcon}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;color:${costGlanceColor};margin-bottom:8px;">Cost Estimation at a Glance — ${costGlanceVerdict}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 20px;font-size:13px;color:var(--text-muted);">
+          <div>${costSolCount > 0 ? '✅' : '❌'} ${costSolCount} solution${costSolCount !== 1 ? 's' : ''} priced</div>
+          <div>${ba.withinBudget ? '✅' : ba.withinCeiling !== false ? '⚠️' : '❌'} Budget: ${pct(costUtil)} utilised</div>
+          <div>${tcoDataA.npvTCO != null ? '✅' : '⚠️'} TCO${tcoDataA.npvTCO != null ? ': ' + fmt(tcoDataA.npvTCO) : ' not calculated'}</div>
+          <div>${!r.budgetCeilingBreached ? '✅ Ceiling not breached' : '❌ Ceiling breached'}</div>
+        </div>
+      </div>
+    </div>`;
+  const tcoExplainer = tcoDataA.npvTCO != null ? `
+    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 18px;margin-bottom:20px;font-size:13px;">
+      <div style="font-weight:700;color:#1e40af;margin-bottom:6px;">💡 Understanding Your TCO</div>
+      <div style="color:#1e3a8a;line-height:1.65;">
+        <strong>NPV TCO (${fmt(tcoDataA.npvTCO)})</strong> is the total cost in today's money — implementation plus recurring spend discounted at ${pct((tcoDataA.discountRate || 0.1) * 100)}/yr over ${r.validatedData?.timeHorizonYears || 3} years. Use this to compare investment options fairly.<br>
+        <strong>Simple TCO (${fmt(tcoDataA.simpleTCO)})</strong> is the raw undiscounted total — useful for budgeting line items but overstates costs relative to future value.<br>
+        The <strong>${pct((tcoDataA.discountRate || 0.1) * 100)} discount rate</strong> reflects the time value of money: $1 today is worth more than $1 in three years.
+      </div>
+    </div>` : '';
+
   el.innerHTML = `
-    <div class="section" style="margin-top:8px;"><div class="section-title" style="border-bottom-color:var(--info);">Phase 1.5 — Cost Estimation ${guideBtn('How are costs built from vendor pricing?')}</div>${warningsHTML}${costKpiRow}<div class="cost-grid">${costCards}</div></div>
-    ${portfolioPanel}${tcoPanel}
+    <div class="section" style="margin-top:8px;"><div class="section-title" style="border-bottom-color:var(--info);">Phase 1.5 — Cost Estimation ${guideBtn('How are costs built from vendor pricing?')}</div>${buildInputTrace(r.validatedData || {}, 'phase15')}${costGlanceBanner}${explainBtn('p15-glance','phase1_5','cost',()=>({projectContext:{industry:(r.validatedData?.industry||''),budget:(r.validatedData?.budget||0)},metricValue:Math.round(ba.totalCost||0),additionalContext:{utilisation:Math.round(costUtil),tcoNPV:Math.round(tcoDataA.npvTCO||0),solutions:costSolCount,verdict:costGlanceVerdict}}))}${warningsHTML}${costKpiRow}<div class="cost-grid">${costCards}</div></div>
+    ${portfolioPanel}${tcoPanel}${tcoExplainer}
     <div class="section"><div class="section-title" style="border-bottom-color:var(--info);">Delivery Sequence (Costed) ${guideBtn('What is the Delivery Sequence?')}</div><div class="delivery-flow">${deliveryPhases}</div></div>`;
 
   el.style.display = 'block';
+  addPEToggle(el, 'phase15', () => ({
+    industry: (r.validatedData?.industry || ''),
+    budget: (r.validatedData?.budget || 0),
+    totalCost: Math.round(ba.totalCost || 0),
+    budgetUtil: Math.round(costUtil),
+    solutions: (r.solutions || []).map(s => ({name: s.name, cost: s.implementationCost || 0})),
+    tcoNPV: Math.round(tcoDataA.npvTCO || 0),
+    simpleTCO: Math.round(tcoDataA.simpleTCO || 0),
+    discountRate: tcoDataA.discountRate || 0.1,
+    withinBudget: ba.withinBudget || false,
+    ceilingBreached: r.budgetCeilingBreached || false
+  }));
   $('#reflectionLaunchPanel').style.display = 'block';
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -6636,14 +7177,53 @@ function renderReflection(r) {
   const medCount  = criticals.filter(c => c.severity === 'medium').length;
   const countLine = `<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--text-muted);margin-top:6px;">${critCount > 0 ? `<span><strong style="color:var(--danger);">${critCount}</strong> critical</span>` : ''}${highCount > 0 ? `<span><strong style="color:#ea580c;">${highCount}</strong> high</span>` : ''}${medCount > 0 ? `<span><strong style="color:var(--warning);">${medCount}</strong> medium</span>` : ''}<span><strong style="color:var(--warning);">${warnings.length}</strong> warnings</span><span><strong style="color:#0e7490;">${missing.length}</strong> missing</span></div>`;
 
+  // ── Phase A: Quality at a Glance ────────────────────────────────
+  const p1refGlanceColor = ref.verdict === 'pass' ? '#16a34a' : ref.verdict === 'fail' ? '#dc2626' : '#d97706';
+  const p1refGlanceBg    = ref.verdict === 'pass' ? '#f0fdf4' : ref.verdict === 'fail' ? '#fef2f2' : '#fffbeb';
+  const p1refGlanceIcon  = ref.verdict === 'pass' ? '🟢' : ref.verdict === 'fail' ? '🔴' : '🟡';
+  const p1refVerdictDesc = ref.verdict === 'pass'
+    ? 'All quality checks passed. This BCA is cleared for financial analysis.'
+    : ref.verdict === 'fail'
+    ? 'One or more critical quality checks failed. Resolve the issues below before proceeding to Phase 2.'
+    : 'Passed with notes — the BCA can proceed, but review the items below to strengthen accuracy.';
+  const p1refGlanceBanner = `
+    <div style="background:${p1refGlanceBg};border:1px solid ${p1refGlanceColor};border-radius:10px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:16px;">
+      <div style="font-size:22px;line-height:1;">${p1refGlanceIcon}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;color:${p1refGlanceColor};margin-bottom:4px;">Quality Gate — ${verdictLabel}</div>
+        <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-bottom:10px;">${p1refVerdictDesc}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px 20px;font-size:13px;">
+          <div>${critCount === 0 ? '✅' : '❌'} ${critCount === 0 ? 'No critical issues' : critCount + ' critical issue' + (critCount > 1 ? 's' : '')}</div>
+          <div>${strengths.length > 0 ? '✅' : '⚠️'} ${strengths.length} strength${strengths.length !== 1 ? 's' : ''} noted</div>
+          <div>${warnings.length === 0 ? '✅' : '⚠️'} ${warnings.length} warning${warnings.length !== 1 ? 's' : ''}</div>
+          <div>${missing.length === 0 ? '✅' : '⚠️'} ${missing.length} missing element${missing.length !== 1 ? 's' : ''}</div>
+        </div>
+      </div>
+    </div>`;
+  const p1refIndustry = window._phase1Results?.validatedData?.industry || '';
+  const p1refScoreInterp = buildMetricInterpretation('quality', score, p1refIndustry);
+
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--warning);">Phase 1 Reflection — Quality Review ${guideBtn('What is the Reflection quality gate?')}</div>
+      ${buildInputTrace(r.reflection ? (window._phase1Results?.validatedData || {}) : {}, 'reflection')}
+      ${p1refGlanceBanner}
+      ${explainBtn('p1ref-glance','quality_review','quality_gate',()=>({projectContext:{industry:p1refIndustry},metricValue:score,additionalContext:{verdict:ref.verdict,criticals:critCount,warnings:warnings.length,strengths:strengths.length,missing:missing.length,summary:(ref.summary||'')}}))}
       <div class="reflection-header">${scoreRing}<div style="flex:1;min-width:200px;"><div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:8px;">${verdictBadge} ${guideBtn('What does the Reflection verdict mean?')}${readyBadge}</div>${countLine}</div></div>
+      ${p1refScoreInterp}
       ${summaryCard}${strengthsHTML}${criticalCards}${warningCards}${missingHTML}
     </div>`;
 
   el.style.display = 'block';
+  addPEToggle(el, 'reflection', () => ({
+    score: ref.overallScore || 0,
+    verdict: ref.verdict || '',
+    readyForPhase2: ref.readyForPhase2 || false,
+    criticalIssues: (ref.criticalIssues || []).map(i => i.issue || '').slice(0, 3),
+    warnings: (ref.warnings || []).map(w => w.warning || '').slice(0, 3),
+    strengths: (ref.strengths || []).slice(0, 3),
+    summary: (ref.summary || '').slice(0, 200)
+  }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // ── Continue to Phase 2 CTA ──
@@ -6845,6 +7425,7 @@ function renderPhase2(r) {
         ].map(c => `<span style="font-size:11px;font-weight:600;color:${c.ok ? 'var(--success)' : '#d97706'};">${c.ok ? '✅' : '⚠️'} ${c.label}</span>`).join('')}
       </div>
     </div>
+    ${explainBtn('p2-portfolio','phase2','portfolio',()=>({projectContext:{industry:p2Industry},metricValue:p.totalNPV||0,additionalContext:{avgROI:p.averageROI||0,paybackMonths:p.paybackMonths,portfolioIRR:p.portfolioIRR,qualityScore:qs.overallScore||0,checksPass:glancePass,benchmarkLabel:p2Bm.label}}))}
     <div class="p2-kpi-row">
       <div class="p2-kpi">
         <div class="p2-kpi-label">Total NPV ${guideBtn('How is NPV calculated?')}</div>
@@ -7113,6 +7694,7 @@ function renderPhase2(r) {
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--primary);">Phase 2 — Financial Analysis</div>
       <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Full financial detail, sensitivity, and formulas' : 'Business View — Key metrics and budget health'}</div>
+      ${buildInputTrace(r.validatedData || {}, 'phase2')}
       ${kpiRow}
       <div class="analyst-emphasis" style="border-radius:10px;">${lrPanelHtml}${finTable}</div>
       ${spreadTable}
@@ -7122,6 +7704,19 @@ function renderPhase2(r) {
     </div>`;
 
   el.style.display = 'block';
+  addPEToggle(el, 'phase2', () => ({
+    industry: p2Industry,
+    benchmark: p2Bm.label,
+    totalNPV: p.totalNPV || 0,
+    averageROI: p.averageROI || 0,
+    benchmarkROI: p2Bm.roi,
+    portfolioIRR: p.portfolioIRR,
+    paybackMonths: p.paybackMonths,
+    totalTCO: p.totalTCO || 0,
+    qualityScore: qs.overallScore || 0,
+    checksPass: glancePass,
+    solutions: sols.map(s => ({name: s.name, npv: s.npv || 0, roi: s.roi || 0}))
+  }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // ── Continue to Phase 3 CTA ──
@@ -7229,6 +7824,7 @@ function renderPhase3(d, el) {
   const avgConf = conf.average || 0;
   const covPct = trace.theoreticalPairs > 0 ? Math.round((trace.coveredPairs / trace.theoreticalPairs) * 100) : 0;
   const p4Ready = p4.phase4ContractReady === true;
+  const p3Industry = d.validatedData?.industry || d.project?.industry || '';
 
   // ─── At-a-Glance verdict ──────────────────────
   const tracePass = [hs >= 70, avgConf >= 70, covPct >= 60, p4Ready].filter(Boolean).length;
@@ -7264,6 +7860,10 @@ function renderPhase3(d, el) {
     <div class="p3-kpi"><div class="p3-kpi-value">${fmt(pt.totalCost)}</div><div class="p3-kpi-label">Total Cost</div></div>
     <div class="p3-kpi"><div class="p3-kpi-value">${conf.average || 0}<span style="font-size:14px;color:var(--text-muted);font-weight:500;">%</span></div><div class="p3-kpi-label">Avg Confidence</div></div>
   </div>
+  ${buildMetricInterpretation('quality', hs, p3Industry)}
+  ${buildMetricInterpretation('confidence', avgConf, p3Industry)}
+  ${calcToggle('Health Score formula', `Health Score = (Covered Pairs &divide; Theoretical Pairs) &times; 100 = (${trace.coveredPairs||0} &divide; ${trace.theoreticalPairs||1}) &times; 100 = <strong>${hs}/100</strong><br>Thresholds: &ge;80 = Strong &nbsp;&middot;&nbsp; 60&ndash;79 = Fair &nbsp;&middot;&nbsp; &lt;60 = Weak`)}
+  ${calcToggle('Avg Confidence formula', `Avg Confidence = Mean of per-solution AI benefit-estimate confidence scores &rarr; <strong>${avgConf}%</strong><br>Thresholds: &ge;80 = High &nbsp;&middot;&nbsp; 65&ndash;79 = Moderate &nbsp;&middot;&nbsp; &lt;65 = Low confidence`)}
   <div style="margin-bottom:20px;padding:12px 16px;border-radius:10px;border-left:4px solid ${traceGlanceColor};background:${traceGlanceBg};">
     <div style="font-size:12px;font-weight:700;color:${traceGlanceColor};margin-bottom:4px;">${traceGlanceIcon} Traceability at a Glance</div>
     <div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:8px;">${traceVerdict}</div>
@@ -7275,6 +7875,7 @@ function renderPhase3(d, el) {
         { label: 'Phase 4 gate pass', ok: p4Ready }
       ].map(c => `<span style="font-size:11px;font-weight:600;color:${c.ok ? 'var(--success)' : '#d97706'};">${c.ok ? '✅' : '⚠️'} ${c.label}</span>`).join('')}
     </div>
+  ${explainBtn('p3-trace','phase3','traceability',()=>({projectContext:{industry:(d.validatedData?.industry||d.project?.industry||'')},metricValue:hs,additionalContext:{avgConf,covPct,p4Ready,tracePass,healthLabel:hsLabel}}))}
   </div>`;
 
   // ─── Traceability health gauge ──────────────
@@ -7488,6 +8089,7 @@ function renderPhase3(d, el) {
       <div class="section-title" style="border-bottom-color:var(--purple);">Phase 3 — Traceability Validation</div>
       <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Traceability detail, confidence scores, and fulfillment' : 'Business View — Health gauges, timeline, and dependencies'}</div>
       <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:6px;">${breadcrumb}</div>
+      ${buildInputTrace(d.validatedData || {}, 'phase3')}
       ${kpis}
       <div class="business-emphasis" style="border-radius:10px;">${gaugeSection}${timelineBar}</div>
       <div class="analyst-emphasis" style="border-radius:10px;">${confSection}</div>
@@ -7498,6 +8100,18 @@ function renderPhase3(d, el) {
     </div>`;
 
   el.style.display = 'block';
+  addPEToggle(el, 'phase3', () => ({
+    industry: (d.validatedData?.industry || d.project?.industry || ''),
+    healthScore: hs,
+    healthLabel: hsLabel,
+    coveredPairs: trace.coveredPairs || 0,
+    theoreticalPairs: trace.theoreticalPairs || 0,
+    avgConfidence: avgConf,
+    p4Ready: p4Ready,
+    totalDurationWeeks: pt.totalDurationWeeks || 0,
+    totalCost: pt.totalCost || 0,
+    checksPass: tracePass
+  }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // Build vis-network graph after DOM insertion
@@ -7656,6 +8270,36 @@ function renderPhase4(d, el) {
 
   // ── Role Bar ──
   html += `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Sensitivity tables, scoring weights, and financial detail' : 'Business View — Recommendation, health dashboard, and gate status'}</div>`;
+
+  html += buildInputTrace(d.validatedData || {}, 'phase4');
+
+  // ── Phase A: Ranking at a Glance ─────────────────────────────
+  const p4WinScore = winner.score || 0;
+  const p4WinROI   = winner.roiPct || 0;
+  const p4GateOk   = p5.ok === true;
+  const p4AllGood  = p4GateOk && p4WinScore >= 70 && ranked.length > 0;
+  const p4SomeGood = p4WinScore >= 50 && ranked.length > 0;
+  const p4GlanceColor = p4AllGood ? '#16a34a' : p4SomeGood ? '#d97706' : '#dc2626';
+  const p4GlanceBg    = p4AllGood ? '#f0fdf4' : p4SomeGood ? '#fffbeb' : '#fef2f2';
+  const p4GlanceIcon  = p4AllGood ? '🟢' : p4SomeGood ? '🟡' : '🔴';
+  const p4GlanceVerdict = p4AllGood
+    ? 'Ranking Complete — Winner Identified, Gate Passed'
+    : p4SomeGood ? 'Ranking Complete — Review Winner Before Proceeding'
+    : 'Ranking Complete — Issues Detected, Action Required';
+  html += `
+    <div style="background:${p4GlanceBg};border:1px solid ${p4GlanceColor};border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:16px;">
+      <div style="font-size:22px;line-height:1;">${p4GlanceIcon}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;color:${p4GlanceColor};margin-bottom:8px;">Ranking at a Glance — ${p4GlanceVerdict}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 20px;font-size:13px;color:var(--text-muted);">
+          <div>${ranked.length > 0 ? '✅' : '❌'} ${ranked.length} solution${ranked.length !== 1 ? 's' : ''} ranked</div>
+          <div>${p4GateOk ? '✅' : '❌'} Phase 5 gate: ${p4GateOk ? 'passed' : 'failed'}</div>
+          <div>🏆 Winner: <strong style="color:var(--text);">${winner.name || '—'}</strong> (score ${p4WinScore}/100)</div>
+          <div>${p4WinROI >= bm.roi ? '✅' : '⚠️'} ROI ${Math.round(p4WinROI)}% vs ${bm.roi}% ${bm.label} benchmark</div>
+        </div>
+      </div>
+    </div>`;
+  html += explainBtn('p4-ranking','phase4','ranking',()=>({projectContext:{industry},metricValue:p4WinScore,additionalContext:{winner:winner.name||'--',winnerROI:Math.round(p4WinROI),gateOk:p4GateOk,ranked:ranked.length,benchmarkROI:bm.roi,verdict:p4GlanceVerdict}}));
 
   // ── Phase 5 Contract Gate Badge ──────────────────────────────
   const gateColor = p5.ok ? 'var(--success)' : 'var(--danger)';
@@ -7840,6 +8484,94 @@ function renderPhase4(d, el) {
     </div>
   </div>`;
 
+  // ── Decision Matrix ─────────────────────────────────────────────
+  const buildDecisionMatrix = () => {
+    if (!ranked || ranked.length === 0) return '';
+
+    // Relative colouring helpers — compare each solution against the best in portfolio
+    const npvVals  = ranked.map(r => r.npv  || 0);
+    const roiVals  = ranked.map(r => r.roiPct || 0);
+    const maxNPV   = Math.max(...npvVals,  1);
+    const maxROI   = Math.max(...roiVals,  1);
+
+    const relColor = (val, max) => {
+      const p = max > 0 ? val / max : 0;
+      return p >= 0.70 ? 'var(--success)' : p >= 0.40 ? '#d97706' : 'var(--danger)';
+    };
+    const confColor = c => c >= 80 ? 'var(--success)' : c >= 60 ? '#d97706' : 'var(--danger)';
+    const fitColor  = f => f >= 85 ? 'var(--success)' : f >= 70  ? '#d97706' : 'var(--danger)';
+    const riskColor2 = r => r === 'Low' ? 'var(--success)' : r === 'Medium' ? '#d97706' : 'var(--danger)';
+
+    const maxScore = Math.max(...ranked.map(r => r.score || 0), 1);
+    const scoreColor = s => {
+      const p = s / maxScore;
+      return p >= 0.70 ? 'var(--success)' : p >= 0.40 ? '#d97706' : 'var(--danger)';
+    };
+
+    const wNPV  = Math.round((weights.npv          || 0.35) * 100);
+    const wROI  = Math.round((weights.roi           || 0.20) * 100);
+    const wConf = Math.round((weights.confidence    || 0.15) * 100);
+    const wRisk = Math.round((weights.riskPenalty   || 0.15) * 100);
+    const wFit  = Math.round((weights.vendorFit     || 0.15) * 100);
+
+    const rows = ranked.map((r, i) => {
+      const isWinner = i === 0;
+      const rowBg = isWinner ? '#f0fdf4' : i % 2 === 1 ? 'var(--surface-alt)' : 'transparent';
+      const sc = scoreColor(r.score || 0);
+      const nc = relColor(r.npv || 0, maxNPV);
+      const rc = relColor(r.roiPct || 0, maxROI);
+      const cc = confColor(r.confidenceScore || 0);
+      const rk = riskColor2(r.riskLevel || 'Medium');
+      const fc = fitColor(r.vendorFitScore || 0);
+
+      const cell = (val, color, suffix) =>
+        `<td style="padding:9px 8px;text-align:center;font-weight:700;color:${color};">${val != null ? val + (suffix||'') : '—'}</td>`;
+
+      return `<tr style="border-bottom:1px solid var(--border-light);background:${rowBg};">
+        <td style="padding:9px 8px;text-align:center;font-weight:800;color:${isWinner ? 'var(--success)' : 'var(--text-muted)'};">${r.rank}${isWinner ? ' 🏆' : ''}</td>
+        <td style="padding:9px 8px;font-weight:600;max-width:170px;">${r.name}</td>
+        ${cell(r.score, sc, '/100')}
+        <td style="padding:9px 8px;text-align:right;font-weight:700;color:${nc};">${fmt(r.npv)}</td>
+        <td style="padding:9px 8px;text-align:right;font-weight:700;color:${rc};">${r.roiPct != null ? Math.round(r.roiPct) + '%' : '—'}</td>
+        ${cell(r.confidenceScore, cc, '%')}
+        <td style="padding:9px 8px;text-align:center;font-weight:700;color:${rk};">${r.riskLevel || '—'}</td>
+        ${cell(r.vendorFitScore, fc, '/100')}
+        <td style="padding:9px 10px;font-size:11px;color:var(--text-muted);line-height:1.4;max-width:220px;">${r.rationale || '—'}</td>
+      </tr>`;
+    }).join('');
+
+    return `
+    <div class="card analyst-emphasis" style="margin-bottom:28px;padding:24px 28px;overflow-x:auto;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
+        <h4 style="font-size:15px;font-weight:700;margin:0;">Decision Matrix ${guideBtn('What is the decision matrix?')}</h4>
+        <span style="font-size:11px;color:var(--text-muted);background:var(--surface-alt);padding:4px 10px;border-radius:20px;">Why did each solution rank where it did?</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;line-height:1.5;">Cell colours show relative performance within this portfolio — <span style="color:var(--success);font-weight:700;">green = leading</span>, <span style="color:#d97706;font-weight:700;">amber = mid-pack</span>, <span style="color:var(--danger);font-weight:700;">red = trailing</span>. Weights in column headers are the contribution each criterion makes to the composite score.</p>
+      <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:760px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border-light);background:var(--surface-alt);">
+            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">#</th>
+            <th style="padding:10px 8px;font-weight:700;">Solution</th>
+            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Score</th>
+            <th style="padding:10px 8px;font-weight:700;text-align:right;white-space:nowrap;">NPV<br><span style="font-weight:400;font-size:10px;">${wNPV}% weight</span></th>
+            <th style="padding:10px 8px;font-weight:700;text-align:right;white-space:nowrap;">ROI<br><span style="font-weight:400;font-size:10px;">${wROI}% weight</span></th>
+            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Confidence<br><span style="font-weight:400;font-size:10px;">${wConf}% weight</span></th>
+            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Risk<br><span style="font-weight:400;font-size:10px;">${wRisk}% weight</span></th>
+            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Vendor Fit<br><span style="font-weight:400;font-size:10px;">${wFit}% weight</span></th>
+            <th style="padding:10px 8px;font-weight:700;">Why this rank</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="margin-top:14px;padding:10px 14px;background:#f8fafc;border-left:3px solid #94a3b8;border-radius:6px;font-size:11px;color:var(--text-muted);line-height:1.6;">
+        <strong>Scoring formula:</strong>
+        Score = (${wNPV}% × NPV<sub>norm</sub>) + (${wROI}% × ROI<sub>norm</sub>) + (${wConf}% × Conf<sub>norm</sub>) + (${wRisk}% × (1 − Risk<sub>norm</sub>)) + (${wFit}% × Fit<sub>norm</sub>)
+        &nbsp;·&nbsp; All dimensions min-max normalised 0–1 across the full portfolio before weighting. Risk is inverted so that lower risk earns a higher score.
+      </div>
+    </div>`;
+  };
+  html += buildDecisionMatrix();
+
   // ── Value Chain ──────────────────────────────────────────────
   html += buildValueChainSection(d.solutions || [], d.benefits || [], d.requirements || [], 'Value Chain — Solution → Benefit → Vendor → Financials');
 
@@ -7963,6 +8695,17 @@ function renderPhase4(d, el) {
 
   el.innerHTML = html;
   el.style.display = 'block';
+  addPEToggle(el, 'phase4', () => ({
+    industry,
+    winner: winner.name || '',
+    winnerScore: winner.score || 0,
+    winnerROI: Math.round(p4WinROI),
+    winnerNPV: winner.npv || 0,
+    winnerRisk: winner.riskLevel || '',
+    ranked: ranked.map((r, i) => ({rank: i + 1, name: r.name, score: r.score || 0})).slice(0, 5),
+    gateOk: p4GateOk,
+    benchmarkROI: bm.roi
+  }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   // ── Continue to Phase 5 CTA ──
@@ -8174,8 +8917,40 @@ function renderPhase5(d) {
   const traceC  = p5StatusColor(hb.traceabilityStatus);
   const confC   = p5StatusColor(hb.confidenceStatus);
 
+  // ── Phase A: Executive at a Glance ─────────────────────────────
+  const p5Industry = (d.validatedData?.industry || '').toLowerCase();
+  const p5AvgROI = fp.avgROIPct ?? 0;
+  const p5TracePct = tc.coveragePct ?? 0;
+  const p5OverallOk = overall.text === '#16a34a';
+  const p5SomeOk    = overall.text === '#d97706';
+  const p5GlanceColor = p5OverallOk ? '#16a34a' : p5SomeOk ? '#d97706' : '#dc2626';
+  const p5GlanceBg    = p5OverallOk ? '#f0fdf4' : p5SomeOk ? '#fffbeb' : '#fef2f2';
+  const p5GlanceIcon  = p5OverallOk ? '🟢' : p5SomeOk ? '🟡' : '🔴';
+  const p5GlanceVerdict = p5OverallOk
+    ? 'Business Case is Strong — Recommended to Proceed'
+    : p5SomeOk ? 'Business Case is Viable — Review Flagged Items'
+    : 'Business Case Needs Attention — Resolve Issues Before Approval';
+  const p5ROIInterp = p5AvgROI > 0 ? buildMetricInterpretation('roi', p5AvgROI, p5Industry) : '';
+  const p5GlanceBanner = `
+    <div style="background:${p5GlanceBg};border:1px solid ${p5GlanceColor};border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:16px;">
+      <div style="font-size:22px;line-height:1;">${p5GlanceIcon}</div>
+      <div style="flex:1;">
+        <div style="font-size:15px;font-weight:700;color:${p5GlanceColor};margin-bottom:8px;">Executive at a Glance — ${p5GlanceVerdict}</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px 20px;font-size:13px;color:var(--text-muted);">
+          <div>${p5OverallOk ? '✅' : p5SomeOk ? '⚠️' : '❌'} Overall health: ${overall.label}</div>
+          <div>${p5AvgROI > 0 ? '✅' : '⚠️'} Average ROI: ${p5AvgROI}%</div>
+          <div>${p5TracePct >= 80 ? '✅' : p5TracePct >= 60 ? '⚠️' : '❌'} Traceability: ${p5TracePct}% coverage</div>
+          <div>${qw.length === 0 ? '✅' : '⚠️'} ${qw.length === 0 ? 'No quality warnings' : qw.length + ' warning' + (qw.length > 1 ? 's' : '') + ' flagged'}</div>
+        </div>
+      </div>
+    </div>`;
+
   // ── Role Bar ──
   let html = `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Financial KPIs and quality warnings' : 'Business View — Executive summary and health dashboard'}</div>`;
+  html += buildInputTrace(d.validatedData || {}, 'phase5');
+  html += p5GlanceBanner;
+  html += p5ROIInterp;
+  html += explainBtn('p5-executive','phase5','executive_summary',()=>({projectContext:{industry:p5Industry},metricValue:p5AvgROI,additionalContext:{overallStatus:hb.status||'',traceabilityPct:p5TracePct,qualityWarnings:qw.length,headline:(es.headline||''),recommendedSolution:(ranking[0]?.name||'--')}}));
 
   // ── Executive Summary Card ──
   html += `
@@ -8304,6 +9079,17 @@ function renderPhase5(d) {
   </div>`;
 
   box.innerHTML = html;
+  addPEToggle(box, 'phase5', () => ({
+    industry: p5Industry,
+    headline: (es.headline || '').slice(0, 150),
+    overallHealth: hb.status || '',
+    avgROI: p5AvgROI,
+    traceabilityPct: p5TracePct,
+    qualityWarnings: qw.length,
+    recommendedSolution: (ranking[0]?.name || ''),
+    totalPV: fp.totalPVBenefit3y || 0,
+    horizonYears: fp.horizonYears || 3
+  }));
 
   // Set iframe srcdoc AFTER the element is in the DOM
   setTimeout(() => {
@@ -10475,8 +11261,8 @@ showSection = function(name) {
   <div id="reg-modal">
     <div class="reg-logo">BCA<span>.</span>AI</div>
     <div class="reg-tagline">Business Case Analysis Platform</div>
-    <h2>Welcome — Let's Get Started</h2>
-    <p>Enter your name and email to access the platform.<br>We use this to keep you informed of updates.</p>
+    <h2>Authorized Access</h2>
+    <p>This platform is available to invited participants only.<br>Please confirm your details below to proceed.</p>
     <div class="reg-field">
       <label for="reg-name">Full Name</label>
       <input type="text" id="reg-name" placeholder="Jane Smith" autocomplete="name" maxlength="120">
@@ -10496,55 +11282,133 @@ showSection = function(name) {
            data-theme="light">
       </div>
     </div>
+    <!-- T&C scroll box (shown when link clicked) -->
+    <div id="tnc-box">
+      <h4>BCA.AI TERMS OF USE AND DISCLAIMER</h4>
+      <p><em>Effective Date: April 2026 &nbsp;|&nbsp; Version 1.0</em></p>
+      <p>PLEASE READ THESE TERMS CAREFULLY BEFORE ACCESSING OR USING THE BCA.AI PLATFORM (THE &ldquo;PLATFORM&rdquo;). BY CHECKING THE BOX BELOW AND ACCESSING THE PLATFORM, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGREE TO BE BOUND BY THESE TERMS.</p>
+
+      <h4>1. ACCEPTANCE OF TERMS</h4>
+      <p>These Terms of Use (&ldquo;Terms&rdquo;) constitute a legally binding agreement between you (&ldquo;User&rdquo;) and BCA.AI (&ldquo;Company,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;). Access to this Platform is granted solely on the basis of express authorization by the Company. Unauthorized access, distribution, or reproduction of any output generated by this Platform is strictly prohibited.</p>
+
+      <h4>2. NATURE OF THE PLATFORM — AI-POWERED ANALYSIS TOOL</h4>
+      <p>BCA.AI is an artificial intelligence-powered business case analysis platform designed to assist professionals in structuring, quantifying, and presenting technology investment decisions. The Platform uses large language model (LLM) technology to:</p>
+      <ul>
+        <li>Generate financial projections including Net Present Value (NPV), Return on Investment (ROI), Internal Rate of Return (IRR), and payback analysis;</li>
+        <li>Identify, classify, and quantify business benefits and risks;</li>
+        <li>Perform cost estimation and vendor assessments;</li>
+        <li>Produce traceability analyses, solution rankings, and executive-level summaries;</li>
+        <li>Generate supporting documentation and business requirement documents.</li>
+      </ul>
+      <p>ALL OUTPUTS ARE GENERATED BY ARTIFICIAL INTELLIGENCE AND ARE PRESENTED FOR INFORMATIONAL AND ANALYTICAL SUPPORT PURPOSES ONLY.</p>
+
+      <h4>3. NOT PROFESSIONAL FINANCIAL, LEGAL, OR INVESTMENT ADVICE</h4>
+      <p>THE PLATFORM DOES NOT CONSTITUTE AND SHALL NOT BE CONSTRUED AS: (a) professional financial advice; (b) investment advice or a recommendation to buy, sell, or hold any security or financial instrument; (c) legal advice; (d) accounting or tax advice; or (e) any other form of professional advisory service regulated under applicable federal, state, or local law. No attorney-client, fiduciary, or advisory relationship is created by your use of this Platform. You should consult qualified licensed professionals&mdash;including but not limited to licensed financial advisors, certified public accountants, attorneys, and IT consultants&mdash;before making any business, financial, or technology investment decision.</p>
+
+      <h4>4. AI CALCULATION DISCLAIMER &amp; LIMITATION OF LIABILITY FOR ANALYTICAL OUTPUT</h4>
+      <p>You expressly acknowledge and agree that:</p>
+      <ul>
+        <li><strong>AI systems may produce inaccurate, incomplete, or erroneous outputs.</strong> Financial models, calculations, benefit estimates, cost projections, and vendor assessments generated by the Platform are derived from AI inference and probabilistic modeling&mdash;they are not audited financial statements, certified appraisals, or guaranteed projections.</li>
+        <li><strong>The Company does not warrant the mathematical accuracy</strong> of any NPV, ROI, IRR, payback, TCO, or other quantitative output generated by the Platform.</li>
+        <li><strong>Benchmark data</strong> used within the Platform reflects industry approximations and does not represent certified market research, audited survey data, or current real-time market conditions.</li>
+        <li><strong>You bear sole responsibility</strong> for all business decisions, investment commitments, procurement actions, board presentations, and organizational changes made in reliance on any output generated by the Platform.</li>
+        <li>The Company shall have <strong>no liability whatsoever</strong> for any direct, indirect, incidental, consequential, special, exemplary, or punitive damages arising from errors, omissions, or inaccuracies in AI-generated financial analysis, calculations, recommendations, or summaries.</li>
+      </ul>
+
+      <h4>5. DISCLAIMER OF WARRANTIES</h4>
+      <p>THE PLATFORM IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED. TO THE FULLEST EXTENT PERMITTED BY APPLICABLE LAW, THE COMPANY EXPRESSLY DISCLAIMS ALL WARRANTIES, INCLUDING BUT NOT LIMITED TO: (a) WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT; (b) WARRANTIES THAT THE PLATFORM WILL OPERATE WITHOUT INTERRUPTION, ERROR, OR DEFECT; (c) WARRANTIES AS TO THE ACCURACY, COMPLETENESS, TIMELINESS, OR RELIABILITY OF ANY AI-GENERATED OUTPUT; AND (d) WARRANTIES THAT OUTPUTS WILL BE SUITABLE FOR USE IN REGULATED INDUSTRIES INCLUDING FINANCIAL SERVICES, HEALTHCARE, GOVERNMENT PROCUREMENT, OR PUBLICLY TRADED ENTITIES WITHOUT INDEPENDENT VERIFICATION.</p>
+
+      <h4>6. LIMITATION OF LIABILITY</h4>
+      <p>TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, IN NO EVENT SHALL THE COMPANY, ITS AFFILIATES, DIRECTORS, EMPLOYEES, AGENTS, LICENSORS, OR SERVICE PROVIDERS BE LIABLE FOR ANY AMOUNT EXCEEDING THE GREATER OF: (a) USD $100; OR (b) THE TOTAL FEES PAID BY YOU TO THE COMPANY IN THE TWELVE (12) MONTHS PRECEDING THE CLAIM. THIS LIMITATION APPLIES REGARDLESS OF THE CAUSE OF ACTION OR THE FORM IN WHICH IT IS BROUGHT, INCLUDING CONTRACT, TORT (INCLUDING NEGLIGENCE), STRICT LIABILITY, OR OTHERWISE.</p>
+
+      <h4>7. AUTHORIZED USE &amp; CONFIDENTIALITY</h4>
+      <p>Access to this Platform has been granted to you personally and is non-transferable. You agree to: (a) maintain the confidentiality of your access credentials; (b) not share, sublicense, or permit access to any unauthorized third party; (c) use the Platform exclusively for internal business analysis purposes; and (d) not attempt to reverse-engineer, scrape, reproduce, or create derivative works from any Platform output for commercial redistribution. All demonstration outputs, reports, and documents generated during authorized demo sessions are intended solely for internal evaluation and may not be published, distributed, or cited in public-facing materials without prior written consent.</p>
+
+      <h4>8. INTELLECTUAL PROPERTY</h4>
+      <p>The Platform, including its design, algorithms, prompts, scoring methodologies, and underlying software, constitutes proprietary intellectual property of the Company protected under applicable copyright, trade secret, and other intellectual property laws. You are granted a limited, non-exclusive, non-transferable, revocable license to access and use the Platform solely as expressly authorized. No other rights are granted.</p>
+
+      <h4>9. DATA PRIVACY &amp; PROCESSING</h4>
+      <p>By accessing the Platform, you consent to the collection and processing of your name, work email address, IP address, and usage metadata for purposes of access control, security monitoring, product improvement, and communication. The Company does not sell personal data to third parties. Data processed within AI analysis sessions (including project descriptions and financial inputs you enter) is transmitted to third-party AI service providers under data processing agreements and is subject to those providers&rsquo; privacy policies. You should not enter personally identifiable information, classified data, or material non-public information into the Platform.</p>
+
+      <h4>10. INDUSTRY-SPECIFIC NOTICE</h4>
+      <p>If you operate in a regulated industry (including but not limited to financial services, healthcare, insurance, defense, or government), you are solely responsible for ensuring that your use of this Platform complies with all applicable regulations, including but not limited to SEC rules, FINRA regulations, HIPAA, SOX, GDPR, and applicable procurement regulations. The Company makes no representation that Platform outputs satisfy any regulatory disclosure, audit, or compliance obligation.</p>
+
+      <h4>11. GOVERNING LAW &amp; DISPUTE RESOLUTION</h4>
+      <p>These Terms shall be governed by and construed in accordance with the laws of the State of Delaware, without regard to conflict of law principles. Any dispute arising out of or relating to these Terms shall be resolved through binding arbitration administered under the rules of the American Arbitration Association (AAA), with proceedings conducted in English. Notwithstanding the foregoing, either party may seek injunctive relief in any court of competent jurisdiction.</p>
+
+      <h4>12. AMENDMENTS</h4>
+      <p>The Company reserves the right to modify these Terms at any time. Continued use of the Platform following notice of modification constitutes acceptance of the revised Terms.</p>
+
+      <p style="margin-top:12px;font-weight:600;color:#0f172a;">&copy; 2026 BCA.AI. All rights reserved. Unauthorized reproduction or distribution prohibited.</p>
+    </div>
+    <!-- T&C checkbox -->
+    <div class="reg-tnc-row">
+      <input type="checkbox" id="reg-tnc" onchange="updateSubmitState()">
+      <label for="reg-tnc">I have read and agree to the <a onclick="toggleTnc(event)">Terms of Use and Disclaimer</a>, including the AI analysis disclaimer and limitation of liability.</label>
+    </div>
     <button id="reg-submit" onclick="submitRegistration()" disabled>Access Platform</button>
     <div id="reg-error"></div>
     <hr class="reg-divider">
-    <div class="reg-privacy">By continuing you agree this information may be used to contact you about BCA.AI. We do not sell or share your data.</div>
+    <div class="reg-privacy">Access is restricted to authorized participants only. This platform uses AI-generated analysis — all outputs are for informational purposes and do not constitute professional financial or legal advice.</div>
   </div>
 </div>
 
 <script>
 // ─── Registration Gate ────────────────────────────────────────────
-(function () {
-  const STORAGE_KEY = 'bca_registered_v1'
-  const overlay = document.getElementById('reg-overlay')
+const SESSION_TTL_MS = 24 * 60 * 60 * 1000  // 24 hours
 
-  // Show modal unless user has already registered in this browser
-  if (!localStorage.getItem(STORAGE_KEY)) {
+function isSessionValid() {
+  try {
+    const raw = localStorage.getItem('bca_registered_v1')
+    if (!raw) return false
+    const { ts } = JSON.parse(raw)
+    return typeof ts === 'number' && (Date.now() - ts) < SESSION_TTL_MS
+  } catch { return false }
+}
+
+(function () {
+  const overlay = document.getElementById('reg-overlay')
+  if (!isSessionValid()) {
+    // Clear any stale/old-format entry
+    localStorage.removeItem('bca_registered_v1')
     overlay.classList.add('active')
-    // Disable body scroll while modal is open
     document.body.style.overflow = 'hidden'
   }
 })();
 
+// Toggle T&C scroll box
+function toggleTnc(e) {
+  e.preventDefault()
+  const box = document.getElementById('tnc-box')
+  box.style.display = box.style.display === 'block' ? 'none' : 'block'
+}
+
+// Enable submit only when T&C checkbox is checked (Turnstile is advisory)
+let _turnstilePassed = false
+
+function updateSubmitState() {
+  const checked = document.getElementById('reg-tnc').checked
+  const btn = document.getElementById('reg-submit')
+  btn.disabled = !checked
+}
+
 // Called by Turnstile when the challenge is passed
 function onTurnstileSuccess() {
-  document.getElementById('reg-submit').disabled = false
+  _turnstilePassed = true
+  // Don't change disabled state — checkbox controls it
 }
 
-// If Turnstile errors or expires, still allow submission (server verifies)
+// If Turnstile errors or expires, record but don't gate the button
 function onTurnstileError() {
-  console.warn('[turnstile] widget error — enabling button anyway')
-  document.getElementById('reg-submit').disabled = false
+  console.warn('[turnstile] widget error')
+  _turnstilePassed = false
 }
 function onTurnstileExpired() {
-  document.getElementById('reg-submit').disabled = false
+  _turnstilePassed = false
 }
 
-// Fallback: if Turnstile script fails to load at all (ad blocker, network error),
-// unlock the button after 8 seconds ONLY if the overlay is still visible
-// Server-side is the real security gate
-setTimeout(function() {
-  const overlay = document.getElementById('reg-overlay')
-  const btn = document.getElementById('reg-submit')
-  if (btn && btn.disabled && overlay && overlay.classList.contains('active')) {
-    // Only unlock if Turnstile script itself didn't load
-    if (typeof turnstile === 'undefined') {
-      console.warn('[turnstile] script not loaded — enabling button as fallback')
-      btn.disabled = false
-    }
-  }
-}, 8000)
+// Fallback: if Turnstile script fails to load, the checkbox still controls the button.
+// Server-side VPN block + email allowlist are the real security gates.
 
 async function submitRegistration() {
   const nameEl  = document.getElementById('reg-name')
@@ -10596,8 +11460,8 @@ async function submitRegistration() {
       return
     }
 
-    // Success — dismiss modal
-    localStorage.setItem('bca_registered_v1', '1')
+    // Success — dismiss modal (store timestamp for 24-hour expiry)
+    localStorage.setItem('bca_registered_v1', JSON.stringify({ ts: Date.now() }))
     document.getElementById('reg-overlay').classList.remove('active')
     document.body.style.overflow = ''
   } catch {

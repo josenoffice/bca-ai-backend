@@ -13,6 +13,8 @@ import phase3Router from './routes/phase3.js'
 import phase4Router from './routes/phase4.js'
 import phase5Router from './routes/phase5.js'
 import phase6Router from './routes/phase6.js'
+import explainRouter from './routes/explain.js'
+import plainEnglishRouter from './routes/plain-english.js'
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -163,9 +165,14 @@ app.post('/admin/reset', (req, res) => {
   })
 })
 
+// ── Email allowlist ───────────────────────────────────────────────────────────
+// Set ALLOWED_EMAILS=alice@company.com,bob@company.com in Render env vars.
+// Leave unset (or empty) to allow any email (open mode — not recommended for demos).
+const allowedEmails = process.env.ALLOWED_EMAILS
+  ? new Set(process.env.ALLOWED_EMAILS.split(',').map(e => e.trim().toLowerCase()).filter(Boolean))
+  : null  // null = open (no allowlist)
+
 // ── Registration endpoint ─────────────────────────────────────────────────────
-// Called from the frontend registration modal before the user accesses the app.
-// Verifies Turnstile token, logs name + email for audit trail.
 app.post('/api/register', async (req, res) => {
   const ip = req.ip || req.connection.remoteAddress
   const { name, email, turnstileToken } = req.body || {}
@@ -179,6 +186,14 @@ app.post('/api/register', async (req, res) => {
   }
   if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
     return res.status(400).json({ error: 'Please enter a valid email address.' })
+  }
+
+  // Email allowlist check (runs before CAPTCHA to fail fast)
+  if (allowedEmails && !allowedEmails.has(cleanEmail.toLowerCase())) {
+    console.log(`[access-denied] ${new Date().toISOString()} | email="${cleanEmail}" | ip=${ip} — not on allowlist`)
+    return res.status(403).json({
+      error: 'Access is restricted to authorized participants. Your email address is not on the access list. Please contact the BCA.AI team to request access.'
+    })
   }
 
   // Turnstile CAPTCHA verification
@@ -217,6 +232,8 @@ app.use('/api', phase3Router)
 app.use('/api', phase4Router)
 app.use('/api', phase5Router)
 app.use('/api', phase6Router)
+app.use('/api', explainRouter)
+app.use('/api', plainEnglishRouter)
 
 // ── Static routes (not rate limited) ─────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
