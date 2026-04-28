@@ -335,6 +335,19 @@ select.field-input { cursor: pointer; }
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
       <div class="demo-note" id="demoNote" style="display:none;">Demo Mode — no real analysis will run.</div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--slate-200)">
+        <button onclick="toggleCtaEmail()"
+          style="background:none;border:1.5px solid var(--amber-border);color:var(--amber);border-radius:8px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);display:inline-flex;align-items:center;gap:6px">
+          ✉️ Draft IT Collaboration Email <span id="cta-email-arrow">▼</span>
+        </button>
+        <div id="ctaEmailBody" style="display:none;margin-top:10px;text-align:left">
+          <p style="font-size:11px;color:var(--slate-500);margin-bottom:6px;line-height:1.5">For IT infrastructure / other business units. Edit before sending.</p>
+          <button class="coi-use-btn" style="margin-bottom:8px" onclick="refreshCtaEmail()">↻ Regenerate with latest data</button>
+          <textarea id="collab-email-ta-cta" rows="18"
+            style="width:100%;font-size:11px;line-height:1.6;font-family:monospace;resize:vertical;border:1px solid var(--slate-200);border-radius:6px;padding:8px;box-sizing:border-box;white-space:pre;color:var(--navy)"></textarea>
+          <button class="coi-use-btn" style="margin-top:6px" onclick="copyCtaEmail()">📋 Copy to clipboard</button>
+        </div>
+      </div>
     </div>
   </div>
   <div class="data-panel">
@@ -386,6 +399,20 @@ select.field-input { cursor: pointer; }
     <div class="data-item">
       <div class="data-dot" id="dot-stakeholders"></div>
       <div class="data-info"><div class="data-key">👥 Stakeholders</div><div class="data-val empty" id="dp-stakeholders">Not yet entered</div></div>
+    </div>
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--slate-200)">
+      <button id="panelEmailBtn" onclick="togglePanelEmail()"
+        style="width:100%;background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;justify-content:space-between;gap:6px">
+        <span>✉️ Draft IT Collaboration Email</span>
+        <span id="panel-email-arrow">▼</span>
+      </button>
+      <div id="panelEmailBody" style="display:none;margin-top:8px">
+        <p style="font-size:10px;color:var(--slate-500);margin-bottom:6px;line-height:1.5">Generated from your intake data. Edit before sending to IT/other BUs.</p>
+        <button class="coi-use-btn" style="margin-bottom:8px" onclick="refreshPanelEmail()">↻ Regenerate with latest data</button>
+        <textarea id="collab-email-ta-panel" rows="18"
+          style="width:100%;font-size:10px;line-height:1.6;font-family:monospace;resize:vertical;border:1px solid var(--slate-200);border-radius:6px;padding:8px;box-sizing:border-box;white-space:pre;color:var(--navy)"></textarea>
+        <button class="coi-use-btn" style="margin-top:6px" onclick="copyPanelEmail()">📋 Copy to clipboard</button>
+      </div>
     </div>
   </div>
 </div>
@@ -1352,8 +1379,58 @@ function toggleFieldHelp(id) {
   const panel = document.getElementById(id); if (panel) panel.classList.toggle('open');
 }
 
+function toggleBudgetCalc() {
+  const body  = document.getElementById('budget-calc-body');
+  const arrow = document.getElementById('budget-calc-arrow');
+  if (!body) return;
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+function updateBudgetCalc() {
+  let total = 0;
+  ['bc-a','bc-b','bc-c','bc-d','bc-e','bc-f'].forEach(id => {
+    total += parseFloat(document.getElementById(id)?.value || 0);
+  });
+  const el = document.getElementById('budget-calc-total');
+  if (el) el.textContent = '$' + Math.round(total).toLocaleString();
+}
+function useBudgetCalc() {
+  let total = 0;
+  ['bc-a','bc-b','bc-c','bc-d','bc-e','bc-f'].forEach(id => {
+    total += parseFloat(document.getElementById(id)?.value || 0);
+  });
+  if (total === 0) { alert('Enter at least one value above to calculate.'); return; }
+  total = Math.round(total);
+  const inp = document.getElementById('inp-budget');
+  if (inp) { inp.value = total; _collectedData.budget = String(total); updatePanel('budget', '$' + total.toLocaleString()); }
+  const body  = document.getElementById('budget-calc-body');
+  const arrow = document.getElementById('budget-calc-arrow');
+  if (body) body.classList.remove('open');
+  if (arrow) arrow.textContent = '▼';
+}
+
 function renderFinancials() {
   return `
+    <div class="coi-section" style="margin-bottom:14px" onclick="event.stopPropagation()">
+      <div class="coi-toggle" onclick="toggleBudgetCalc()">
+        <span>🧮 Help me calculate the total budget</span>
+        <span id="budget-calc-arrow">▼</span>
+      </div>
+      <div class="coi-body" id="budget-calc-body">
+        <p style="font-size:11px;color:var(--slate-600);margin-bottom:10px;line-height:1.55">Build up the budget from key cost categories. Estimates are fine — add 15–20% contingency at the end.</p>
+        <div class="coi-row"><span class="coi-row-label">💿 Software licences / SaaS — Year 1 ($)</span><input class="coi-input" type="number" id="bc-a" placeholder="e.g. 800000" oninput="updateBudgetCalc()"></div>
+        <div class="coi-row"><span class="coi-row-label">🏗️ Implementation & professional services ($)</span><input class="coi-input" type="number" id="bc-b" placeholder="e.g. 1200000" oninput="updateBudgetCalc()"></div>
+        <div class="coi-row"><span class="coi-row-label">📦 Data migration & integration ($)</span><input class="coi-input" type="number" id="bc-c" placeholder="e.g. 250000" oninput="updateBudgetCalc()"></div>
+        <div class="coi-row"><span class="coi-row-label">🎓 Training & change management ($)</span><input class="coi-input" type="number" id="bc-d" placeholder="e.g. 150000" oninput="updateBudgetCalc()"></div>
+        <div class="coi-row"><span class="coi-row-label">🖥️ Hardware / infrastructure ($)</span><input class="coi-input" type="number" id="bc-e" placeholder="e.g. 100000" oninput="updateBudgetCalc()"></div>
+        <div class="coi-row"><span class="coi-row-label">⚠️ Contingency 15–20% ($)</span><input class="coi-input" type="number" id="bc-f" placeholder="e.g. 480000" oninput="updateBudgetCalc()"><span class="coi-hint">15–20% of the subtotal above</span></div>
+        <div class="coi-total-bar">
+          <span class="coi-total-label">Estimated total budget:</span>
+          <span class="coi-total-value" id="budget-calc-total">$0</span>
+        </div>
+        <button class="coi-use-btn" onclick="useBudgetCalc()">→ Use this as my total budget (you can override it)</button>
+      </div>
+    </div>
     <div class="num-row">
       <div>
         <div class="field-label-row">
@@ -1630,12 +1707,33 @@ function generateCollabEmail() {
   const org       = d.orgName || 'our organisation';
   const project   = d.projectTitle || 'our system modernisation initiative';
   const industry  = (d.industry || '').replace(/-/g,' ');
-  const painDesc  = d.urgencyDriver || (Array.isArray(d.symptoms) && d.symptoms.length ? d.symptoms.join(', ') : 'significant operational challenges');
+
+  // Resolve human-readable labels — stored arrays may contain IDs, read from DOM where possible
+  const symptomCards = (SYMPTOM_CARDS[d.industry || 'default'] || SYMPTOM_CARDS['default']);
+  const symptomLabels = Array.isArray(d.symptoms) && d.symptoms.length
+    ? d.symptoms.map(id => { const c = symptomCards.find(x => x.id === id); return c ? c.title : id.replace(/-/g,' '); })
+    : [];
+  const painDesc  = d.urgencyDriver || (symptomLabels.length ? symptomLabels.join(', ') : 'significant operational challenges');
+
   const urgency   = d.urgency ? (d.urgency.charAt(0).toUpperCase() + d.urgency.slice(1)) : 'High';
   const budget    = d.budget ? '$' + Number(d.budget).toLocaleString() : '[TBD]';
   const timeline  = d.timeline || '[TBD]';
-  const kpis      = Array.isArray(d.kpis) && d.kpis.length ? d.kpis.join(', ') : 'operational efficiency, system uptime';
-  const techList  = Array.isArray(d.techStack) && d.techStack.length ? d.techStack.join(', ') : '[to be confirmed]';
+
+  // KPI labels — map stored IDs to readable names
+  const kpiDefs = (KPI_TILES[d.industry || 'default'] || KPI_TILES['default']);
+  const kpiLabels = Array.isArray(d.kpis) && d.kpis.length
+    ? d.kpis.map(id => { const t = kpiDefs.find(x => x.id === id); return t ? t.label : id.replace(/-/g,' '); })
+    : ['operational efficiency', 'system uptime'];
+  const kpis = kpiLabels.join(', ');
+
+  // Tech stack labels — read text from selected chips in the DOM (most accurate);
+  // fall back to stored values (labels saved by advanceTechStack)
+  const liveChips = Array.from(document.querySelectorAll('.tech-chip.selected')).map(c => c.textContent.trim());
+  const customTech = Array.isArray(d._customTech) ? d._customTech : [];
+  const techArr = liveChips.length ? [...liveChips, ...customTech]
+    : (Array.isArray(d.techStack) ? d.techStack.map(s => s.replace(/-/g,' ')) : []);
+  const techList  = techArr.join(', ') || '[to be confirmed]';
+
   const compList  = Array.isArray(d.compliance) && d.compliance.length ? d.compliance.join(', ') : '[to be confirmed]';
   const industryLine = industry ? `Our ${industry} operations are experiencing ` : 'We are experiencing ';
 
@@ -1689,6 +1787,62 @@ function refreshEmailDraft() {
 
 function copyCollabEmail() {
   const ta = document.getElementById('collab-email-ta');
+  if (!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => { ta.select(); document.execCommand('copy'); });
+}
+
+// ── Panel email (data panel sidebar) ─────────────────
+function togglePanelEmail() {
+  const body  = document.getElementById('panelEmailBody');
+  const arrow = document.getElementById('panel-email-arrow');
+  if (!body) return;
+  const opening = body.style.display === 'none';
+  body.style.display = opening ? 'block' : 'none';
+  if (arrow) arrow.textContent = opening ? '▲' : '▼';
+  if (opening) {
+    const ta = document.getElementById('collab-email-ta-panel');
+    if (ta && !ta.value) ta.value = generateCollabEmail();
+  }
+}
+function refreshPanelEmail() {
+  const ta = document.getElementById('collab-email-ta-panel');
+  if (ta) ta.value = generateCollabEmail();
+}
+function copyPanelEmail() {
+  const ta = document.getElementById('collab-email-ta-panel');
+  if (!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => { ta.select(); document.execCommand('copy'); });
+}
+
+// ── CTA email (generate CTA area — visible on mobile) ─
+function toggleCtaEmail() {
+  const body  = document.getElementById('ctaEmailBody');
+  const arrow = document.getElementById('cta-email-arrow');
+  if (!body) return;
+  const opening = body.style.display === 'none';
+  body.style.display = opening ? 'block' : 'none';
+  if (arrow) arrow.textContent = opening ? '▲' : '▼';
+  if (opening) {
+    const ta = document.getElementById('collab-email-ta-cta');
+    if (ta && !ta.value) ta.value = generateCollabEmail();
+  }
+}
+function refreshCtaEmail() {
+  const ta = document.getElementById('collab-email-ta-cta');
+  if (ta) ta.value = generateCollabEmail();
+}
+function copyCtaEmail() {
+  const ta = document.getElementById('collab-email-ta-cta');
   if (!ta) return;
   navigator.clipboard.writeText(ta.value).then(() => {
     const btn = event.target;

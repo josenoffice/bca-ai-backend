@@ -5710,6 +5710,7 @@ async function runPhase1() {
   const industry = wizardData.industry || bu;
   const msgs = [`Analysing your ${bu} brief...`,`Generating tailored solutions for ${industry}...`,'Researching vendor landscape...','Validating quality...','Almost done...'];
   let mi = 0;
+  loadingMsg.textContent = msgs[0];  // update immediately — don't wait for first interval tick
   const msgInterval = setInterval(() => { mi = (mi + 1) % msgs.length; loadingMsg.textContent = msgs[mi]; }, 2000);
 
   $('#results').style.display = 'none';
@@ -5721,27 +5722,38 @@ async function runPhase1() {
   $('#reflectionLaunchPanel').style.display = 'none';
   $('#reflection-results').style.display = 'none';
 
+  const _abortCtrl = new AbortController();
+  const _fetchTimeout = setTimeout(() => _abortCtrl.abort(), 90000); // 90s — covers Render cold start
+
   try {
     const payload = gatherFormPayload();
     const res = await fetch('/api/phase1', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(payload),
+      signal: _abortCtrl.signal
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
     const data = await res.json();
     const r = data[0];
     renderResults(r);
+    _clearIntakeBackup(); // analysis succeeded — no need to retry on next page load
   } catch (err) {
+    const isTimeout = err.name === 'AbortError';
     $('#results').innerHTML = `
       <div class="error-panel">
-        <h3>Request Failed</h3>
-        <p>${err.message}</p>
-        <p style="margin-top:8px;font-size:12px;color:#b91c1c;">Ensure the server is running: <code>npm start</code> on port 3001</p>
+        <h3>${isTimeout ? 'Server took too long to respond' : 'Request Failed'}</h3>
+        <p>${isTimeout
+          ? 'The server is waking up from a cold start. <strong>Refresh this page</strong> — your intake data is saved and analysis will resume automatically.'
+          : err.message}</p>
+        ${!isTimeout ? '<p style="margin-top:8px;font-size:12px;color:#b91c1c;">Ensure the server is running: <code>npm start</code> on port 3001</p>' : ''}
       </div>`;
     $('#results').style.display = 'block';
+    // On timeout: keep backup so page refresh triggers auto-retry
+    // On other errors: also keep backup — user can refresh to retry
   } finally {
+    clearTimeout(_fetchTimeout);
     clearInterval(msgInterval);
     loadingEl.style.display = 'none';
   }
@@ -11515,6 +11527,7 @@ async function submitRegistration() {
     if (pendingRaw) {
       try {
         const intakeData = JSON.parse(pendingRaw)
+        _saveIntakeBackup(intakeData)   // persist before clearing — refresh can retry if API hangs
         sessionStorage.removeItem('bcaIntakeData')
         setTimeout(() => {
           _applyConversationalIntakeData(intakeData)
@@ -11539,42 +11552,68 @@ document.addEventListener('keydown', (e) => {
   }
 })
 
+// ── Intake backup helpers (persist data across page refreshes during API hangs) ──
+function _saveIntakeBackup(data) {
+  try { localStorage.setItem('bcaIntakeBackup_v1', JSON.stringify({ data, ts: Date.now() })) } catch {}
+}
+function _clearIntakeBackup() {
+  try { localStorage.removeItem('bcaIntakeBackup_v1') } catch {}
+}
+function _getIntakeBackup() {
+  try {
+    const s = localStorage.getItem('bcaIntakeBackup_v1')
+    if (!s) return null
+    const bk = JSON.parse(s)
+    if (typeof bk.ts !== 'number' || Date.now() - bk.ts > 60 * 60 * 1000) { _clearIntakeBackup(); return null }
+    return bk.data
+  } catch { _clearIntakeBackup(); return null }
+}
+
 // ── Restore conversational intake data after same-window navigation ──
 ;(function () {
   try {
-    const raw = sessionStorage.getItem('bcaIntakeData')
+    // Primary source: sessionStorage (set by conversational intake on submit)
+    let raw = sessionStorage.getItem('bcaIntakeData')
+    let fromBackup = false
+
+    // Fallback: localStorage backup — page was refreshed while API was hanging
+    if (!raw) {
+      const bkData = _getIntakeBackup()
+      if (bkData) { raw = JSON.stringify(bkData); fromBackup = true }
+    }
     if (!raw) return
 
-    // Parse but do NOT remove yet — keep data alive if session is expired
-    // (submitRegistration will pick it up after re-login)
     const data = JSON.parse(raw)
 
-    // Immediately hide the intake iframe so the user never sees it flash
-    // The registration gate IIFE has already run above, so if session is
-    // expired the overlay is already showing — hiding the form underneath is harmless.
-    const intakeEl  = document.getElementById('intakeContainer')
-    const wizEl     = document.getElementById('wizardContainer')
-    const loadingEl = document.getElementById('wizardLoading')
+    // Immediately hide the intake iframe so the user never sees it flash.
+    // Registration gate IIFE already ran synchronously above — if session is
+    // expired the overlay is showing and hiding the form underneath is harmless.
+    const intakeEl   = document.getElementById('intakeContainer')
+    const wizEl      = document.getElementById('wizardContainer')
+    const loadingEl  = document.getElementById('wizardLoading')
     const loadingMsg = document.getElementById('wizardLoadingMsg')
-    if (intakeEl)  intakeEl.style.display  = 'none'
-    if (wizEl)     wizEl.style.display     = 'none'
-    if (loadingEl) { loadingEl.style.display = 'block' }
-    if (loadingMsg) loadingMsg.textContent = 'Loading your intake data…'
+    if (intakeEl)   intakeEl.style.display  = 'none'
+    if (wizEl)      wizEl.style.display     = 'none'
+    if (loadingEl)  loadingEl.style.display = 'block'
+    if (loadingMsg) loadingMsg.textContent  = fromBackup ? 'Retrying analysis…' : 'Loading your intake data…'
 
     setTimeout(() => {
       if (!isSessionValid()) {
-        // Session expired — overlay is showing, hide loading and leave data
-        // in sessionStorage so submitRegistration() can pick it up
+        // Session expired — registration overlay is showing; hide loading and
+        // leave data in sessionStorage so submitRegistration() picks it up
         if (loadingEl) loadingEl.style.display = 'none'
         return
       }
-      // Valid session — consume data and run analysis
-      sessionStorage.removeItem('bcaIntakeData')
+      // Save backup BEFORE clearing sessionStorage so a page refresh can retry
+      // if the API hangs (backup auto-expires after 60 minutes)
+      _saveIntakeBackup(data)
+      if (!fromBackup) sessionStorage.removeItem('bcaIntakeData')
       _applyConversationalIntakeData(data)
       showSection('analysis')
-      if (typeof showToast === 'function') showToast('Conversational intake loaded — starting analysis…', 3000)
+      if (typeof showToast === 'function') showToast(
+        fromBackup ? 'Resuming from saved intake — retrying analysis…' : 'Conversational intake loaded — starting analysis…', 3000)
       runPhase1()
-    }, 300)  // 300ms is enough — registration gate already ran synchronously above
+    }, 300)
   } catch (e) { console.error('[bcaIntake] restore error:', e) }
 })()
 </script>
