@@ -1760,7 +1760,7 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         Guided Demo — Eco Platform Upgrade
       </button>
-      <button onclick="window.open('/conversational-intake','_blank')" style="padding:10px 24px;font-size:14px;background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(245,158,11,.35);transition:all .2s;display:inline-flex;align-items:center;gap:8px;">
+      <button onclick="window.location.href='/conversational-intake'" style="padding:10px 24px;font-size:14px;background:linear-gradient(135deg,#F59E0B,#D97706);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(245,158,11,.35);transition:all .2s;display:inline-flex;align-items:center;gap:8px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         Try Conversational Intake ✦
       </button>
@@ -5592,6 +5592,9 @@ function clearDemoData() {
   // Also hide walkthrough if visible
   const wt = document.getElementById('intakeWalkthrough');
   if (wt) wt.style.display = 'none';
+  // Reload iframe to clear any pre-filled form data
+  const iframe = document.getElementById('intakeIframe');
+  if (iframe) iframe.src = 'BCA_Intake_App.html?v=' + Date.now();
 }
 
 // ─── Discovery Tab Lock / Re-Analysis ───────────────────────────
@@ -6580,6 +6583,7 @@ function exitGuidedDemo() {
   if (demoBanner) demoBanner.style.display = 'none';
   if (intakeEl)   intakeEl.style.display = '';
   if (demoBar)    demoBar.style.display = '';
+  clearForm(); // reset wizardData and reload iframe to clear pre-filled demo data
 }
 
 function closeIntakeWalkthrough() {
@@ -11243,6 +11247,45 @@ showSection = function(name) {
   }
 };
 
+// ── Conversational Intake: map _collectedData → wizardData ────────
+function _applyConversationalIntakeData(data) {
+  wizardData.projectTitle       = data.projectTitle || 'BCA Analysis';
+  wizardData.industry           = data.industry || 'retail';
+  wizardData.role               = data.role || 'Business Analyst';
+  wizardData.businessUnit       = data.businessUnit || data.orgName || 'General';
+
+  const cs = [
+    data.currentState,
+    data.symptoms,
+    data.urgencyDriver  && ('Why now: ' + data.urgencyDriver),
+    data.alternativesTried && ('Previously tried: ' + data.alternativesTried),
+    data.additionalContext
+  ].filter(Boolean);
+  wizardData.currentState = cs.join('. ');
+
+  const bi = [
+    data.kpis        && ('KPIs: ' + data.kpis),
+    data.kpiTargets  && ('Targets: ' + data.kpiTargets),
+    data.stakeholders && ('Stakeholders: ' + data.stakeholders)
+  ].filter(Boolean);
+  wizardData.businessImpact = bi.join('. ');
+
+  wizardData.currentPainPoints  = [data.symptoms || data.currentState || ''].filter(Boolean);
+  wizardData.businessGoals      = data.kpis ? [data.kpis] : [];
+  wizardData.budget             = data.budget ? Number(data.budget) : null;
+  wizardData.budgetMode         = data.budget ? 'approved' : 'building';
+  wizardData.headcount          = data.headcount ? Number(data.headcount) : 0;
+  wizardData.annualRevenue      = data.revenue ? Number(data.revenue) : null;
+  wizardData.urgency            = data.urgency || 'medium';
+  wizardData.complianceRequirements = Array.isArray(data.compliance) ? data.compliance : [];
+  wizardData.technicalStack     = typeof data.techStack === 'string'
+    ? data.techStack.split(',').map(s => s.trim()).filter(Boolean)
+    : (Array.isArray(data.techStack) ? data.techStack : []);
+  wizardData.systemIntegrations = wizardData.technicalStack;
+  wizardData.timeHorizonYears   = data.timeHorizon  ? Number(data.timeHorizon)  : 3;
+  wizardData.discountRatePct    = data.discountRate  ? Number(data.discountRate) : 12;
+}
+
 </script>
 
 <!-- ─── Floating Re-Analysis FAB ──────────────────────────────── -->
@@ -11479,6 +11522,23 @@ document.addEventListener('keydown', (e) => {
     if (!btn.disabled) submitRegistration()
   }
 })
+
+// ── Restore conversational intake data after same-window navigation ──
+;(function () {
+  try {
+    const raw = sessionStorage.getItem('bcaIntakeData')
+    if (!raw) return
+    sessionStorage.removeItem('bcaIntakeData')
+    const data = JSON.parse(raw)
+    // Wait briefly for registration gate to settle, then run
+    setTimeout(() => {
+      if (!isSessionValid()) return
+      _applyConversationalIntakeData(data)
+      showSection('analysis')
+      runPhase1()
+    }, 400)
+  } catch (e) { /* ignore malformed data */ }
+})()
 </script>
 
 </body>
