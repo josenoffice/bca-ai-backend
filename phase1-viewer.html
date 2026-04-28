@@ -5706,8 +5706,9 @@ async function runPhase1() {
   const loadingMsg = document.getElementById('wizardLoadingMsg');
   loadingEl.style.display = 'block';
 
-  const bu = wizardData.businessUnit || 'retail';
-  const msgs = [`Analysing your ${bu} brief...`,`Generating tailored solutions for retail ${bu}...`,'Researching vendor landscape...','Validating quality...','Almost done...'];
+  const bu = wizardData.businessUnit || 'your team';
+  const industry = wizardData.industry || bu;
+  const msgs = [`Analysing your ${bu} brief...`,`Generating tailored solutions for ${industry}...`,'Researching vendor landscape...','Validating quality...','Almost done...'];
   let mi = 0;
   const msgInterval = setInterval(() => { mi = (mi + 1) % msgs.length; loadingMsg.textContent = msgs[mi]; }, 2000);
 
@@ -11508,6 +11509,21 @@ async function submitRegistration() {
     localStorage.setItem('bca_registered_v1', JSON.stringify({ ts: Date.now() }))
     document.getElementById('reg-overlay').classList.remove('active')
     document.body.style.overflow = ''
+
+    // Run pending conversational intake if user had to re-authenticate mid-flow
+    const pendingRaw = sessionStorage.getItem('bcaIntakeData')
+    if (pendingRaw) {
+      try {
+        const intakeData = JSON.parse(pendingRaw)
+        sessionStorage.removeItem('bcaIntakeData')
+        setTimeout(() => {
+          _applyConversationalIntakeData(intakeData)
+          showSection('analysis')
+          if (typeof showToast === 'function') showToast('Starting your analysis…', 3000)
+          runPhase1()
+        }, 300)
+      } catch(e) { console.error('[bcaIntake] post-registration restore error:', e) }
+    }
   } catch (err) {
     errEl.textContent = 'Unable to reach server — please wait a moment and try again.'
     btn.disabled = false
@@ -11528,11 +11544,12 @@ document.addEventListener('keydown', (e) => {
   try {
     const raw = sessionStorage.getItem('bcaIntakeData')
     if (!raw) return
-    sessionStorage.removeItem('bcaIntakeData')
+    // Parse but do NOT remove yet — keep data alive in case session is expired
+    // and the user needs to re-register (submitRegistration handles that case)
     const data = JSON.parse(raw)
-    // Wait for registration gate to fully settle before running analysis
     setTimeout(() => {
-      if (!isSessionValid()) return
+      if (!isSessionValid()) return  // leave data in sessionStorage for post-login pickup
+      sessionStorage.removeItem('bcaIntakeData')  // only clear after confirming valid session
       _applyConversationalIntakeData(data)
       showSection('analysis')
       if (typeof showToast === 'function') showToast('Conversational intake loaded — starting analysis…', 3000)

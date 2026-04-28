@@ -375,6 +375,18 @@ select.field-input { cursor: pointer; }
       <div class="data-dot" id="dot-compliance"></div>
       <div class="data-info"><div class="data-key">✅ Compliance</div><div class="data-val empty" id="dp-compliance">Not yet entered</div></div>
     </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-alternatives"></div>
+      <div class="data-info"><div class="data-key">🔀 Options Modelled</div><div class="data-val empty" id="dp-alternatives">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-techStack"></div>
+      <div class="data-info"><div class="data-key">🖥️ Tech Stack</div><div class="data-val empty" id="dp-techStack">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-stakeholders"></div>
+      <div class="data-info"><div class="data-key">👥 Stakeholders</div><div class="data-val empty" id="dp-stakeholders">Not yet entered</div></div>
+    </div>
   </div>
 </div>
 
@@ -1124,6 +1136,108 @@ function renderStakeholders(q) {
     </div>`;
 }
 
+// ── Cost calculators for options 1–4 ─────────────────
+function calcHtml(n) {
+  const configs = {
+    1: {
+      title: '🧮 Help me calculate the process fix cost',
+      desc: 'One-time setup + ongoing annual labour. Estimates are fine; leave blanks empty.',
+      rows: [
+        { label: '👔 PM / consultant fees ($)', id: 'calc-1-a', ph: 'e.g. 40000', hint: '' },
+        { label: '⏱️ Staff retraining & process change ($)', id: 'calc-1-b', ph: 'e.g. 25000', hint: '' },
+        { label: '📋 Documentation / SOP updates ($)', id: 'calc-1-c', ph: 'e.g. 5000', hint: '' },
+        { label: '🔄 Ongoing manual effort / year ($)', id: 'calc-1-d', ph: 'e.g. 80000', hint: 'staff hours × hourly rate × weeks per year' }
+      ]
+    },
+    2: {
+      title: '🧮 Help me calculate the bridge option cost',
+      desc: 'Extended support + patching labour + emergency hardware. Estimates are fine.',
+      rows: [
+        { label: '📜 Vendor extended support contract / year ($)', id: 'calc-2-a', ph: 'e.g. 200000', hint: '' },
+        { label: '🔧 Patch & upgrade labour ($)', id: 'calc-2-b', ph: 'e.g. 60000', hint: 'IT staff-days × daily rate' },
+        { label: '🖥️ Emergency hardware replacement ($)', id: 'calc-2-c', ph: 'e.g. 80000', hint: '' },
+        { label: '⏰ IT overtime / maintenance windows ($)', id: 'calc-2-d', ph: 'e.g. 30000', hint: '' }
+      ]
+    },
+    3: {
+      title: '🧮 Help me calculate the hybrid modernisation cost',
+      desc: 'Core components + integration + ongoing dual-system support.',
+      rows: [
+        { label: '💿 New component licences (one-time) ($)', id: 'calc-3-a', ph: 'e.g. 400000', hint: '' },
+        { label: '🔗 Integration / middleware development ($)', id: 'calc-3-b', ph: 'e.g. 300000', hint: '' },
+        { label: '📦 Partial data migration effort ($)', id: 'calc-3-c', ph: 'e.g. 150000', hint: '' },
+        { label: '🔄 Dual-system support / year ($)', id: 'calc-3-d', ph: 'e.g. 200000', hint: 'annual support cost × number of overlap years' }
+      ]
+    },
+    4: {
+      title: '🧮 Help me calculate the full replacement cost',
+      desc: 'Build up from licences + implementation + migration + training + contingency.',
+      rows: [
+        { label: '💿 Software licences / SaaS — Year 1 ($)', id: 'calc-4-a', ph: 'e.g. 800000', hint: '' },
+        { label: '🏗️ Implementation & professional services ($)', id: 'calc-4-b', ph: 'e.g. 1200000', hint: '' },
+        { label: '📦 Data migration ($)', id: 'calc-4-c', ph: 'e.g. 250000', hint: '' },
+        { label: '🎓 Training & change management ($)', id: 'calc-4-d', ph: 'e.g. 150000', hint: '' },
+        { label: '⚠️ Contingency 15–20% ($)', id: 'calc-4-e', ph: 'e.g. 480000', hint: 'add 15–20% of the subtotal above as a risk buffer' }
+      ]
+    }
+  };
+  const c = configs[n];
+  if (!c) return '';
+  const rowsHtml = c.rows.map(r => `
+        <div class="coi-row">
+          <span class="coi-row-label">${r.label}</span>
+          <input class="coi-input" type="number" id="${r.id}" placeholder="${r.ph}" oninput="updateCalcTotal(${n})">
+          ${r.hint ? `<span class="coi-hint">${r.hint}</span>` : ''}
+        </div>`).join('');
+  return `
+    <div class="coi-section" onclick="event.stopPropagation()">
+      <div class="coi-toggle" onclick="toggleCalc(${n})">
+        <span>${c.title}</span>
+        <span id="calc-arrow-${n}">▼</span>
+      </div>
+      <div class="coi-body" id="calc-body-${n}">
+        <p style="font-size:11px;color:var(--slate-600);margin-bottom:10px;line-height:1.55">${c.desc}</p>
+        ${rowsHtml}
+        <div class="coi-total-bar">
+          <span class="coi-total-label">Estimated total cost:</span>
+          <span class="coi-total-value" id="calc-total-${n}">$0</span>
+        </div>
+        <button class="coi-use-btn" onclick="useCalcTotal(${n})">→ Use this as my cost estimate (you can override it)</button>
+      </div>
+    </div>`;
+}
+
+function toggleCalc(n) {
+  const body = document.getElementById('calc-body-' + n);
+  const arrow = document.getElementById('calc-arrow-' + n);
+  if (!body) return;
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+}
+
+function updateCalcTotal(n) {
+  const body = document.getElementById('calc-body-' + n);
+  if (!body) return;
+  let total = 0;
+  body.querySelectorAll('.coi-input').forEach(inp => { total += parseFloat(inp.value || 0); });
+  const display = document.getElementById('calc-total-' + n);
+  if (display) display.textContent = '$' + Math.round(total).toLocaleString();
+}
+
+function useCalcTotal(n) {
+  const body = document.getElementById('calc-body-' + n);
+  if (!body) return;
+  let total = 0;
+  body.querySelectorAll('.coi-input').forEach(inp => { total += parseFloat(inp.value || 0); });
+  if (total === 0) { alert('Enter at least one value above to calculate.'); return; }
+  total = Math.round(total);
+  const costInput = document.getElementById('alt-cost-' + n);
+  if (costInput) { costInput.value = total; setAltDetail(n, 'cost', String(total)); }
+  const arrow = document.getElementById('calc-arrow-' + n);
+  body.classList.remove('open');
+  if (arrow) arrow.textContent = '▼';
+}
+
 // ── 5-Option Alternatives ─────────────────────────────
 function renderAlternatives() {
   const coiHtml = `
@@ -1198,7 +1312,7 @@ function renderAlternatives() {
             </div>
             <span class="alt-tag ${a.tag==='Recommended'?'tag-rec':a.tag==='Baseline'?'tag-base':'tag-part'}">${a.tag}</span>
           </div>
-          ${a.n === 0 ? coiHtml : ''}
+          ${a.n === 0 ? coiHtml : calcHtml(a.n)}
           <div style="display:flex;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--slate-200);width:100%;flex-direction:column" onclick="event.stopPropagation()">
             <div style="display:flex;gap:10px">
               <div style="flex:1">
@@ -1328,6 +1442,18 @@ function renderTechStack() {
       <input class="field-input" id="inp-techOther" placeholder="e.g. Custom Java POS client, Cisco Meraki"
         onkeydown="if(event.key==='Enter'&&this.value.trim()){addCustomTech(this.value.trim());this.value=''}">
     </div>
+    <div class="coi-section" style="margin-top:14px" onclick="event.stopPropagation()">
+      <div class="coi-toggle" onclick="toggleEmailDraft()">
+        <span>✉️ Draft collaboration email to other BUs</span>
+        <span id="email-draft-arrow">▼</span>
+      </div>
+      <div class="coi-body" id="email-draft-body">
+        <p style="font-size:11px;color:var(--slate-600);margin-bottom:8px;line-height:1.55">Generated from everything you've told us so far. Edit before sending.</p>
+        <button class="coi-use-btn" style="margin-bottom:10px" onclick="refreshEmailDraft()">↻ Regenerate with latest data</button>
+        <textarea id="collab-email-ta" class="field-textarea" rows="20" style="font-size:11px;line-height:1.65;font-family:monospace;white-space:pre"></textarea>
+        <button class="coi-use-btn" style="margin-top:8px" onclick="copyCollabEmail()">📋 Copy to clipboard</button>
+      </div>
+    </div>
     <div style="margin-top:10px">
       <button class="next-btn" onclick="advanceTechStack()">
         Continue <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
@@ -1415,6 +1541,7 @@ function advanceSimple(qid, field) {
   const val = (_collectedData[field] || '').trim();
   markAnswered(qid, val ? val.substring(0,100) + (val.length>100?'…':'') : '(skipped)');
   if (field === 'timeline') updatePanel('timeline', val.substring(0,60));
+  if (field === 'stakeholders') updatePanel('stakeholders', val.substring(0,60));
   const q = QUESTIONS.find(x => x.id === qid);
   if (q) showNextQ(q.step);
 }
@@ -1494,6 +1621,81 @@ function appendStakeholder(el, label) {
 function toggleGuide(qid) {
   const panel = document.getElementById('guide-' + qid);
   if (panel) panel.classList.toggle('open');
+}
+
+function generateCollabEmail() {
+  const d = _collectedData;
+  const role      = d.role || 'our team';
+  const bu        = d.businessUnit || 'our business unit';
+  const org       = d.orgName || 'our organisation';
+  const project   = d.projectTitle || 'our system modernisation initiative';
+  const industry  = (d.industry || '').replace(/-/g,' ');
+  const painDesc  = d.urgencyDriver || (Array.isArray(d.symptoms) && d.symptoms.length ? d.symptoms.join(', ') : 'significant operational challenges');
+  const urgency   = d.urgency ? (d.urgency.charAt(0).toUpperCase() + d.urgency.slice(1)) : 'High';
+  const budget    = d.budget ? '$' + Number(d.budget).toLocaleString() : '[TBD]';
+  const timeline  = d.timeline || '[TBD]';
+  const kpis      = Array.isArray(d.kpis) && d.kpis.length ? d.kpis.join(', ') : 'operational efficiency, system uptime';
+  const techList  = Array.isArray(d.techStack) && d.techStack.length ? d.techStack.join(', ') : '[to be confirmed]';
+  const compList  = Array.isArray(d.compliance) && d.compliance.length ? d.compliance.join(', ') : '[to be confirmed]';
+  const industryLine = industry ? `Our ${industry} operations are experiencing ` : 'We are experiencing ';
+
+  return `Subject: Cross-BU Collaboration Request — ${project}
+
+Hi [Name],
+
+I'm reaching out from ${bu}${org !== 'our organisation' ? ' (' + org + ')' : ''} regarding ${project}, which directly affects our shared operations.
+
+CONTEXT
+${industryLine}${painDesc}. This has been escalated to ${urgency} priority with a target go-live of ${timeline}.
+
+WHY YOUR TEAM IS INVOLVED
+Our analysis identifies your department as a key stakeholder due to:
+• Integration dependencies: ${techList}
+• Compliance requirements in scope: ${compList}
+• Success metrics we're targeting: ${kpis}
+
+WHAT WE'RE ASKING
+We're building a formal Business Case Analysis (BCA) for leadership approval, with a budget envelope of ${budget}. To ensure it reflects the full cross-functional picture, we'd like to:
+
+  1. Share our draft requirements and get your input on integration dependencies
+  2. Confirm service-level or compliance obligations between our teams
+  3. Understand your team's timeline constraints or planned changes that affect sequencing
+
+NEXT STEPS
+Could we schedule 30 minutes in the next week? I'll bring the draft BCA summary so we can align before the approval submission.
+
+Best regards,
+[Your Name]
+${role}, ${bu}`;
+}
+
+function toggleEmailDraft() {
+  const body  = document.getElementById('email-draft-body');
+  const arrow = document.getElementById('email-draft-arrow');
+  if (!body) return;
+  const opening = !body.classList.contains('open');
+  body.classList.toggle('open');
+  if (arrow) arrow.textContent = body.classList.contains('open') ? '▲' : '▼';
+  if (opening) {
+    const ta = document.getElementById('collab-email-ta');
+    if (ta) ta.value = generateCollabEmail();
+  }
+}
+
+function refreshEmailDraft() {
+  const ta = document.getElementById('collab-email-ta');
+  if (ta) ta.value = generateCollabEmail();
+}
+
+function copyCollabEmail() {
+  const ta = document.getElementById('collab-email-ta');
+  if (!ta) return;
+  navigator.clipboard.writeText(ta.value).then(() => {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  }).catch(() => { ta.select(); document.execCommand('copy'); });
 }
 
 function toggleCoi() {
@@ -1609,6 +1811,7 @@ function advanceAlternatives() {
     const prefMark = preferred === i ? ' ⭐' : '';
     return names[i] + prefMark + (extra ? ` (${extra})` : '');
   });
+  updatePanel('alternatives', parts.join(' · ').substring(0,65));
   markAnswered('q9', parts.join(' · '));
   showNextQ(9);
 }
@@ -1633,9 +1836,10 @@ function addCustomTech(val) {
   _collectedData.techStack.push(val);
 }
 function advanceTechStack() {
-  // Get labels from selected chips
   const chipLabels = Array.from(document.querySelectorAll('.tech-chip.selected')).map(c => c.textContent.trim());
   const allTech = [...chipLabels, ...(_collectedData._customTech || [])];
+  _collectedData.techStack = _collectedData.techStack || allTech;
+  updatePanel('techStack', allTech.join(', ').substring(0,65) || 'Not specified');
   markAnswered('q11', allTech.join(', ') || 'Not specified');
   showNextQ(11);
 }
@@ -1726,13 +1930,17 @@ function updatePanel(field, value) {
     projectTitle:'dp-projectTitle', role:'dp-role', businessUnit:'dp-role',
     currentState:'dp-pain', pain:'dp-pain', symptoms:'dp-pain',
     urgency:'dp-urgency', budget:'dp-budget', timeline:'dp-timeline',
-    kpis:'dp-kpis', compliance:'dp-compliance'
+    kpis:'dp-kpis', compliance:'dp-compliance',
+    alternatives:'dp-alternatives', preferredAlternative:'dp-alternatives',
+    techStack:'dp-techStack', stakeholders:'dp-stakeholders'
   };
   const dotMap = {
     projectTitle:'dot-projectTitle', role:'dot-role', businessUnit:'dot-role',
     currentState:'dot-pain', pain:'dot-pain', symptoms:'dot-pain',
     urgency:'dot-urgency', budget:'dot-budget', timeline:'dot-timeline',
-    kpis:'dot-kpis', compliance:'dot-compliance'
+    kpis:'dot-kpis', compliance:'dot-compliance',
+    alternatives:'dot-alternatives', preferredAlternative:'dot-alternatives',
+    techStack:'dot-techStack', stakeholders:'dot-stakeholders'
   };
   const dpId = map[field]; if (!dpId) return;
   const el = document.getElementById(dpId); if (!el) return;
@@ -1790,7 +1998,7 @@ function clearDemo() {
 }
 
 function resetPanels() {
-  ['dp-projectTitle','dp-role','dp-pain','dp-urgency','dp-budget','dp-timeline','dp-kpis','dp-compliance'].forEach(id => {
+  ['dp-projectTitle','dp-role','dp-pain','dp-urgency','dp-budget','dp-timeline','dp-kpis','dp-compliance','dp-alternatives','dp-techStack','dp-stakeholders'].forEach(id => {
     const el = document.getElementById(id);
     if (el) { el.textContent = 'Not yet entered'; el.className = 'data-val empty'; }
   });
