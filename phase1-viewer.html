@@ -1713,8 +1713,8 @@
     </div>
   </div>
   <nav class="nav-bar">
-    <button class="nav-btn active" data-section="howitworks" onclick="showSection('howitworks')">How It Works</button>
-    <button class="nav-btn" data-section="analysis" onclick="showSection('analysis')">Discovery</button>
+    <button class="nav-btn" data-section="howitworks" onclick="showSection('howitworks')" style="display:none;">How It Works</button>
+    <button class="nav-btn active" data-section="analysis" onclick="showSection('analysis')">Discovery</button>
     <button class="nav-btn nav-locked" data-section="phase2" onclick="showSection('phase2')">Financials</button>
     <button class="nav-btn nav-locked" data-section="phase3" onclick="showSection('phase3')">Traceability</button>
     <button class="nav-btn nav-locked" data-section="phase4" onclick="showSection('phase4')">Ranking</button>
@@ -1737,7 +1737,7 @@
 <!-- ════════════════════════════════════════════════════════════════ -->
 <!-- SECTION 1: NEW ANALYSIS                                        -->
 <!-- ════════════════════════════════════════════════════════════════ -->
-<div class="spa-section" id="section-analysis">
+<div class="spa-section active" id="section-analysis">
 
   <!-- Demo mode banner (hidden — legacy) -->
   <div class="demo-banner" id="demoBanner" style="display:none;">
@@ -2110,7 +2110,7 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <!-- ════════════════════════════════════════════════════════════════ -->
 <!-- SECTION: HOW IT WORKS                                          -->
 <!-- ════════════════════════════════════════════════════════════════ -->
-<div class="spa-section active" id="section-howitworks">
+<div class="spa-section" id="section-howitworks">
 
   <!-- ─── TOP HERO ──────────────────────────────────────────────── -->
   <div style="text-align:center;padding:48px 20px 40px;">
@@ -2726,7 +2726,7 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
     <!-- Bottom CTAs -->
     <div style="display:flex;gap:12px;justify-content:center;margin-top:32px;padding:32px 0;">
       <button class="btn" onclick="showSection('analysis')">Start your own analysis →</button>
-      <button class="btn btn-outline" onclick="showSection('howitworks')">Learn how it works →</button>
+      <button class="btn btn-outline" onclick="showSection('analysis')">Start a new analysis →</button>
     </div>
   </div>
 </div>
@@ -2737,7 +2737,7 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <div class="spa-section" id="section-help">
   <div class="help-header">
     <h2>Help &amp; Support</h2>
-    <p>Quick reference for using BCA.AI. For the full walkthrough, visit <a href="#" onclick="showSection('howitworks');return false;" style="color:var(--primary);font-weight:600;text-decoration:none;">How It Works</a>.</p>
+    <p>Quick reference for using BCA.AI. To get started, go to the <a href="#" onclick="showSection('analysis');return false;" style="color:var(--primary);font-weight:600;text-decoration:none;">Discovery</a> tab.</p>
   </div>
 
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px;margin:0 auto;">
