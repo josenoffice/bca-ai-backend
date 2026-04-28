@@ -335,19 +335,6 @@ select.field-input { cursor: pointer; }
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
       <div class="demo-note" id="demoNote" style="display:none;">Demo Mode — no real analysis will run.</div>
-      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--slate-200)">
-        <button onclick="toggleCtaEmail()"
-          style="background:none;border:1.5px solid var(--amber-border);color:var(--amber);border-radius:8px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);display:inline-flex;align-items:center;gap:6px">
-          ✉️ Draft IT Collaboration Email <span id="cta-email-arrow">▼</span>
-        </button>
-        <div id="ctaEmailBody" style="display:none;margin-top:10px;text-align:left">
-          <p style="font-size:11px;color:var(--slate-500);margin-bottom:6px;line-height:1.5">For IT infrastructure / other business units. Edit before sending.</p>
-          <button class="coi-use-btn" style="margin-bottom:8px" onclick="refreshCtaEmail()">↻ Regenerate with latest data</button>
-          <textarea id="collab-email-ta-cta" rows="18"
-            style="width:100%;font-size:11px;line-height:1.6;font-family:monospace;resize:vertical;border:1px solid var(--slate-200);border-radius:6px;padding:8px;box-sizing:border-box;white-space:pre;color:var(--navy)"></textarea>
-          <button class="coi-use-btn" style="margin-top:6px" onclick="copyCtaEmail()">📋 Copy to clipboard</button>
-        </div>
-      </div>
     </div>
   </div>
   <div class="data-panel">
@@ -399,20 +386,6 @@ select.field-input { cursor: pointer; }
     <div class="data-item">
       <div class="data-dot" id="dot-stakeholders"></div>
       <div class="data-info"><div class="data-key">👥 Stakeholders</div><div class="data-val empty" id="dp-stakeholders">Not yet entered</div></div>
-    </div>
-    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--slate-200)">
-      <button id="panelEmailBtn" onclick="togglePanelEmail()"
-        style="width:100%;background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber);border-radius:8px;padding:9px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--font-body);display:flex;align-items:center;justify-content:space-between;gap:6px">
-        <span>✉️ Draft IT Collaboration Email</span>
-        <span id="panel-email-arrow">▼</span>
-      </button>
-      <div id="panelEmailBody" style="display:none;margin-top:8px">
-        <p style="font-size:10px;color:var(--slate-500);margin-bottom:6px;line-height:1.5">Generated from your intake data. Edit before sending to IT/other BUs.</p>
-        <button class="coi-use-btn" style="margin-bottom:8px" onclick="refreshPanelEmail()">↻ Regenerate with latest data</button>
-        <textarea id="collab-email-ta-panel" rows="18"
-          style="width:100%;font-size:10px;line-height:1.6;font-family:monospace;resize:vertical;border:1px solid var(--slate-200);border-radius:6px;padding:8px;box-sizing:border-box;white-space:pre;color:var(--navy)"></textarea>
-        <button class="coi-use-btn" style="margin-top:6px" onclick="copyPanelEmail()">📋 Copy to clipboard</button>
-      </div>
     </div>
   </div>
 </div>
@@ -1796,61 +1769,6 @@ function copyCollabEmail() {
   }).catch(() => { ta.select(); document.execCommand('copy'); });
 }
 
-// ── Panel email (data panel sidebar) ─────────────────
-function togglePanelEmail() {
-  const body  = document.getElementById('panelEmailBody');
-  const arrow = document.getElementById('panel-email-arrow');
-  if (!body) return;
-  const opening = body.style.display === 'none';
-  body.style.display = opening ? 'block' : 'none';
-  if (arrow) arrow.textContent = opening ? '▲' : '▼';
-  if (opening) {
-    const ta = document.getElementById('collab-email-ta-panel');
-    if (ta && !ta.value) ta.value = generateCollabEmail();
-  }
-}
-function refreshPanelEmail() {
-  const ta = document.getElementById('collab-email-ta-panel');
-  if (ta) ta.value = generateCollabEmail();
-}
-function copyPanelEmail() {
-  const ta = document.getElementById('collab-email-ta-panel');
-  if (!ta) return;
-  navigator.clipboard.writeText(ta.value).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => btn.textContent = orig, 2000);
-  }).catch(() => { ta.select(); document.execCommand('copy'); });
-}
-
-// ── CTA email (generate CTA area — visible on mobile) ─
-function toggleCtaEmail() {
-  const body  = document.getElementById('ctaEmailBody');
-  const arrow = document.getElementById('cta-email-arrow');
-  if (!body) return;
-  const opening = body.style.display === 'none';
-  body.style.display = opening ? 'block' : 'none';
-  if (arrow) arrow.textContent = opening ? '▲' : '▼';
-  if (opening) {
-    const ta = document.getElementById('collab-email-ta-cta');
-    if (ta && !ta.value) ta.value = generateCollabEmail();
-  }
-}
-function refreshCtaEmail() {
-  const ta = document.getElementById('collab-email-ta-cta');
-  if (ta) ta.value = generateCollabEmail();
-}
-function copyCtaEmail() {
-  const ta = document.getElementById('collab-email-ta-cta');
-  if (!ta) return;
-  navigator.clipboard.writeText(ta.value).then(() => {
-    const btn = event.target;
-    const orig = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    setTimeout(() => btn.textContent = orig, 2000);
-  }).catch(() => { ta.select(); document.execCommand('copy'); });
-}
 
 function toggleCoi() {
   const body = document.getElementById('coi-body');

@@ -1337,12 +1337,20 @@
   body.role-business .analyst-only { display: none !important; }
   body.role-analyst .business-only { display: none !important; }
 
-  /* Role-based emphasis */
+  /* Role-based emphasis — highlight relevant sections, fade opposite ones */
   body.role-analyst .analyst-emphasis {
     border-color: #3b82f6 !important; border-width: 2px !important;
+    transition: opacity 0.25s;
   }
   body.role-business .business-emphasis {
     border-color: var(--success) !important; border-width: 2px !important;
+    transition: opacity 0.25s;
+  }
+  body.role-business .analyst-emphasis {
+    opacity: 0.45; transition: opacity 0.25s;
+  }
+  body.role-analyst .business-emphasis {
+    opacity: 0.45; transition: opacity 0.25s;
   }
 
   /* Role indicator bar */
@@ -1728,7 +1736,7 @@
 <!-- ─── Spinner Overlay ──────────────────────────────────────────── -->
 <div class="spinner-overlay" id="spinner">
   <div class="spinner"></div>
-  <div class="spinner-text">Running Phase 1 Discovery via Claude AI...</div>
+  <div class="spinner-text">Preparing your analysis...</div>
 </div>
 
 <!-- ─── Main Content ─────────────────────────────────────────────── -->
@@ -2994,12 +3002,21 @@ function setRole(role) {
   if (bizLabel) bizLabel.classList.toggle('active', role === 'business');
   if (finLabel) finLabel.classList.toggle('active', role === 'analyst');
 
-  // Update role bars in rendered results
+  const labelHtml = role === 'business'
+    ? '<span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations'
+    : '<span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns';
+
+  // Update role bars — use .role-bar-label span when present to preserve
+  // any embedded buttons (e.g. Re-Analysis button in the Phase 1 role bar)
   document.querySelectorAll('.role-bar').forEach(bar => {
     bar.className = 'role-bar ' + role;
-    bar.innerHTML = role === 'business'
-      ? '<span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations'
-      : '<span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns';
+    const labelEl = bar.querySelector('.role-bar-label');
+    if (labelEl) {
+      labelEl.innerHTML = labelHtml;
+    } else {
+      // No embedded buttons — safe to replace innerHTML
+      bar.innerHTML = labelHtml;
+    }
   });
 }
 
@@ -5667,30 +5684,6 @@ function showToast(msg, duration = 3000) {
   toast._t = setTimeout(() => { toast.style.opacity = '0'; }, duration);
 }
 
-// ─── Loading Messages ────────────────────────────────────────────
-const LOADING_MSGS = [
-  'Analysing your industry...',
-  'Generating tailored solutions...',
-  'Building benefit models...',
-  'Mapping requirements...',
-  'Validating quality...'
-];
-let loadingInterval = null;
-
-function startLoadingMessages() {
-  let idx = 0;
-  const spinText = $('#spinner').querySelector('.spinner-text');
-  spinText.textContent = LOADING_MSGS[0];
-  loadingInterval = setInterval(() => {
-    idx = (idx + 1) % LOADING_MSGS.length;
-    spinText.textContent = LOADING_MSGS[idx];
-  }, 2000);
-}
-
-function stopLoadingMessages() {
-  if (loadingInterval) { clearInterval(loadingInterval); loadingInterval = null; }
-}
-
 // ─── Phase 1 — Discovery ────────────────────────────────────────
 async function runPhase1() {
   // Hide intake form, show loading
@@ -5704,6 +5697,11 @@ async function runPhase1() {
   if (pfBanner) pfBanner.style.display = 'none';
   const loadingEl = document.getElementById('wizardLoading');
   const loadingMsg = document.getElementById('wizardLoadingMsg');
+  // Guard: if loading elements are missing, abort cleanly rather than hanging
+  if (!loadingEl || !loadingMsg) {
+    console.error('[runPhase1] wizardLoading elements not found');
+    return;
+  }
   loadingEl.style.display = 'block';
 
   const bu = wizardData.businessUnit || 'your team';
@@ -5743,11 +5741,10 @@ async function runPhase1() {
     const isTimeout = err.name === 'AbortError';
     $('#results').innerHTML = `
       <div class="error-panel">
-        <h3>${isTimeout ? 'Server took too long to respond' : 'Request Failed'}</h3>
+        <h3>${isTimeout ? 'Analysis is taking longer than expected' : 'Something went wrong'}</h3>
         <p>${isTimeout
-          ? 'The server is waking up from a cold start. <strong>Refresh this page</strong> — your intake data is saved and analysis will resume automatically.'
-          : err.message}</p>
-        ${!isTimeout ? '<p style="margin-top:8px;font-size:12px;color:#b91c1c;">Ensure the server is running: <code>npm start</code> on port 3001</p>' : ''}
+          ? '<strong>Please refresh this page</strong> — your intake data is saved and the analysis will restart automatically.'
+          : 'The analysis could not complete. Please refresh the page and try again.'}</p>
       </div>`;
     $('#results').style.display = 'block';
     // On timeout: keep backup so page refresh triggers auto-retry
@@ -5935,7 +5932,7 @@ function renderResults(r) {
   })();
 
   el.innerHTML = `
-    <div class="role-bar ${_currentRole}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">${_currentRole === 'analyst' ? '<span><span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns</span>' : '<span><span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations</span>'}<button class="reanalysis-btn" onclick="reAnalysis()" title="Clear all results and restart from Discovery">🔄 Re-Analysis</button></div>
+    <div class="role-bar ${_currentRole}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><span class="role-bar-label">${_currentRole === 'analyst' ? '<span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns' : '<span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations'}</span><button class="reanalysis-btn" onclick="reAnalysis()" title="Clear all results and restart from Discovery">🔄 Re-Analysis</button></div>
     ${statusAlert}
     ${buildInputTrace(r.validatedData || r.projectMeta || {}, 'phase1')}
     ${p1GlanceBanner}
@@ -6774,7 +6771,6 @@ async function runPhase16() {
     el.style.display = 'block';
   } finally {
     if (spinner) spinner.classList.remove('active');
-    if (spinText) spinText.textContent = 'Running Phase 1 Discovery via Claude AI...';
     if (btn) btn.disabled = false;
   }
 }
@@ -6994,7 +6990,6 @@ async function runPhase15() {
   } finally {
     clearInterval(p15Interval);
     spinner.classList.remove('active');
-    if (spinText) spinText.textContent = 'Running Phase 1 Discovery via Claude AI...';
     btn.disabled = false;
   }
 }
@@ -7146,7 +7141,6 @@ async function runReflection() {
   } finally {
     clearInterval(refInterval);
     spinner.classList.remove('active');
-    if (spinText) spinText.textContent = 'Running Phase 1 Discovery via Claude AI...';
     btn.disabled = false;
   }
 }
@@ -7344,7 +7338,6 @@ async function runPhase2() {
   } finally {
     clearInterval(p2Interval);
     if (spinner) spinner.classList.remove('active');
-    if (spinText) spinText.textContent = 'Running Phase 1 Discovery via Claude AI...';
     btn.disabled = false;
   }
 }
@@ -7710,7 +7703,7 @@ function renderPhase2(r) {
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--primary);">Phase 2 — Financial Analysis</div>
-      <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Full financial detail, sensitivity, and formulas' : 'Business View — Key metrics and budget health'}</div>
+      <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Full financial detail, sensitivity, and formulas' : 'Business View — Key metrics and budget health'}</span></div>
       ${buildInputTrace(r.validatedData || {}, 'phase2')}
       ${kpiRow}
       <div class="analyst-emphasis" style="border-radius:10px;">${lrPanelHtml}${finTable}</div>
@@ -8104,7 +8097,7 @@ function renderPhase3(d, el) {
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--purple);">Phase 3 — Traceability Validation</div>
-      <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Traceability detail, confidence scores, and fulfillment' : 'Business View — Health gauges, timeline, and dependencies'}</div>
+      <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Traceability detail, confidence scores, and fulfillment' : 'Business View — Health gauges, timeline, and dependencies'}</span></div>
       <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:6px;">${breadcrumb}</div>
       ${buildInputTrace(d.validatedData || {}, 'phase3')}
       ${kpis}
@@ -8286,7 +8279,7 @@ function renderPhase4(d, el) {
   let html = '';
 
   // ── Role Bar ──
-  html += `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Sensitivity tables, scoring weights, and financial detail' : 'Business View — Recommendation, health dashboard, and gate status'}</div>`;
+  html += `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Sensitivity tables, scoring weights, and financial detail' : 'Business View — Recommendation, health dashboard, and gate status'}</span></div>`;
 
   html += buildInputTrace(d.validatedData || {}, 'phase4');
 
@@ -8963,7 +8956,7 @@ function renderPhase5(d) {
     </div>`;
 
   // ── Role Bar ──
-  let html = `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Financial KPIs and quality warnings' : 'Business View — Executive summary and health dashboard'}</div>`;
+  let html = `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Financial KPIs and quality warnings' : 'Business View — Executive summary and health dashboard'}</span></div>`;
   html += buildInputTrace(d.validatedData || {}, 'phase5');
   html += p5GlanceBanner;
   html += p5ROIInterp;
@@ -11598,21 +11591,31 @@ function _getIntakeBackup() {
     if (loadingMsg) loadingMsg.textContent  = fromBackup ? 'Retrying analysis…' : 'Loading your intake data…'
 
     setTimeout(() => {
-      if (!isSessionValid()) {
-        // Session expired — registration overlay is showing; hide loading and
-        // leave data in sessionStorage so submitRegistration() picks it up
+      try {
+        if (!isSessionValid()) {
+          // Session expired — registration overlay is showing; hide loading and
+          // ensure data is in sessionStorage so submitRegistration() picks it up
+          if (loadingEl) loadingEl.style.display = 'none'
+          // If we loaded from localStorage backup (no sessionStorage entry),
+          // copy it back so submitRegistration() can find it after login
+          if (fromBackup) {
+            try { sessionStorage.setItem('bcaIntakeData', JSON.stringify(data)) } catch {}
+          }
+          return
+        }
+        // Save backup BEFORE clearing sessionStorage so a page refresh can retry
+        // if the API hangs (backup auto-expires after 60 minutes)
+        _saveIntakeBackup(data)
+        if (!fromBackup) sessionStorage.removeItem('bcaIntakeData')
+        _applyConversationalIntakeData(data)
+        showSection('analysis')
+        if (typeof showToast === 'function') showToast(
+          fromBackup ? 'Resuming from saved intake — retrying analysis…' : 'Conversational intake loaded — starting analysis…', 3000)
+        runPhase1()
+      } catch (e) {
+        console.error('[bcaIntake] restore error in setTimeout:', e)
         if (loadingEl) loadingEl.style.display = 'none'
-        return
       }
-      // Save backup BEFORE clearing sessionStorage so a page refresh can retry
-      // if the API hangs (backup auto-expires after 60 minutes)
-      _saveIntakeBackup(data)
-      if (!fromBackup) sessionStorage.removeItem('bcaIntakeData')
-      _applyConversationalIntakeData(data)
-      showSection('analysis')
-      if (typeof showToast === 'function') showToast(
-        fromBackup ? 'Resuming from saved intake — retrying analysis…' : 'Conversational intake loaded — starting analysis…', 3000)
-      runPhase1()
     }, 300)
   } catch (e) { console.error('[bcaIntake] restore error:', e) }
 })()
