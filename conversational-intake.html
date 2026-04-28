@@ -111,14 +111,21 @@ body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-80
 .generate-cta .demo-note { font-size: 11px; color: var(--amber); margin-top: 12px; font-weight: 600; }
 
 /* ── DATA PANEL ── */
-.data-panel { width: 240px; flex-shrink: 0; background: white; border-left: 1px solid var(--slate-200); padding: 18px 14px; overflow-y: auto; display: none; }
-@media (min-width: 1100px) { .data-panel { display: block; } }
-.panel-title { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
-.data-item { margin-bottom: 11px; padding-bottom: 11px; border-bottom: 1px solid var(--slate-100); }
-.data-item:last-child { border-bottom: none; }
-.data-key { font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
-.data-val { font-size: 12px; color: var(--slate-800); line-height: 1.4; }
-.data-val.empty { color: var(--slate-300); font-style: italic; }
+.data-panel { width: 260px; flex-shrink: 0; background: #f8fafc; border-left: 1px solid var(--slate-200); padding: 16px 14px 24px; overflow-y: auto; display: none; }
+@media (min-width: 1100px) { .data-panel { display: flex; flex-direction: column; } }
+.panel-header { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--slate-200); }
+.panel-title { font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 10px; letter-spacing: -.01em; }
+.panel-progress { height: 6px; background: var(--slate-200); border-radius: 3px; margin-bottom: 5px; overflow: hidden; }
+.panel-progress-bar { height: 100%; background: linear-gradient(90deg,var(--blue),var(--purple)); border-radius: 3px; width: 0%; transition: width .5s ease; }
+.panel-progress-label { font-size: 10px; color: var(--slate-400); font-weight: 700; }
+.data-item { display: flex; gap: 9px; align-items: flex-start; padding: 8px 8px; border-radius: 10px; margin-bottom: 2px; transition: background .15s; }
+.data-item:hover { background: white; }
+.data-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--slate-200); flex-shrink: 0; margin-top: 5px; transition: background .3s; }
+.data-dot.filled { background: #22c55e; box-shadow: 0 0 0 3px #dcfce7; }
+.data-info { flex: 1; min-width: 0; }
+.data-key { font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 2px; }
+.data-val { font-size: 12px; color: var(--slate-800); line-height: 1.35; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.data-val.empty { color: var(--slate-300); font-style: italic; font-size: 11px; }
 .data-val.filled { color: var(--navy); font-weight: 600; }
 
 /* ── FOOTER ── */
@@ -203,15 +210,8 @@ select.field-input { cursor: pointer; }
 .generate-btn:hover { opacity: .9; }
 .generate-cta .demo-note { font-size: 11px; color: var(--amber); margin-top: 12px; font-weight: 600; }
 
-/* ── DATA PANEL ── */
-.data-panel { background: var(--white); border: 1.5px solid var(--slate-200); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); position: sticky; top: 72px; }
-.panel-title { font-size: 10px; font-weight: 700; color: var(--slate-400); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 14px; }
-.data-item { margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--slate-100); }
-.data-item:last-child { border-bottom: none; margin-bottom: 0; }
-.data-key { font-size: 10px; color: var(--slate-400); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 3px; }
-.data-val { font-size: 12px; color: var(--slate-800); line-height: 1.4; }
-.data-val.empty { color: var(--slate-300); font-style: italic; }
-.data-val.filled { color: var(--navy); font-weight: 600; }
+/* ── DATA PANEL (sticky variant — unused, kept for compat) ── */
+.data-panel-sticky { background: var(--white); border: 1.5px solid var(--slate-200); border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); position: sticky; top: 72px; }
 
 /* ── ANIMATIONS ── */
 @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
@@ -338,15 +338,43 @@ select.field-input { cursor: pointer; }
     </div>
   </div>
   <div class="data-panel">
-    <div class="panel-title">📋 Data Collected</div>
-    <div class="data-item"><div class="data-key">Project</div><div class="data-val empty" id="dp-projectTitle">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">Role / Org</div><div class="data-val empty" id="dp-role">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">Key Pain</div><div class="data-val empty" id="dp-pain">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">Urgency</div><div class="data-val empty" id="dp-urgency">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">Budget</div><div class="data-val empty" id="dp-budget">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">Timeline</div><div class="data-val empty" id="dp-timeline">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">KPIs</div><div class="data-val empty" id="dp-kpis">Not yet entered</div></div>
-    <div class="data-item"><div class="data-key">Compliance</div><div class="data-val empty" id="dp-compliance">Not yet entered</div></div>
+    <div class="panel-header">
+      <div class="panel-title">📋 Your BCA Summary</div>
+      <div class="panel-progress"><div class="panel-progress-bar" id="panelProgressBar"></div></div>
+      <div class="panel-progress-label" id="panelProgressLabel">0 of 8 fields captured</div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-projectTitle"></div>
+      <div class="data-info"><div class="data-key">🏗️ Project Name</div><div class="data-val empty" id="dp-projectTitle">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-role"></div>
+      <div class="data-info"><div class="data-key">👤 Role / Organisation</div><div class="data-val empty" id="dp-role">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-pain"></div>
+      <div class="data-info"><div class="data-key">⚠️ Key Pain Point</div><div class="data-val empty" id="dp-pain">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-urgency"></div>
+      <div class="data-info"><div class="data-key">🚨 Urgency Level</div><div class="data-val empty" id="dp-urgency">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-budget"></div>
+      <div class="data-info"><div class="data-key">💰 Budget</div><div class="data-val empty" id="dp-budget">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-timeline"></div>
+      <div class="data-info"><div class="data-key">📅 Timeline</div><div class="data-val empty" id="dp-timeline">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-kpis"></div>
+      <div class="data-info"><div class="data-key">🎯 KPIs / Success Metrics</div><div class="data-val empty" id="dp-kpis">Not yet entered</div></div>
+    </div>
+    <div class="data-item">
+      <div class="data-dot" id="dot-compliance"></div>
+      <div class="data-info"><div class="data-key">✅ Compliance</div><div class="data-val empty" id="dp-compliance">Not yet entered</div></div>
+    </div>
   </div>
 </div>
 
@@ -804,11 +832,15 @@ function renderQuestion(q) {
       </div>
     </div>` : '';
 
+  const optionalBadge = q.optional
+    ? `<span style="font-size:10px;font-weight:700;background:#f0fdf4;color:#16a34a;border-radius:4px;padding:1px 7px;margin-left:8px;vertical-align:middle;white-space:nowrap">OPTIONAL</span>`
+    : '';
+
   turn.innerHTML = `
     <div class="ai-bubble" id="aibubble-${q.id}">
       <div class="ai-avatar">🤖</div>
       <div class="ai-msg">
-        <div class="ai-q-text">${q.title}</div>
+        <div class="ai-q-text">${q.title}${optionalBadge}</div>
         ${q.hint ? `<div class="ai-q-hint">${q.hint}</div>` : ''}
       </div>
     </div>
@@ -852,20 +884,8 @@ function renderBody(q) {
 // ── Q1 — Org & Role ──────────────────────────────────
 function renderQ1() {
   return `
-    <div class="field-row">
-      <div class="field-group">
-        <label class="field-label">Your Role</label>
-        <input class="field-input" id="inp-role" placeholder="e.g. IT Program Manager, CFO, Ops Director"
-          oninput="_collectedData.role=this.value">
-      </div>
-      <div class="field-group">
-        <label class="field-label">Business Unit</label>
-        <input class="field-input" id="inp-businessUnit" placeholder="e.g. Retail Operations, Finance, IT"
-          oninput="_collectedData.businessUnit=this.value">
-      </div>
-    </div>
     <div class="field-group">
-      <label class="field-label">Industry</label>
+      <label class="field-label">Industry <span style="font-size:10px;font-weight:700;background:#fef2f2;color:#dc2626;border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:middle;text-transform:uppercase;">Required</span></label>
       <div class="tile-grid" id="industry-tiles">
         ${[
           {id:'government-retail', label:'Govt / Military Retail', icon:'🏛️'},
@@ -884,6 +904,18 @@ function renderQ1() {
       <div class="followup-q">Which specific exchange or organisation?</div>
       <input class="field-input" id="inp-orgName" placeholder="e.g. AAFES, NEXCOM, Marine Corps Exchange"
         oninput="_collectedData.orgName=this.value">
+    </div>
+    <div class="field-row" style="margin-top:14px">
+      <div class="field-group">
+        <label class="field-label">Your Role <span style="font-size:10px;font-weight:700;background:#fef2f2;color:#dc2626;border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:middle;text-transform:uppercase;">Required</span></label>
+        <input class="field-input" id="inp-role" placeholder="e.g. IT Program Manager, CFO, Ops Director"
+          oninput="_collectedData.role=this.value">
+      </div>
+      <div class="field-group">
+        <label class="field-label">Business Unit <span style="font-size:10px;font-weight:700;background:#f0fdf4;color:#16a34a;border-radius:4px;padding:1px 6px;margin-left:4px;vertical-align:middle;text-transform:uppercase;">Optional</span></label>
+        <input class="field-input" id="inp-businessUnit" placeholder="e.g. Retail Operations, Finance, IT"
+          oninput="_collectedData.businessUnit=this.value">
+      </div>
     </div>
     <div style="margin-top:14px">
       <button class="next-btn" onclick="advanceQ1()">
@@ -970,6 +1002,21 @@ function renderUrgency() {
     <div class="followup-block" id="urgency-fu" style="display:none">
       <div class="followup-label">↳ What's driving the urgency?</div>
       <div class="followup-q">Name the specific deadline or risk event.</div>
+      <button class="guide-btn" style="margin-bottom:8px" onclick="document.getElementById('urgency-driver-guide').classList.toggle('open')">💡 Help me write this</button>
+      <div class="guide-panel" id="urgency-driver-guide">
+        <strong>A strong urgency statement includes 3 things:</strong>
+        <ul style="margin:6px 0 0 16px;line-height:1.75;font-size:12px">
+          <li>The <strong>specific event</strong> (audit window, contract expiry, legislation date)</li>
+          <li>The <strong>exact date</strong> it occurs or the deadline passes</li>
+          <li>The <strong>consequence</strong> of missing it (fine, service suspension, licence loss, competitor advantage)</li>
+        </ul>
+        <div class="guide-example" style="margin-top:8px">
+          <strong>Strong examples:</strong><br>
+          "PCI-DSS v4.0 audit window opens March 2025 — a third consecutive finding triggers mandatory DoD remediation with potential service suspension."<br><br>
+          "Incumbent vendor contract expires June 2025 — no renewal available, migration required before that date."<br><br>
+          "GDPR enforcement escalation letter received — 90-day response window, fines up to 4% of annual turnover."
+        </div>
+      </div>
       <textarea class="field-textarea" id="inp-urgencyDriver" rows="2"
         placeholder="e.g. PCI-DSS v4.0 audit window opens March 2025. Third audit finding triggers mandatory remediation."
         oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px';_collectedData.urgencyDriver=this.value"></textarea>
@@ -1122,6 +1169,13 @@ function renderAlternatives() {
       </div>
     </div>`;
 
+  const costHints = [
+    'Use the calculator above ↑ — outages + compliance risk + lost revenue + staff workarounds.',
+    'Include: consultant / contractor fees, staff time for process re-design, ongoing manual hours per year.',
+    'Include: vendor extended-support contract, patch labour, emergency hardware, staff overtime.',
+    'Include: new component licences, integration / middleware, partial migration effort, ongoing dual-system support.',
+    'Include: licences, implementation & integration, data migration, training, change management, contingency (15–20%).'
+  ];
   const alts = [
     {n:0, t:'Status Quo — Do Nothing',              d:'Continue as-is. All existing risks, costs, and constraints remain. Establishes the cost-of-inaction baseline that every CFO needs to see.',          tag:'Baseline',    costPh:'e.g. 540000',  tlPh:'e.g. Ongoing / no change'},
     {n:1, t:'Process Fix — Workaround Only',         d:'Process changes or manual workarounds without replacing the system. Often tried first; rarely sufficient long-term.',                                 tag:'Partial',     costPh:'e.g. 150000',  tlPh:'e.g. 1–3 months'},
@@ -1145,16 +1199,21 @@ function renderAlternatives() {
             <span class="alt-tag ${a.tag==='Recommended'?'tag-rec':a.tag==='Baseline'?'tag-base':'tag-part'}">${a.tag}</span>
           </div>
           ${a.n === 0 ? coiHtml : ''}
-          <div style="display:flex;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--slate-200);width:100%" onclick="event.stopPropagation()">
-            <div style="flex:1">
-              <div style="font-size:10px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">💰 Est. Cost ($)</div>
-              <input type="number" class="num-input" id="alt-cost-${a.n}" placeholder="${a.costPh}"
-                oninput="setAltDetail(${a.n},'cost',this.value)" style="width:100%">
+          <div style="display:flex;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed var(--slate-200);width:100%;flex-direction:column" onclick="event.stopPropagation()">
+            <div style="display:flex;gap:10px">
+              <div style="flex:1">
+                <div style="font-size:10px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">💰 Est. Cost ($)</div>
+                <input type="number" class="num-input" id="alt-cost-${a.n}" placeholder="${a.costPh}"
+                  oninput="setAltDetail(${a.n},'cost',this.value)" style="width:100%">
+              </div>
+              <div style="flex:1">
+                <div style="font-size:10px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">📅 Timeline</div>
+                <input type="text" class="field-input" id="alt-tl-${a.n}" placeholder="${a.tlPh}"
+                  oninput="setAltDetail(${a.n},'timeline',this.value)" style="font-size:12px">
+              </div>
             </div>
-            <div style="flex:1">
-              <div style="font-size:10px;font-weight:700;color:var(--slate-400);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">📅 Timeline</div>
-              <input type="text" class="field-input" id="alt-tl-${a.n}" placeholder="${a.tlPh}"
-                oninput="setAltDetail(${a.n},'timeline',this.value)" style="font-size:12px">
+            <div style="font-size:11px;color:var(--slate-400);line-height:1.5;background:var(--slate-50);border-radius:6px;padding:6px 10px;border-left:3px solid var(--slate-200)">
+              💡 <strong>What to include:</strong> ${costHints[a.n]}
             </div>
           </div>
           <div class="alt-prefer-row" onclick="event.stopPropagation()">
@@ -1669,11 +1728,30 @@ function updatePanel(field, value) {
     urgency:'dp-urgency', budget:'dp-budget', timeline:'dp-timeline',
     kpis:'dp-kpis', compliance:'dp-compliance'
   };
+  const dotMap = {
+    projectTitle:'dot-projectTitle', role:'dot-role', businessUnit:'dot-role',
+    currentState:'dot-pain', pain:'dot-pain', symptoms:'dot-pain',
+    urgency:'dot-urgency', budget:'dot-budget', timeline:'dot-timeline',
+    kpis:'dot-kpis', compliance:'dot-compliance'
+  };
   const dpId = map[field]; if (!dpId) return;
   const el = document.getElementById(dpId); if (!el) return;
   const short = value ? value.toString().substring(0,65) + (value.toString().length>65?'…':'') : '';
   el.textContent = short || '—';
   el.className = 'data-val ' + (short ? 'filled' : 'empty');
+  const dotId = dotMap[field];
+  if (dotId) {
+    const dot = document.getElementById(dotId);
+    if (dot) dot.className = 'data-dot' + (short ? ' filled' : '');
+  }
+  // Update progress bar
+  const filled = document.querySelectorAll('.data-dot.filled').length;
+  const total  = document.querySelectorAll('.data-dot').length;
+  const pct    = total ? Math.round(filled / total * 100) : 0;
+  const bar = document.getElementById('panelProgressBar');
+  const lbl = document.getElementById('panelProgressLabel');
+  if (bar) bar.style.width = pct + '%';
+  if (lbl) lbl.textContent = filled + ' of ' + total + ' fields captured';
 }
 
 // ════════════════════════════════════════════════════════

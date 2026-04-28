@@ -11530,14 +11530,15 @@ document.addEventListener('keydown', (e) => {
     if (!raw) return
     sessionStorage.removeItem('bcaIntakeData')
     const data = JSON.parse(raw)
-    // Wait briefly for registration gate to settle, then run
+    // Wait for registration gate to fully settle before running analysis
     setTimeout(() => {
       if (!isSessionValid()) return
       _applyConversationalIntakeData(data)
       showSection('analysis')
+      if (typeof showToast === 'function') showToast('Conversational intake loaded — starting analysis…', 3000)
       runPhase1()
-    }, 400)
-  } catch (e) { /* ignore malformed data */ }
+    }, 900)
+  } catch (e) { console.error('[bcaIntake] restore error:', e) }
 })()
 </script>
 
