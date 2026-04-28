@@ -11544,17 +11544,37 @@ document.addEventListener('keydown', (e) => {
   try {
     const raw = sessionStorage.getItem('bcaIntakeData')
     if (!raw) return
-    // Parse but do NOT remove yet — keep data alive in case session is expired
-    // and the user needs to re-register (submitRegistration handles that case)
+
+    // Parse but do NOT remove yet — keep data alive if session is expired
+    // (submitRegistration will pick it up after re-login)
     const data = JSON.parse(raw)
+
+    // Immediately hide the intake iframe so the user never sees it flash
+    // The registration gate IIFE has already run above, so if session is
+    // expired the overlay is already showing — hiding the form underneath is harmless.
+    const intakeEl  = document.getElementById('intakeContainer')
+    const wizEl     = document.getElementById('wizardContainer')
+    const loadingEl = document.getElementById('wizardLoading')
+    const loadingMsg = document.getElementById('wizardLoadingMsg')
+    if (intakeEl)  intakeEl.style.display  = 'none'
+    if (wizEl)     wizEl.style.display     = 'none'
+    if (loadingEl) { loadingEl.style.display = 'block' }
+    if (loadingMsg) loadingMsg.textContent = 'Loading your intake data…'
+
     setTimeout(() => {
-      if (!isSessionValid()) return  // leave data in sessionStorage for post-login pickup
-      sessionStorage.removeItem('bcaIntakeData')  // only clear after confirming valid session
+      if (!isSessionValid()) {
+        // Session expired — overlay is showing, hide loading and leave data
+        // in sessionStorage so submitRegistration() can pick it up
+        if (loadingEl) loadingEl.style.display = 'none'
+        return
+      }
+      // Valid session — consume data and run analysis
+      sessionStorage.removeItem('bcaIntakeData')
       _applyConversationalIntakeData(data)
       showSection('analysis')
       if (typeof showToast === 'function') showToast('Conversational intake loaded — starting analysis…', 3000)
       runPhase1()
-    }, 900)
+    }, 300)  // 300ms is enough — registration gate already ran synchronously above
   } catch (e) { console.error('[bcaIntake] restore error:', e) }
 })()
 </script>
