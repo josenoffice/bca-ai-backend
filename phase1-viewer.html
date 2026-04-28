@@ -11449,13 +11449,14 @@ async function submitRegistration() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, turnstileToken })
     })
-    const data = await res.json()
+
+    let data = {}
+    try { data = await res.json() } catch { /* non-JSON response */ }
 
     if (!res.ok) {
-      errEl.textContent = data.error || 'Something went wrong. Please try again.'
+      errEl.textContent = data.error || `Error ${res.status} — please refresh and try again.`
       btn.disabled = false
       btn.textContent = 'Access Platform'
-      // Reset Turnstile widget so user can try again
       if (typeof turnstile !== 'undefined') turnstile.reset()
       return
     }
@@ -11464,8 +11465,8 @@ async function submitRegistration() {
     localStorage.setItem('bca_registered_v1', JSON.stringify({ ts: Date.now() }))
     document.getElementById('reg-overlay').classList.remove('active')
     document.body.style.overflow = ''
-  } catch {
-    errEl.textContent = 'Network error. Please check your connection and try again.'
+  } catch (err) {
+    errEl.textContent = 'Unable to reach server — please wait a moment and try again.'
     btn.disabled = false
     btn.textContent = 'Access Platform'
   }
