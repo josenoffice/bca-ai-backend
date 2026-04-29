@@ -2942,7 +2942,14 @@ function showSection(name) {
   const navBtn = document.querySelector('[data-section="' + name + '"]');
   if (navBtn && navBtn.classList.contains('nav-locked')) {
     const prereq = { phase2: 'Discovery + Reflection', phase3: 'Financials (Phase 2)', phase4: 'Traceability (Phase 3)', phase5: 'Ranking (Phase 4)', phase6: 'Report (Phase 5)' };
-    showToast('Complete ' + (prereq[name] || 'the previous phase') + ' first to unlock this tab.', 3500);
+    showToast('Run ' + (prereq[name] || 'the previous phase') + ' first — scroll down on Discovery to continue ↓', 4000);
+    // Scroll to the next available action so the user knows what to do
+    const nextEl =
+      (document.getElementById('reflectionLaunchPanel')?.offsetParent && document.getElementById('reflectionLaunchPanel')) ||
+      (document.getElementById('costLaunchPanel')?.offsetParent && document.getElementById('costLaunchPanel')) ||
+      (document.getElementById('vendorLaunchPanel')?.offsetParent && document.getElementById('vendorLaunchPanel')) ||
+      document.querySelector('.phase-next-btn');
+    if (nextEl) nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
   document.querySelectorAll('.spa-section').forEach(s => s.classList.remove('active'));
@@ -6048,7 +6055,7 @@ function renderSolutionPicker(solutions) {
     const isRec = s.id === recommendedId;
     return `<div class="sol-pick-card${isRec?' recommended':''}" id="spcard-${s.id}">
       <div class="sol-pick-cb-wrap">
-        <input type="checkbox" class="sol-pick-cb" value="${s.id}" onchange="onSolPickCheck()" title="Select for provider search">
+        <input type="checkbox" class="sol-pick-cb" value="${s.id}" ${isRec ? 'checked' : ''} onchange="onSolPickCheck()" title="Select for provider search">
       </div>
       ${isRec ? '<div style="margin-bottom:8px;"><span class="sol-recommended-badge">⭐ Recommended — lowest risk</span></div>' : ''}
       <div class="sol-pick-card-title">${s.id}: ${s.name}</div>
@@ -6061,6 +6068,9 @@ function renderSolutionPicker(solutions) {
       <div class="sol-provider-badge" id="sprovider-${s.id}" style="display:none;"></div>
     </div>`;
   }).join('');
+  // Apply selected highlight to recommended card and enable the button immediately
+  const recCard = grid.querySelector('#spcard-' + recommendedId);
+  if (recCard) recCard.classList.add('sol-checked');
   updateBatchBtn();
 }
 
@@ -11302,9 +11312,9 @@ function _applyConversationalIntakeData(data) {
 </script>
 
 <!-- ─── Floating Re-Analysis FAB ──────────────────────────────── -->
-<div class="reanalysis-fab" onclick="reAnalysis()" title="Clear all results and restart analysis — your intake data is preserved">
-  <span class="fab-icon">🔄</span>
-  <span>Re-Analysis</span>
+<div class="reanalysis-fab" onclick="reAnalysis()" title="Edit your inputs or start a new analysis — opens the intake form">
+  <span class="fab-icon">✏️</span>
+  <span>Edit / New Analysis</span>
 </div>
 
 <!-- ─── Footer Copyright ───────────────────────────────────────── -->
