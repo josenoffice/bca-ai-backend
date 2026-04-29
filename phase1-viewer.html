@@ -11256,44 +11256,6 @@ showSection = function(name) {
   }
 };
 
-// ── Conversational Intake: map _collectedData → wizardData ────────
-function _applyConversationalIntakeData(data) {
-  wizardData.projectTitle       = data.projectTitle || 'BCA Analysis';
-  wizardData.industry           = data.industry || 'retail';
-  wizardData.role               = data.role || 'Business Analyst';
-  wizardData.businessUnit       = data.businessUnit || data.orgName || 'General';
-
-  const cs = [
-    data.currentState,
-    data.symptoms,
-    data.urgencyDriver  && ('Why now: ' + data.urgencyDriver),
-    data.alternativesTried && ('Previously tried: ' + data.alternativesTried),
-    data.additionalContext
-  ].filter(Boolean);
-  wizardData.currentState = cs.join('. ');
-
-  const bi = [
-    data.kpis        && ('KPIs: ' + data.kpis),
-    data.kpiTargets  && ('Targets: ' + data.kpiTargets),
-    data.stakeholders && ('Stakeholders: ' + data.stakeholders)
-  ].filter(Boolean);
-  wizardData.businessImpact = bi.join('. ');
-
-  wizardData.currentPainPoints  = [data.symptoms || data.currentState || ''].filter(Boolean);
-  wizardData.businessGoals      = data.kpis ? [data.kpis] : [];
-  wizardData.budget             = data.budget ? Number(data.budget) : null;
-  wizardData.budgetMode         = data.budget ? 'approved' : 'building';
-  wizardData.headcount          = data.headcount ? Number(data.headcount) : 0;
-  wizardData.annualRevenue      = data.revenue ? Number(data.revenue) : null;
-  wizardData.urgency            = data.urgency || 'medium';
-  wizardData.complianceRequirements = Array.isArray(data.compliance) ? data.compliance : [];
-  wizardData.technicalStack     = typeof data.techStack === 'string'
-    ? data.techStack.split(',').map(s => s.trim()).filter(Boolean)
-    : (Array.isArray(data.techStack) ? data.techStack : []);
-  wizardData.systemIntegrations = wizardData.technicalStack;
-  wizardData.timeHorizonYears   = data.timeHorizon  ? Number(data.timeHorizon)  : 3;
-  wizardData.discountRatePct    = data.discountRate  ? Number(data.discountRate) : 12;
-}
 
 </script>
 
@@ -11547,6 +11509,45 @@ document.addEventListener('keydown', (e) => {
     if (!btn.disabled) submitRegistration()
   }
 })
+
+// ── Conversational Intake: map _collectedData → wizardData ────────
+function _applyConversationalIntakeData(data) {
+  wizardData.projectTitle       = data.projectTitle || 'BCA Analysis';
+  wizardData.industry           = data.industry || 'retail';
+  wizardData.role               = data.role || 'Business Analyst';
+  wizardData.businessUnit       = data.businessUnit || data.orgName || 'General';
+
+  const cs = [
+    data.currentState,
+    data.symptoms,
+    data.urgencyDriver  && ('Why now: ' + data.urgencyDriver),
+    data.alternativesTried && ('Previously tried: ' + data.alternativesTried),
+    data.additionalContext
+  ].filter(Boolean);
+  wizardData.currentState = cs.join('. ');
+
+  const bi = [
+    data.kpis        && ('KPIs: ' + data.kpis),
+    data.kpiTargets  && ('Targets: ' + data.kpiTargets),
+    data.stakeholders && ('Stakeholders: ' + data.stakeholders)
+  ].filter(Boolean);
+  wizardData.businessImpact = bi.join('. ');
+
+  wizardData.currentPainPoints  = [data.symptoms || data.currentState || ''].filter(Boolean);
+  wizardData.businessGoals      = data.kpis ? [data.kpis] : [];
+  wizardData.budget             = data.budget ? Number(data.budget) : null;
+  wizardData.budgetMode         = data.budget ? 'approved' : 'building';
+  wizardData.headcount          = data.headcount ? Number(data.headcount) : 0;
+  wizardData.annualRevenue      = data.revenue ? Number(data.revenue) : null;
+  wizardData.urgency            = data.urgency || 'medium';
+  wizardData.complianceRequirements = Array.isArray(data.compliance) ? data.compliance : [];
+  wizardData.technicalStack     = typeof data.techStack === 'string'
+    ? data.techStack.split(',').map(s => s.trim()).filter(Boolean)
+    : (Array.isArray(data.techStack) ? data.techStack : []);
+  wizardData.systemIntegrations = wizardData.technicalStack;
+  wizardData.timeHorizonYears   = data.timeHorizon  ? Number(data.timeHorizon)  : 3;
+  wizardData.discountRatePct    = data.discountRate  ? Number(data.discountRate) : 12;
+}
 
 // ── Intake backup helpers (persist data across page refreshes during API hangs) ──
 function _saveIntakeBackup(data) {
