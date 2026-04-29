@@ -1255,6 +1255,27 @@ html, body {
 
           <div class="field-group">
             <div class="field-label-row">
+              <label class="field-label">Industry / Sector <span class="required">*</span></label>
+            </div>
+            <p class="field-help">Select the industry this initiative is in — used to tailor benchmarks, solution patterns, and terminology.</p>
+            <select class="field-select" id="f-industry" onchange="checkReadiness(1)">
+              <option value="">— Select industry —</option>
+              <option value="retail">Retail &amp; Consumer</option>
+              <option value="finance">Financial Services &amp; Banking</option>
+              <option value="healthcare">Healthcare &amp; Life Sciences</option>
+              <option value="technology">Technology &amp; Software</option>
+              <option value="manufacturing">Manufacturing &amp; Industrial</option>
+              <option value="logistics">Logistics &amp; Transport</option>
+              <option value="energy">Energy &amp; Utilities</option>
+              <option value="education">Education &amp; Training</option>
+              <option value="government">Government &amp; Public Sector</option>
+              <option value="media">Media &amp; Entertainment</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <div class="field-label-row">
               <label class="field-label">What is the primary driver of this initiative? <span class="required">*</span></label>
               <button class="guide-btn" onclick="guideMe('What triggers count as valid strategic drivers?', 'alignment')">
                 <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="5"/><path d="M6 5v4M6 3.5v.5"/></svg>
@@ -3221,7 +3242,7 @@ function gatherIntakeData() {
     // Fields the BCA API expects (gatherFormPayload format)
     projectTitle,
     businessUnit: trigger || 'General',
-    industry: 'retail',
+    industry: val('f-industry') || 'other',
     currentState,
     businessImpact,
     budget: upfrontLikely || null,

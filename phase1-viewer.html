@@ -4736,7 +4736,7 @@ window.addEventListener('message', (event) => {
     const intake = payload._intake || {};
 
     wizardData.projectTitle = payload.projectTitle || 'BCA Analysis';
-    wizardData.industry = 'retail';
+    wizardData.industry = payload.industry || 'other';
     wizardData.role = 'Business Analyst';
 
     // Business Unit: extract from trigger text or use 'General'
