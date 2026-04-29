@@ -9104,11 +9104,15 @@ function renderPhase5(d) {
     horizonYears: fp.horizonYears || 3
   }));
 
-  // Set iframe srcdoc AFTER the element is in the DOM
+  // Load report via blob URL instead of srcdoc — blob URLs don't inherit the
+  // parent page's CSP, avoiding inline-script violations from Turnstile's enforcement.
   setTimeout(() => {
     const iframe = document.getElementById('phase5-preview-iframe');
     if (iframe && _phase5ExportHtml) {
-      iframe.srcdoc = _phase5ExportHtml;
+      const blob = new Blob([_phase5ExportHtml], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      iframe.src = blobUrl;
+      iframe.onload = () => URL.revokeObjectURL(blobUrl);
     }
   }, 50);
 
@@ -11277,6 +11281,7 @@ showSection = function(name) {
     <div class="reg-tagline">Business Case Analysis Platform</div>
     <h2>Authorized Access</h2>
     <p>This platform is available to invited participants only.<br>Please confirm your details below to proceed.</p>
+    <form id="reg-form" onsubmit="return false" autocomplete="on">
     <div class="reg-field">
       <label for="reg-name">Full Name</label>
       <input type="text" id="reg-name" placeholder="Jane Smith" autocomplete="name" maxlength="120">
@@ -11362,6 +11367,7 @@ showSection = function(name) {
     </div>
     <button id="reg-submit" onclick="submitRegistration()" disabled>Access Platform</button>
     <div id="reg-error"></div>
+    </form>
     <hr class="reg-divider">
     <div class="reg-privacy">Access is restricted to authorized participants only. This platform uses AI-generated analysis — all outputs are for informational purposes and do not constitute professional financial or legal advice.</div>
   </div>
@@ -11383,10 +11389,12 @@ function isSessionValid() {
 (function () {
   const overlay = document.getElementById('reg-overlay')
   if (!isSessionValid()) {
-    // Clear any stale/old-format entry
     localStorage.removeItem('bca_registered_v1')
     overlay.classList.add('active')
     document.body.style.overflow = 'hidden'
+    // Turnstile renders on script load when overlay is display:none — its internal
+    // form becomes detached. Reset after overlay is visible so the form reconnects.
+    setTimeout(() => { if (typeof turnstile !== 'undefined') turnstile.reset() }, 100)
   }
 })();
 
