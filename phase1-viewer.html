@@ -5686,11 +5686,13 @@ function showToast(msg, duration = 3000) {
 
 // ─── Phase 1 — Discovery ────────────────────────────────────────
 async function runPhase1() {
-  // Hide intake form, show loading
+  // Hide intake form and demo buttons, show loading
   const intakeEl = document.getElementById('intakeContainer');
   if (intakeEl) intakeEl.style.display = 'none';
   const wizEl = document.getElementById('wizardContainer');
   if (wizEl) wizEl.style.display = 'none';
+  const demoBar = document.getElementById('demoLoadBar');
+  if (demoBar) demoBar.style.display = 'none';
   const qsCards = document.getElementById('quickStartCards');
   if (qsCards) qsCards.style.display = 'none';
   const pfBanner = document.getElementById('prefillBanner');
@@ -5703,6 +5705,7 @@ async function runPhase1() {
     return;
   }
   loadingEl.style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const bu = wizardData.businessUnit || 'your team';
   const industry = wizardData.industry || bu;
@@ -11578,17 +11581,24 @@ function _getIntakeBackup() {
 
     const data = JSON.parse(raw)
 
-    // Immediately hide the intake iframe so the user never sees it flash.
+    // Immediately hide the intake iframe and demo buttons so the user never
+    // sees the default page flash while loading.
     // Registration gate IIFE already ran synchronously above — if session is
     // expired the overlay is showing and hiding the form underneath is harmless.
     const intakeEl   = document.getElementById('intakeContainer')
     const wizEl      = document.getElementById('wizardContainer')
+    const demoBar    = document.getElementById('demoLoadBar')
     const loadingEl  = document.getElementById('wizardLoading')
     const loadingMsg = document.getElementById('wizardLoadingMsg')
     if (intakeEl)   intakeEl.style.display  = 'none'
     if (wizEl)      wizEl.style.display     = 'none'
+    if (demoBar)    demoBar.style.display   = 'none'
     if (loadingEl)  loadingEl.style.display = 'block'
-    if (loadingMsg) loadingMsg.textContent  = fromBackup ? 'Retrying analysis…' : 'Loading your intake data…'
+    // Check backup timestamp to distinguish fresh submit vs retry after API hang
+    let backupTs = 0
+    try { backupTs = JSON.parse(localStorage.getItem('bcaIntakeBackup_v1') || '{}').ts || 0 } catch {}
+    const isRetry = fromBackup && (Date.now() - backupTs) > 30000
+    if (loadingMsg) loadingMsg.textContent  = isRetry ? 'Retrying analysis…' : 'Loading your intake data…'
 
     setTimeout(() => {
       try {

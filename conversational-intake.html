@@ -2226,7 +2226,11 @@ function submitIntake() {
     window.opener.postMessage({ type: 'BCA_CONVERSATIONAL_DATA', data }, '*');
     window.close();
   } else {
-    sessionStorage.setItem('bcaIntakeData', JSON.stringify(data));
+    const intakeStr = JSON.stringify(data);
+    sessionStorage.setItem('bcaIntakeData', intakeStr);
+    // Write to localStorage immediately so phase1-viewer can find the data
+    // even if sessionStorage is unavailable or lost during navigation
+    try { localStorage.setItem('bcaIntakeBackup_v1', JSON.stringify({ data, ts: Date.now() })); } catch {}
     window.location.href = '/';
   }
 }
