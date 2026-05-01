@@ -4813,9 +4813,9 @@ window.addEventListener('message', (event) => {
 function gatherFormPayload() {
   const w = wizardData;
   return {
-    projectTitle: w.projectTitle || w.currentPainPoints[0] || 'Retail Business Case',
+    projectTitle: w.projectTitle || w.currentPainPoints[0] || 'Business Case Analysis',
     businessUnit: w.businessUnit,
-    industry: w.industry || 'retail',
+    industry: w.industry || 'other',
     currentState: w.currentState,
     businessImpact: w.businessImpact,
     budget: w.budget || null,
@@ -5595,6 +5595,7 @@ function loadDemoData() {
       missingElements: []
     }
   };
+  unlockPhaseTab('phase2');
   renderReflection(reflectionResponse);
 
   // Scroll to results
@@ -6139,7 +6140,7 @@ async function launchBatchProviderSearch() {
 
   // Build the shared wizard context payload
   const validatedData = {
-    industry:               wizardData.industry || 'retail',
+    industry:               wizardData.industry || 'other',
     companySize:            wizardData.scaleLabel || 'SME',
     headcount:              wizardData.headcount  || 0,
     annualRevenue:          wizardData.annualRevenue || 0,
@@ -7250,20 +7251,22 @@ function renderReflection(r) {
   }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // ── Continue to Phase 2 CTA ──
-  const cta1 = document.createElement('div');
-  cta1.className = 'phase-next-cta';
-  cta1.innerHTML = `
-    <div class="phase-next-cta-inner">
-      <div class="phase-next-cta-text">
-        <div class="phase-next-cta-title">Ready for Financial Analysis?</div>
-        <div class="phase-next-cta-desc">Phase 2 calculates NPV, ROI, IRR, and payback period across your entire solution portfolio — with sensitivity analysis and industry benchmark comparisons.</div>
-      </div>
-      <button class="phase-next-btn" onclick="showSection('phase2');setTimeout(runPhase2,400);">
-        Continue to Phase 2 — Financials &rarr;
-      </button>
-    </div>`;
-  el.appendChild(cta1);
+  // ── Continue to Phase 2 CTA (only when reflection passes) ──
+  if (ref.readyForPhase2) {
+    const cta1 = document.createElement('div');
+    cta1.className = 'phase-next-cta';
+    cta1.innerHTML = `
+      <div class="phase-next-cta-inner">
+        <div class="phase-next-cta-text">
+          <div class="phase-next-cta-title">Ready for Financial Analysis?</div>
+          <div class="phase-next-cta-desc">Phase 2 calculates NPV, ROI, IRR, and payback period across your entire solution portfolio — with sensitivity analysis and industry benchmark comparisons.</div>
+        </div>
+        <button class="phase-next-btn" onclick="unlockPhaseTab('phase2');showSection('phase2');setTimeout(runPhase2,400);">
+          Continue to Phase 2 — Financials &rarr;
+        </button>
+      </div>`;
+    el.appendChild(cta1);
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -8814,7 +8817,7 @@ function prefillForm(key) {
   // Populate wizardData from prefill template
   Object.assign(wizardData, {
     businessUnit: data.businessUnit,
-    industry: data.industry || 'retail',
+    industry: data.industry || 'other',
     role: data.role || '',
     currentPainPoints: [...(data.currentPainPoints || ['','',''])],
     scaleLabel: data.scaleLabel || '',
@@ -11273,7 +11276,7 @@ showSection = function(name) {
 // ── Conversational Intake: map _collectedData → wizardData ────────
 function _applyConversationalIntakeData(data) {
   wizardData.projectTitle       = data.projectTitle || 'BCA Analysis';
-  wizardData.industry           = data.industry || 'retail';
+  wizardData.industry           = data.industry || 'other';
   wizardData.role               = data.role || 'Business Analyst';
   wizardData.businessUnit       = data.businessUnit || data.orgName || 'General';
 
