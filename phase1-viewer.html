@@ -3010,19 +3010,19 @@ function setRole(role) {
   if (bizLabel) bizLabel.classList.toggle('active', role === 'business');
   if (finLabel) finLabel.classList.toggle('active', role === 'analyst');
 
-  const labelHtml = role === 'business'
-    ? '<span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations'
-    : '<span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns';
-
-  // Update role bars — use .role-bar-label span when present to preserve
-  // any embedded buttons (e.g. Re-Analysis button in the Phase 1 role bar)
+  // Update role bars — use phase-specific labels when available via data attributes,
+  // fall back to generic labels. Preserve embedded buttons by only updating .role-bar-label.
   document.querySelectorAll('.role-bar').forEach(bar => {
     bar.className = 'role-bar ' + role;
+    const icon = role === 'analyst' ? '📊' : '👔';
+    const phaseLabel = role === 'analyst'
+      ? (bar.dataset.analystLabel || 'Financial Analyst View — Detailed calculations and breakdowns')
+      : (bar.dataset.bizLabel || 'Business Leader View — Strategic KPIs and recommendations');
+    const labelHtml = `<span class="role-icon">${icon}</span> ${phaseLabel}`;
     const labelEl = bar.querySelector('.role-bar-label');
     if (labelEl) {
       labelEl.innerHTML = labelHtml;
     } else {
-      // No embedded buttons — safe to replace innerHTML
       bar.innerHTML = labelHtml;
     }
   });
@@ -5951,7 +5951,7 @@ function renderResults(r) {
   })();
 
   el.innerHTML = `
-    <div class="role-bar ${_currentRole}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><span class="role-bar-label">${_currentRole === 'analyst' ? '<span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns' : '<span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations'}</span><button class="reanalysis-btn" onclick="reAnalysis()" title="Clear all results and restart from Discovery">🔄 Re-Analysis</button></div>
+    <div class="role-bar ${_currentRole}" data-biz-label="Business Leader View — Strategic KPIs and recommendations" data-analyst-label="Financial Analyst View — Detailed calculations and breakdowns" style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><span class="role-bar-label">${_currentRole === 'analyst' ? '<span class="role-icon">📊</span> Financial Analyst View — Detailed calculations and breakdowns' : '<span class="role-icon">👔</span> Business Leader View — Strategic KPIs and recommendations'}</span><button class="reanalysis-btn" onclick="reAnalysis()" title="Clear all results and restart from Discovery">🔄 Re-Analysis</button></div>
     ${statusAlert}
     ${buildInputTrace(r.validatedData || r.projectMeta || {}, 'phase1')}
     ${p1GlanceBanner}
@@ -7579,7 +7579,7 @@ function renderPhase2(r) {
       <td style="padding:10px 8px;"><div style="height:14px;background:var(--surface-alt);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${roiBar}%;background:${sROI >= 200 ? 'var(--success)' : sROI >= 100 ? 'var(--primary)' : 'var(--warning)'};border-radius:3px;"></div></div></td>
     </tr>`;
   }).join('');
-  const spreadTable = `<div class="p2-section analyst-emphasis" style="border-radius:10px;">
+  const spreadTable = `<div class="p2-section analyst-only" style="border-radius:10px;">
     <div class="p2-section-title" style="border-bottom-color:#6366f1;">ROI / IRR Spread Comparison ${guideBtn('What is portfolio NPV vs individual NPV?')}</div>
     <div style="overflow-x:auto;">
     <table class="fin-table" style="font-size:13px;">
@@ -7727,13 +7727,13 @@ function renderPhase2(r) {
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--primary);">Phase 2 — Financial Analysis</div>
-      <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Full financial detail, sensitivity, and formulas' : 'Business View — Key metrics and budget health'}</span></div>
+      <div class="role-bar ${_currentRole}" data-biz-label="Business View — Key metrics and budget health" data-analyst-label="Analyst View — Full financial detail, sensitivity, and formulas" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Full financial detail, sensitivity, and formulas' : 'Business View — Key metrics and budget health'}</span></div>
       ${buildInputTrace(r.validatedData || {}, 'phase2')}
       ${kpiRow}
-      <div class="analyst-emphasis" style="border-radius:10px;">${lrPanelHtml}${finTable}</div>
+      <div class="analyst-only" style="border-radius:10px;">${lrPanelHtml}${finTable}</div>
       ${spreadTable}
       ${p2ValueChain}${budgetSection}
-      <div class="analyst-emphasis" style="border-radius:10px;">${sensSection}</div>
+      <div class="analyst-only" style="border-radius:10px;">${sensSection}</div>
       ${traceSection}
     </div>`;
 
@@ -8121,14 +8121,14 @@ function renderPhase3(d, el) {
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--purple);">Phase 3 — Traceability Validation</div>
-      <div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Traceability detail, confidence scores, and fulfillment' : 'Business View — Health gauges, timeline, and dependencies'}</span></div>
+      <div class="role-bar ${_currentRole}" data-biz-label="Business View — Health gauges, timeline, and dependencies" data-analyst-label="Analyst View — Traceability detail, confidence scores, and fulfillment" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Traceability detail, confidence scores, and fulfillment' : 'Business View — Health gauges, timeline, and dependencies'}</span></div>
       <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:6px;">${breadcrumb}</div>
       ${buildInputTrace(d.validatedData || {}, 'phase3')}
       ${kpis}
       <div class="business-emphasis" style="border-radius:10px;">${gaugeSection}${timelineBar}</div>
-      <div class="analyst-emphasis" style="border-radius:10px;">${confSection}</div>
+      <div class="analyst-only" style="border-radius:10px;">${confSection}</div>
       ${vcSection}
-      <div class="analyst-emphasis" style="border-radius:10px;">${fulfillSection}</div>
+      <div class="analyst-only" style="border-radius:10px;">${fulfillSection}</div>
       ${p3ValueChain}
       <div class="business-emphasis" style="border-radius:10px;">${depSection}</div>
     </div>`;
@@ -8303,7 +8303,7 @@ function renderPhase4(d, el) {
   let html = '';
 
   // ── Role Bar ──
-  html += `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Sensitivity tables, scoring weights, and financial detail' : 'Business View — Recommendation, health dashboard, and gate status'}</span></div>`;
+  html += `<div class="role-bar ${_currentRole}" data-biz-label="Business View — Recommendation, health dashboard, and gate status" data-analyst-label="Analyst View — Sensitivity tables, scoring weights, and financial detail" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Sensitivity tables, scoring weights, and financial detail' : 'Business View — Recommendation, health dashboard, and gate status'}</span></div>`;
 
   html += buildInputTrace(d.validatedData || {}, 'phase4');
 
@@ -8392,7 +8392,8 @@ function renderPhase4(d, el) {
     </div>
   </div>`;
 
-  // ── Scoring Weights (5 bars) ─────────────────────────────────
+  // ── Scoring Weights (5 bars) — analyst-only ──────────────────
+  html += '<div class="analyst-only">';
   const weightItems = [
     { label: 'NPV',          pct: (weights.npv || 0) * 100,        color: 'var(--primary)', desc: 'Total financial value created, adjusted to today\'s money. The biggest driver — does the money make sense?' },
     { label: 'ROI',          pct: (weights.roi || 0) * 100,        color: '#6366f1',        desc: 'Return on every dollar invested. How efficient is the spend?' },
@@ -8445,6 +8446,7 @@ function renderPhase4(d, el) {
     }
   };
   html += buildLrPanel(4, _lrPhase4Data._lrDefaults);
+  html += '</div>'; // close analyst-only (Scoring Weights + LR Panel)
 
   // ── Industry Benchmark Context ────────────────────────────────
   const avgROI = fp.avgROIPct || 0;
@@ -8575,7 +8577,7 @@ function renderPhase4(d, el) {
     }).join('');
 
     return `
-    <div class="card analyst-emphasis" style="margin-bottom:28px;padding:24px 28px;overflow-x:auto;">
+    <div class="card analyst-only" style="margin-bottom:28px;padding:24px 28px;overflow-x:auto;">
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
         <h4 style="font-size:15px;font-weight:700;margin:0;">Decision Matrix ${guideBtn('What is the decision matrix?')}</h4>
         <span style="font-size:11px;color:var(--text-muted);background:var(--surface-alt);padding:4px 10px;border-radius:20px;">Why did each solution rank where it did?</span>
@@ -8636,7 +8638,7 @@ function renderPhase4(d, el) {
   html += '</div>'; // close business-emphasis wrapper
 
   // ── Discount Rate Sensitivity Table (5 rows) ────────────────
-  html += '<div class="analyst-emphasis" style="border-radius:10px;">';
+  html += '<div class="analyst-only" style="border-radius:10px;">';
   const maxPV = Math.max(...sens.map(s => s.portfolioPVBenefit || 0), 1);
   html += `<div class="card" style="margin-bottom:28px;padding:24px 28px;">
     <h4 style="font-size:15px;font-weight:700;margin:0 0 16px;">Discount Rate Sensitivity ${guideBtn('What is discount rate sensitivity?')}</h4>
@@ -8989,7 +8991,7 @@ function renderPhase5(d) {
     </div>`;
 
   // ── Role Bar ──
-  let html = `<div class="role-bar ${_currentRole}" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Financial KPIs and quality warnings' : 'Business View — Executive summary and health dashboard'}</span></div>`;
+  let html = `<div class="role-bar ${_currentRole}" data-biz-label="Business View — Executive summary and health dashboard" data-analyst-label="Analyst View — Financial KPIs and quality warnings" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Financial KPIs and quality warnings' : 'Business View — Executive summary and health dashboard'}</span></div>`;
   html += buildInputTrace(d.validatedData || {}, 'phase5');
   html += p5GlanceBanner;
   html += p5ROIInterp;
@@ -9038,7 +9040,7 @@ function renderPhase5(d) {
 
   // ── Quality Warnings ──
   if (qw.length > 0) {
-    html += '<div class="analyst-emphasis" style="display:grid;gap:10px;margin-bottom:24px;border-radius:10px;">';
+    html += '<div class="analyst-only" style="display:grid;gap:10px;margin-bottom:24px;border-radius:10px;">';
     qw.forEach(w => {
       const isInfo = w.startsWith('ℹ️');
       const bg   = isInfo ? '#eff6ff' : '#fffbeb';
