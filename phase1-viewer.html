@@ -1337,6 +1337,28 @@
   body.role-business .analyst-only { display: none !important; }
   body.role-analyst .business-only { display: none !important; }
 
+  /* Business mode — simplified navigation */
+  body.role-business .nav-btn[data-section="phase3"],
+  body.role-business .nav-btn[data-section="phase4"],
+  body.role-business .nav-btn[data-section="phase5"],
+  body.role-business .nav-btn[data-section="brdstandalone"] { display: none !important; }
+
+  /* Business mode — key explain buttons become prominent "Why?" CTAs */
+  body.role-business .explain-btn-key {
+    padding: 9px 18px; font-size: 13px; font-weight: 700;
+    background: #eff6ff; border: 1.5px solid #3b82f6;
+    color: #1d4ed8; border-radius: 20px; margin: 10px 0; display: inline-flex;
+  }
+  body.role-business .explain-btn-key:hover { background: #dbeafe; border-color: #2563eb; transform: translateY(-1px); }
+
+  /* Stale recalculate bar */
+  #stale-recalc-bar {
+    display: none; position: sticky; top: 60px; z-index: 300;
+    background: #fef3c7; border-bottom: 1.5px solid #f59e0b;
+    padding: 9px 32px; align-items: center; gap: 12px;
+    font-size: 13px; font-weight: 500; color: #78350f;
+  }
+
   /* Role-based emphasis — highlight relevant sections, fade opposite ones */
   body.role-analyst .analyst-emphasis {
     border-color: #3b82f6 !important; border-width: 2px !important;
@@ -1723,16 +1745,24 @@
   </div>
   <nav class="nav-bar">
     <button class="nav-btn" data-section="howitworks" onclick="showSection('howitworks')" style="display:none;">How It Works</button>
-    <button class="nav-btn active" data-section="analysis" onclick="showSection('analysis')">Discovery</button>
-    <button class="nav-btn nav-locked" data-section="phase2" onclick="showSection('phase2')">Financials</button>
+    <button class="nav-btn active" data-section="analysis" data-biz-label="Scope" data-analyst-label="Discovery" onclick="showSection('analysis')">Discovery</button>
+    <button class="nav-btn nav-locked" data-section="phase2" data-biz-label="Executive Summary" data-analyst-label="Financials" onclick="showSection('phase2')">Financials</button>
     <button class="nav-btn nav-locked" data-section="phase3" onclick="showSection('phase3')">Traceability</button>
     <button class="nav-btn nav-locked" data-section="phase4" onclick="showSection('phase4')">Ranking</button>
     <button class="nav-btn nav-locked" data-section="phase5" onclick="showSection('phase5')">Report</button>
-    <button class="nav-btn nav-locked" data-section="phase6" onclick="showSection('phase6')">BRD</button>
+    <button class="nav-btn nav-locked" data-section="phase6" data-biz-label="Export" data-analyst-label="BRD" onclick="showSection('phase6')">BRD</button>
     <button class="nav-btn" data-section="brdstandalone" onclick="showSection('brdstandalone')">BRD Standalone</button>
     <button class="nav-btn" data-section="help" onclick="showSection('help')">Help</button>
   </nav>
 </header>
+
+<!-- ─── Stale Recalculate Bar ──────────────────────────────────────── -->
+<div id="stale-recalc-bar" role="alert" aria-live="polite">
+  <span style="font-size:16px;flex-shrink:0;">⚡</span>
+  <span id="stale-recalc-msg" style="flex:1;"></span>
+  <button onclick="recalculateAllStale()" style="padding:6px 18px;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;">Recalculate Now</button>
+  <button onclick="document.getElementById('stale-recalc-bar').style.display='none'" style="padding:6px 10px;background:transparent;color:#92400e;border:1px solid #f59e0b;border-radius:8px;font-size:12px;cursor:pointer;" title="Dismiss">✕</button>
+</div>
 
 <!-- ─── Spinner Overlay ──────────────────────────────────────────── -->
 <div class="spinner-overlay" id="spinner">
@@ -3010,6 +3040,20 @@ function setRole(role) {
   if (bizLabel) bizLabel.classList.toggle('active', role === 'business');
   if (finLabel) finLabel.classList.toggle('active', role === 'analyst');
 
+  // Swap nav button labels (Discovery↔Scope, Financials↔Executive Summary, BRD↔Export)
+  document.querySelectorAll('.nav-btn[data-biz-label]').forEach(btn => {
+    const dot = btn.querySelector('.phase-dot');
+    btn.textContent = role === 'business' ? btn.dataset.bizLabel : btn.dataset.analystLabel;
+    if (dot) btn.appendChild(dot); // re-attach status dot after textContent reset
+  });
+
+  // Swap key explain button labels in business vs analyst mode
+  document.querySelectorAll('.explain-btn-key').forEach(btn => {
+    btn.textContent = role === 'business'
+      ? (btn.dataset.bizLabel || '✨ Why this recommendation?')
+      : (btn.dataset.analystLabel || '💬 Explain This');
+  });
+
   // Update role bars — use phase-specific labels when available via data attributes,
   // fall back to generic labels. Preserve embedded buttons by only updating .role-bar-label.
   document.querySelectorAll('.role-bar').forEach(bar => {
@@ -3052,9 +3096,13 @@ function calcFormula(formula) {
 // ─── Phase B: Contextual AI Explanations ─────────────────────────
 const EXPLAIN_REGISTRY = new Map();
 
-function explainBtn(id, phase, metric, ctxFactory) {
+function explainBtn(id, phase, metric, ctxFactory, isKey) {
   EXPLAIN_REGISTRY.set(id, { phase, metric, ctxFactory });
-  return '<button class="explain-btn" onclick="doExplain(event,\'' + id + '\')" title="Get a personalised AI explanation of this result">💬 Explain This</button>' +
+  const cls = 'explain-btn' + (isKey ? ' explain-btn-key' : '');
+  const bizLabel = isKey ? '✨ Why this recommendation?' : '💬 Explain This';
+  const analystLabel = '💬 Explain This';
+  const label = (_currentRole === 'business' && isKey) ? bizLabel : analystLabel;
+  return '<button class="' + cls + '" data-biz-label="' + bizLabel + '" data-analyst-label="' + analystLabel + '" onclick="doExplain(event,\'' + id + '\')" title="Get a personalised AI explanation of this result">' + label + '</button>' +
          '<div id="eb-' + id + '" class="explain-bubble"></div>';
 }
 
@@ -7459,7 +7507,7 @@ function renderPhase2(r) {
         ].map(c => `<span style="font-size:11px;font-weight:600;color:${c.ok ? 'var(--success)' : '#d97706'};">${c.ok ? '✅' : '⚠️'} ${c.label}</span>`).join('')}
       </div>
     </div>
-    ${explainBtn('p2-portfolio','phase2','portfolio',()=>({projectContext:{industry:p2Industry},metricValue:p.totalNPV||0,additionalContext:{avgROI:p.averageROI||0,paybackMonths:p.paybackMonths,portfolioIRR:p.portfolioIRR,qualityScore:qs.overallScore||0,checksPass:glancePass,benchmarkLabel:p2Bm.label}}))}
+    ${explainBtn('p2-portfolio','phase2','portfolio',()=>({projectContext:{industry:p2Industry},metricValue:p.totalNPV||0,additionalContext:{avgROI:p.averageROI||0,paybackMonths:p.paybackMonths,portfolioIRR:p.portfolioIRR,qualityScore:qs.overallScore||0,checksPass:glancePass,benchmarkLabel:p2Bm.label}}), true)}
     <div class="p2-kpi-row">
       <div class="p2-kpi">
         <div class="p2-kpi-label">Total NPV ${guideBtn('How is NPV calculated?')}</div>
@@ -8333,7 +8381,7 @@ function renderPhase4(d, el) {
         </div>
       </div>
     </div>`;
-  html += explainBtn('p4-ranking','phase4','ranking',()=>({projectContext:{industry},metricValue:p4WinScore,additionalContext:{winner:winner.name||'--',winnerROI:Math.round(p4WinROI),gateOk:p4GateOk,ranked:ranked.length,benchmarkROI:bm.roi,verdict:p4GlanceVerdict}}));
+  html += explainBtn('p4-ranking','phase4','ranking',()=>({projectContext:{industry},metricValue:p4WinScore,additionalContext:{winner:winner.name||'--',winnerROI:Math.round(p4WinROI),gateOk:p4GateOk,ranked:ranked.length,benchmarkROI:bm.roi,verdict:p4GlanceVerdict}}), true);
 
   // ── Phase 5 Contract Gate Badge ──────────────────────────────
   const gateColor = p5.ok ? 'var(--success)' : 'var(--danger)';
@@ -8995,7 +9043,7 @@ function renderPhase5(d) {
   html += buildInputTrace(d.validatedData || {}, 'phase5');
   html += p5GlanceBanner;
   html += p5ROIInterp;
-  html += explainBtn('p5-executive','phase5','executive_summary',()=>({projectContext:{industry:p5Industry},metricValue:p5AvgROI,additionalContext:{overallStatus:hb.status||'',traceabilityPct:p5TracePct,qualityWarnings:qw.length,headline:(es.headline||''),recommendedSolution:(ranking[0]?.name||'--')}}));
+  html += explainBtn('p5-executive','phase5','executive_summary',()=>({projectContext:{industry:p5Industry},metricValue:p5AvgROI,additionalContext:{overallStatus:hb.status||'',traceabilityPct:p5TracePct,qualityWarnings:qw.length,headline:(es.headline||''),recommendedSolution:(ranking[0]?.name||'--')}}), true);
 
   // ── Executive Summary Card ──
   html += `
@@ -9285,11 +9333,35 @@ const SECTION_TO_PHASE = {
 function updatePhaseStatus(phaseKey, status) {
   _phaseStatus[phaseKey] = status;
   updateNavDots();
+  updateStaleBanner();
   // Auto-clear stale overlay when a phase starts running or completes
   if (status === 'running' || status === 'ready') {
     const phase = PHASE_PIPELINE.find(p => p.key === phaseKey) ||
       PHASE_PIPELINE.flatMap(p => p.subPhases || []).find(sp => sp.key === phaseKey);
     if (phase && phase.results) clearStaleOverlay(phase.results);
+  }
+}
+
+function updateStaleBanner() {
+  const bar = document.getElementById('stale-recalc-bar');
+  if (!bar) return;
+  const stalePhases = PHASE_PIPELINE.filter(p => _phaseStatus[p.key] === 'stale');
+  if (stalePhases.length > 0) {
+    const names = stalePhases.map(p => p.label).join(', ');
+    document.getElementById('stale-recalc-msg').textContent =
+      stalePhases.length + ' phase' + (stalePhases.length > 1 ? 's' : '') +
+      ' out of date (' + names + ') — downstream results may be stale';
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+async function recalculateAllStale() {
+  const firstStale = PHASE_PIPELINE.find(p => _phaseStatus[p.key] === 'stale');
+  if (firstStale) {
+    document.getElementById('stale-recalc-bar').style.display = 'none';
+    await cascadeRerun(firstStale.key);
   }
 }
 
