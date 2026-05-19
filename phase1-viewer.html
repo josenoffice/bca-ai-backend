@@ -1501,9 +1501,10 @@
   .nav-btn.nav-phase-ready { color: var(--primary); }
 
   /* ─── Floating Re-Analysis FAB ──────────────────────────────────── */
-  .reanalysis-fab { position:fixed;bottom:28px;right:28px;z-index:9990;display:flex;align-items:center;gap:8px;padding:12px 20px;background:#fff;border:2px solid #d97706;color:#d97706;border-radius:40px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);transition:all .2s;letter-spacing:.01em;white-space:nowrap; }
+  .reanalysis-fab { position:fixed;bottom:28px;right:28px;z-index:9990;display:flex;align-items:center;gap:8px;padding:12px 20px;background:#fff;border:2px solid #d97706;color:#d97706;border-radius:40px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,.18);transition:all .2s;letter-spacing:.01em;white-space:nowrap;pointer-events:auto;font-family:inherit;line-height:1.2; }
   .reanalysis-fab:hover { background:#d97706;color:#fff;box-shadow:0 6px 24px rgba(0,0,0,.22);transform:translateY(-2px); }
-  .reanalysis-fab .fab-icon { font-size:18px;line-height:1; }
+  .reanalysis-fab:focus-visible { outline:3px solid #d97706;outline-offset:2px; }
+  .reanalysis-fab .fab-icon { font-size:18px;line-height:1;pointer-events:none; }
 
   /* ─── Continue to Next Phase CTA ───────────────────────────────── */
   .phase-next-cta { margin-top:28px;padding:24px 28px;background:linear-gradient(135deg,#eff6ff 0%,#f0fdf4 100%);border:1.5px solid #93c5fd;border-radius:14px;display:block; }
@@ -3082,10 +3083,12 @@ async function doExplain(evt, id) {
       bubble.innerHTML = '<button class="explain-close" onclick="this.parentElement.classList.remove(\'open\')">✕</button>' +
         '<div style="padding-right:20px;">' + data.explanation + '</div>';
     } else {
-      bubble.innerHTML = '<div style="color:var(--danger);">⚠️ ' + (data.error || 'Could not generate explanation. Please try again.') + '</div>';
+      bubble.innerHTML = `<div style="color:var(--danger);font-size:13px;">⚠️ ${data.error || 'Could not generate explanation.'}</div>
+        <button onclick="doExplain(event,'${id}')" style="margin-top:8px;padding:5px 14px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">↩ Retry</button>`;
     }
   } catch (e) {
-    bubble.innerHTML = '<div style="color:var(--danger);">⚠️ Connection error. Please try again.</div>';
+    bubble.innerHTML = `<div style="color:var(--danger);font-size:13px;">⚠️ Connection error. Please try again.</div>
+      <button onclick="doExplain(event,'${id}')" style="margin-top:8px;padding:5px 14px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;">↩ Retry</button>`;
   } finally {
     btn.disabled = false;
     btn.innerHTML = orig;
@@ -3133,7 +3136,12 @@ async function showPEView(phaseId) {
     PE_CACHE.set(phaseId, html);
     peDiv.innerHTML = html;
   } catch (e) {
-    peDiv.innerHTML = '<div class="pe-error">⚠️ Could not generate summary. Please try again.</div>';
+    peDiv.innerHTML = `<div class="pe-error" style="text-align:center;padding:28px 20px;">
+      <div style="font-size:28px;margin-bottom:8px;">⚠️</div>
+      <div style="font-weight:600;color:var(--danger);margin-bottom:6px;">Could not generate summary</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">${e.message || 'Connection error — please check your network and try again.'}</div>
+      <button onclick="PE_CACHE.delete('${phaseId}');showPEView('${phaseId}');" style="padding:8px 20px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;">↩ Retry</button>
+    </div>`;
   }
 }
 
@@ -6221,7 +6229,7 @@ async function launchBatchProviderSearch() {
       <div onclick="const b=document.getElementById('pathA-body');const c=this.querySelector('.p16-chevron');const isOpen=b.style.display!=='none';b.style.display=isOpen?'none':'block';c.style.transform=isOpen?'rotate(0deg)':'rotate(180deg)';" style="flex:1;min-width:200px;padding:12px 16px;border:1.5px solid #93c5fd;border-radius:10px;background:#eff6ff;font-size:13px;cursor:pointer;user-select:none;">
         <div style="font-weight:700;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;">
           <span>🏆 Path A — Best of Breed</span>
-          <svg class="p16-chevron" style="width:16px;height:16px;color:#1d4ed8;transform:rotate(180deg);transition:transform .2s;flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+          <svg class="p16-chevron" style="width:16px;height:16px;color:#1d4ed8;transform:rotate(180deg);transition:transform .2s;flex-shrink:0;pointer-events:none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
         <div style="color:var(--text-muted);">Specialist vendors — best-in-class per solution</div>
       </div>
@@ -6231,7 +6239,7 @@ async function launchBatchProviderSearch() {
       </button>
     </div>
     <div id="single-platform-results"></div>
-    <div id="pathA-body">` : '';
+    <div id="pathA-body" style="display:block;">` : '';
 
   resultsEl.innerHTML = portfolioSnapshotHtml +
     `<div style="font-size:13px;font-weight:700;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px;">${results.length > 1 ? 'Best of Breed — Per Solution' : 'Provider Results'}</div>` +
@@ -8912,7 +8920,16 @@ async function runPhase5() {
     unlockPhaseTab('phase6');
     renderPhase5(d);
   } catch (err) {
-    box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);font-weight:600;">Phase 5 Error<br><span style="font-weight:400;font-size:13px;">' + err.message + '</span></div>';
+    box.innerHTML = `<div style="text-align:center;padding:40px;">
+      <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+      <div style="font-weight:700;font-size:16px;color:var(--danger);margin-bottom:8px;">Phase 5 — Report Generation Failed</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;max-width:420px;margin-left:auto;margin-right:auto;">${err.message}</div>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+        <button onclick="runPhase5()" style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↩ Retry Report</button>
+        <button onclick="unlockPhaseTab('phase6');showSection('phase6');showToast('BRD unlocked — note: report data may be incomplete.',4000);" style="padding:10px 24px;background:#fff;color:var(--text-muted);border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">Skip to BRD →</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:16px;">Skipping may produce an incomplete BRD. Retry when connectivity is restored.</div>
+    </div>`;
   } finally {
     btn.disabled = false;
     clearInterval(p5Interval);
@@ -9266,6 +9283,12 @@ const SECTION_TO_PHASE = {
 function updatePhaseStatus(phaseKey, status) {
   _phaseStatus[phaseKey] = status;
   updateNavDots();
+  // Auto-clear stale overlay when a phase starts running or completes
+  if (status === 'running' || status === 'ready') {
+    const phase = PHASE_PIPELINE.find(p => p.key === phaseKey) ||
+      PHASE_PIPELINE.flatMap(p => p.subPhases || []).find(sp => sp.key === phaseKey);
+    if (phase && phase.results) clearStaleOverlay(phase.results);
+  }
 }
 
 function updateNavDots() {
@@ -9304,10 +9327,20 @@ function markDownstreamStale(phaseKey) {
   downstream.forEach(p => {
     if (_phaseStatus[p.key] === 'ready') {
       updatePhaseStatus(p.key, 'stale');
-      // Add visual stale indicator to results
+      // Add visual stale indicator and actionable banner to results
       const el = document.getElementById(p.results);
       if (el && el.innerHTML.trim()) {
         el.classList.add('stale-overlay');
+        // Inject a sticky stale banner at the top of the results
+        if (!el.querySelector('.stale-results-banner')) {
+          const banner = document.createElement('div');
+          banner.className = 'stale-results-banner';
+          banner.style.cssText = 'position:sticky;top:0;z-index:10;background:#fef3c7;border:1.5px solid #f59e0b;border-radius:8px;padding:10px 16px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-size:13px;';
+          banner.innerHTML = `<span style="font-size:18px;flex-shrink:0;">⚡</span>
+            <span style="flex:1;"><strong>Results are out of date</strong> — an upstream phase was re-run. Re-run this phase to see updated results.</span>
+            <button onclick="${p.runFn}()" style="flex-shrink:0;padding:6px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;">↩ Re-run</button>`;
+          el.insertBefore(banner, el.firstChild);
+        }
       }
     }
   });
@@ -9315,7 +9348,11 @@ function markDownstreamStale(phaseKey) {
 
 function clearStaleOverlay(resultsId) {
   const el = document.getElementById(resultsId);
-  if (el) el.classList.remove('stale-overlay');
+  if (el) {
+    el.classList.remove('stale-overlay');
+    const banner = el.querySelector('.stale-results-banner');
+    if (banner) banner.remove();
+  }
 }
 
 function clearDownstream(fromPhase) {
@@ -9528,7 +9565,12 @@ async function runPhase6() {
     _phase6Metadata = d.metadata || {};
     renderPhase6();
   } catch (err) {
-    box.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger);font-weight:600;">Phase 6 Error<br><span style="font-weight:400;font-size:13px;">' + err.message + '</span></div>';
+    box.innerHTML = `<div style="text-align:center;padding:40px;">
+      <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+      <div style="font-weight:700;font-size:16px;color:var(--danger);margin-bottom:8px;">BRD Generation Failed</div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:24px;max-width:420px;margin-left:auto;margin-right:auto;">${err.message}</div>
+      <button onclick="runPhase6()" style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">↩ Retry BRD</button>
+    </div>`;
   } finally {
     clearInterval(loadingInterval);
     btn.disabled = false;
@@ -11315,10 +11357,10 @@ function _applyConversationalIntakeData(data) {
 </script>
 
 <!-- ─── Floating Re-Analysis FAB ──────────────────────────────── -->
-<div class="reanalysis-fab" onclick="reAnalysis()" title="Edit your inputs or start a new analysis — opens the intake form">
+<button type="button" class="reanalysis-fab" onclick="reAnalysis()" title="Edit your inputs or start a new analysis — opens the intake form">
   <span class="fab-icon">✏️</span>
   <span>Edit / New Analysis</span>
-</div>
+</button>
 
 <!-- ─── Footer Copyright ───────────────────────────────────────── -->
 <div style="background:#fff;border-top:1px solid #e2e5ea;text-align:center;padding:10px;font-size:11px;color:#9ca3af;font-family:inherit;">
