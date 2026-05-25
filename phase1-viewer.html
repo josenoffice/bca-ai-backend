@@ -4455,6 +4455,11 @@ function renderWizardStep() {
   // ═══════ STEP 3 — Three Problems ═══════
   else if (wizardStep === 3) {
     const suggestions = PROBLEM_SUGGESTIONS[wizardData.businessUnit] || PROBLEM_SUGGESTIONS['IT'];
+    const problemPlaceholders = [
+      'e.g. Cart abandonment at 68% \u2014 costs $340K/yr and getting worse each quarter',
+      'e.g. Order processing is manual \u2014 4 hrs/day across 3 systems, causing shipping errors',
+      'e.g. No PCI-DSS certification \u2014 regulatory deadline in 90 days, $100K fine exposure'
+    ];
     const problemRows = [
       { idx: 0, label: 'Most critical problem', required: true },
       { idx: 1, label: 'Second priority', required: false },
@@ -4466,7 +4471,7 @@ function renderWizardStep() {
       ).join('');
       return `<div class="wiz-problem-row">
         <div class="wiz-problem-label">${p.label} ${p.required ? '<span class="required">\u2022</span>' : ''}</div>
-        <input type="text" class="wiz-problem-input" id="wiz-problem-${p.idx}" value="${val}" placeholder="Describe the problem..." oninput="wizardData.currentPainPoints[${p.idx}]=this.value;if(${p.idx}===0){var nb=document.querySelector('.wiz-next');if(nb)nb.disabled=!this.value.trim()}">
+        <input type="text" class="wiz-problem-input" id="wiz-problem-${p.idx}" value="${val}" placeholder="${problemPlaceholders[p.idx]}" oninput="wizardData.currentPainPoints[${p.idx}]=this.value;if(${p.idx}===0){var nb=document.querySelector('.wiz-next');if(nb)nb.disabled=!this.value.trim()}">
         <div style="margin-top:4px;"><a href="#" class="wiz-skip" style="font-size:11px;" onclick="event.preventDefault();showSuggestions(${p.idx})">Suggest</a></div>
         <div class="wiz-suggest-chips" id="wiz-suggest-${p.idx}" style="display:none;">${sugChips}</div>
       </div>`;
@@ -4478,8 +4483,11 @@ function renderWizardStep() {
       <div class="wiz-why">Each problem drives a targeted solution. Problem 1 becomes your Phase 1 foundation. Problems 2 and 3 drive Phases 2 and 3.</div>
       ${problemRows}
       <div class="wiz-guidelines" style="margin-top:16px;">
-        Be specific \u2014 include numbers where you can.<br>
-        <em>'Cart abandonment at 68%'</em> is much more useful than <em>'high cart abandonment'</em>. Numbers anchor benefit calculations to your actual business.
+        Each problem should answer: <strong>what is broken, how bad is it, what does it cost?</strong><br><br>
+        <span style="color:var(--danger);">\u2717 Too vague:</span> <em>"High cart abandonment"</em><br>
+        <span style="color:var(--success);">\u2713 Useful:</span> <em>"Cart abandonment at 68% \u2014 industry avg is 38%, costing $340K/yr in lost revenue"</em><br><br>
+        <span style="color:var(--danger);">\u2717 Too vague:</span> <em>"Compliance issues"</em><br>
+        <span style="color:var(--success);">\u2713 Useful:</span> <em>"No PCI-DSS cert \u2014 regulatory deadline Q3 2026, fines up to $100K per incident"</em>
       </div>
       <div class="wiz-cons-panel">Vague problems \u2192 generic solutions \u2192 weaker financial case. The AI needs specific pain signals to generate targeted solutions and real benefit values. Quality score will be low if problems are vague \u2014 Reflection phase may block Phase 2.</div>
       <div class="wiz-footer">
@@ -4525,7 +4533,7 @@ function renderWizardStep() {
       <div class="wiz-step-label">Step 5 of ${TOTAL_STEPS}</div>
       <div class="wiz-question">Describe what is broken or painful today</div>
       <div class="wiz-why">This is the single most important field. Every solution, benefit and vendor recommendation flows from what you write here.</div>
-      <textarea class="wiz-textarea" id="wiz-currentState" style="min-height:160px;" placeholder="Describe what is not working \u2014 include which systems, how long the problem has existed, who is affected, and any metrics you know..." oninput="wizardData.currentState=this.value;updateQualityBar('wiz-qbar5',this.value)">${esc(wizardData.currentState)}</textarea>
+      <textarea class="wiz-textarea" id="wiz-currentState" style="min-height:160px;" placeholder="Tell the story of what&#39;s broken today. Cover all four:&#10;&#10;1. SYSTEM / PROCESS \u2014 Name it specifically (e.g. &quot;our SAP ERP&quot;, not &quot;our system&quot;)&#10;2. VOLUME \u2014 How many orders, customers, transactions, or staff hours affected daily&#10;3. COST \u2014 Approximate dollar or time figure (e.g. $340K/yr lost, 4 hrs/day wasted)&#10;4. WHO \u2014 Which teams, customers, or suppliers are directly impacted&#10;&#10;e.g. &quot;Our order management system (built 2017, Oracle) has no integration with our 3PL warehouse. Staff manually re-key 800 orders/day across two screens \u2014 taking 4 hrs/day and causing a 12% error rate on shipments. This costs ~$65K/yr in corrections and has triggered 3 customer escalations this quarter.&quot;" oninput="wizardData.currentState=this.value;updateQualityBar('wiz-qbar5',this.value)">${esc(wizardData.currentState)}</textarea>
       <div class="wiz-quality" id="wiz-qbar5-wrap">
         <div class="wiz-quality-bar"><div class="wiz-quality-fill" id="wiz-qbar5-fill"></div></div>
         <div class="wiz-quality-label" id="wiz-qbar5-label"></div>
@@ -4535,12 +4543,12 @@ function renderWizardStep() {
       <div style="margin-top:10px;"><a href="#" class="wiz-skip" onclick="event.preventDefault();togglePrompts('wiz-probes-cs')">Not sure where to start?</a></div>
       <div class="wiz-prompt-chips" id="wiz-probes-cs">${csProbes.map(p => `<div class="wiz-prompt-chip" onclick="appendPrompt('wiz-currentState',this.textContent)">${p}</div>`).join('')}</div>
       <div class="wiz-guidelines" style="margin-top:16px;">
-        Include all of these if you can:<br>
-        \u2713 System names (e.g. "our Oracle POS" not "our POS system")<br>
-        \u2713 Metrics (68%, 4hrs/day, $340K/yr, 3x per week)<br>
-        \u2713 How long the problem has existed<br>
-        \u2713 Who is affected (store staff, customers, finance team)<br>
-        \u2713 Any recent audits or findings
+        <strong>The four things that turn a vague description into a strong business case:</strong><br><br>
+        <strong>1. Name the system</strong> \u2014 <span style="color:var(--danger);">\u2717 "our ERP"</span> &nbsp;\u2192&nbsp; <span style="color:var(--success);">\u2713 "SAP ECC 6.0, installed 2014, on-premise"</span><br>
+        <strong>2. Give the volume</strong> \u2014 <span style="color:var(--danger);">\u2717 "many orders"</span> &nbsp;\u2192&nbsp; <span style="color:var(--success);">\u2713 "800 orders/day, 3 fulfilment centres"</span><br>
+        <strong>3. Quantify the cost</strong> \u2014 <span style="color:var(--danger);">\u2717 "wastes time"</span> &nbsp;\u2192&nbsp; <span style="color:var(--success);">\u2713 "4 hrs/day \u00d7 $40/hr \u00d7 250 days = $40K/yr"</span><br>
+        <strong>4. Name who's affected</strong> \u2014 <span style="color:var(--danger);">\u2717 "staff"</span> &nbsp;\u2192&nbsp; <span style="color:var(--success);">\u2713 "12 warehouse operators + 3 finance staff"</span><br><br>
+        Also include: how long the problem has existed \u00b7 any recent audit findings \u00b7 what was tried before
       </div>
       <div class="wiz-cons-panel">Vague current state = generic solutions + benchmark-only benefit values + low quality score. The Reflection phase may block Phase 2 if the AI cannot find specific enough evidence to validate the financial case.</div>
       <div class="wiz-footer">
@@ -4561,26 +4569,30 @@ function renderWizardStep() {
       <div class="wiz-why">These figures become your Risk Mitigation, Revenue Impact and Operational Efficiency benefit values. The more specific, the stronger your financial case.</div>
       <div class="wiz-sub-section">
         <div class="wiz-sub-label">What is this costing you today? <span class="required" style="color:#ef4444;">\u2022</span></div>
-        <textarea class="wiz-textarea" id="wiz-impactA" style="min-height:80px;" placeholder="Lost revenue, staff time, error correction costs..." oninput="wizardData._impactA=this.value;const nb=document.querySelector('.wiz-next');if(nb)nb.disabled=!this.value.trim()">${esc(impA)}</textarea>
+        <textarea class="wiz-textarea" id="wiz-impactA" style="min-height:80px;" placeholder="Show the maths — even rough estimates beat blank fields.&#10;e.g. 68% cart abandonment × $50 avg order × 10K monthly sessions = $340K/yr lost revenue&#10;e.g. 4 hrs/day manual processing × $40/hr × 250 days = $40K/yr staff cost&#10;e.g. 12% shipment error rate × 800 orders/day × $8 correction cost = $280K/yr" oninput="wizardData._impactA=this.value;const nb=document.querySelector('.wiz-next');if(nb)nb.disabled=!this.value.trim()">${esc(impA)}</textarea>
         <div class="wiz-suggest-chips" style="display:flex;margin-top:6px;">${chipRow(IMPACT_A_CHIPS, 'wiz-impactA')}</div>
         <button class="wiz-ai-btn" style="margin-top:8px;" onclick="showAiDraftBI()">&#10022; Help me write this</button>
         <div class="wiz-draft-card" id="wiz-draft-bi"></div>
       </div>
       <div class="wiz-sub-section">
         <div class="wiz-sub-label">What gets worse if you delay 12 months?</div>
-        <textarea class="wiz-textarea" id="wiz-impactB" style="min-height:70px;" placeholder="Regulatory risk, competitive gap, staff turnover..." oninput="wizardData._impactB=this.value">${esc(impB)}</textarea>
+        <textarea class="wiz-textarea" id="wiz-impactB" style="min-height:70px;" placeholder="e.g. GDPR fine risk: up to 4% of annual turnover = $200K exposure&#10;e.g. Competitor launched mobile checkout last quarter — losing ~3 accounts/month&#10;e.g. Manual process errors increasing 15%/yr as volume grows — will require 2 extra hires by 2027" oninput="wizardData._impactB=this.value">${esc(impB)}</textarea>
         <div class="wiz-suggest-chips" style="display:flex;margin-top:6px;">${chipRow(IMPACT_B_CHIPS, 'wiz-impactB')}</div>
       </div>
       <div class="wiz-sub-section">
         <div class="wiz-sub-label">How many people / transactions are affected?</div>
-        <textarea class="wiz-textarea" id="wiz-impactC" style="min-height:60px;" placeholder="e.g. 85 store staff, 2,400 orders/day, 12 store locations" oninput="wizardData._impactC=this.value">${esc(impC)}</textarea>
+        <textarea class="wiz-textarea" id="wiz-impactC" style="min-height:60px;" placeholder="e.g. 85 warehouse staff across 3 sites, 2,400 orders/day, 12 retail locations affected&#10;e.g. 340 patients/day through the affected pathway, 6 admin staff processing referrals manually&#10;(This anchors training cost estimates — the more specific, the more accurate Phase 1.5 will be)" oninput="wizardData._impactC=this.value">${esc(impC)}</textarea>
         <div class="wiz-suggest-chips" style="display:flex;margin-top:6px;">${chipRow(IMPACT_C_CHIPS, 'wiz-impactC')}</div>
       </div>
       <div class="wiz-guidelines">
-        \u2713 Separate financial costs from regulatory risk costs<br>
-        \u2713 Name the regulation specifically (GDPR fine, SOX penalty)<br>
-        \u2713 Even rough estimates beat blank fields<br>
-        \u2713 Include operational scale \u2014 it anchors benefit calculations
+        <strong>What makes a strong impact statement:</strong><br><br>
+        <span style="color:var(--danger);">&#10007;</span> <em>"Compliance risk"</em><br>
+        <span style="color:var(--success);">&#10003;</span> <em>"GDPR Article 83: up to 4% of global turnover = $200K exposure. Last audit found 3 high-risk gaps."</em><br><br>
+        <span style="color:var(--danger);">&#10007;</span> <em>"Lost sales due to poor checkout"</em><br>
+        <span style="color:var(--success);">&#10003;</span> <em>"68% cart abandonment vs 38% industry avg — gap costs approx $340K/yr at current traffic"</em><br><br>
+        &#10003; Name regulations specifically (GDPR, HIPAA, PCI-DSS, SOX)<br>
+        &#10003; Separate lost revenue / wasted cost / regulatory risk as three distinct figures<br>
+        &#10003; Rough estimates with clear assumptions beat precise-sounding blank fields
       </div>
       <div class="wiz-cons-panel"><strong>Why this matters:</strong> The numbers you enter here become your actual benefit values in the financial model. Without them, the AI falls back to conservative industry benchmarks — typically 40–60% lower than real figures — making your business case harder to approve. Fill in Section A above to continue.</div>
       <div class="wiz-footer">
@@ -4786,7 +4798,7 @@ function renderWizardStep() {
 
       <div style="margin-bottom:20px;">
         <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">What happened — why didn't it work? <span style="font-weight:400;">(optional)</span></div>
-        <textarea class="wiz-textarea" id="wiz-alreadyTried" style="min-height:90px;" placeholder="e.g. We bought a SaaS tool 2 years ago but adoption was poor — staff reverted to spreadsheets within 3 months. The vendor wasn't responsive and integration with our ERP failed." oninput="wizardData.alreadyTried.text=this.value">${esc(triedText)}</textarea>
+        <textarea class="wiz-textarea" id="wiz-alreadyTried" style="min-height:110px;" placeholder="Use this format for each attempt:&#10;In [year] we tried [approach / vendor / tool name]. We spent approx $[X]. It failed because [root cause: adoption / integration / vendor quality / wrong fit]. Specific outcome: [what happened].&#10;&#10;e.g. In 2022 we tried Salesforce Commerce Cloud ($180K, 8 months). Integration with our Oracle ERP failed — vendor connector didn't support our version. Project cancelled at go-live. Staff reverted to manual.&#10;e.g. In 2023 we ran an internal process redesign. No budget for consultants. Staff trained but reverted in 6 weeks — no system change to reinforce new workflow." oninput="wizardData.alreadyTried.text=this.value">${esc(triedText)}</textarea>
       </div>
 
       <div class="wiz-guidelines">
