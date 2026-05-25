@@ -6393,9 +6393,10 @@ function renderSolutionPicker(solutions) {
     const riskOrder = {Low:0,Medium:1,High:2};
     return (riskOrder[a.riskLevel]||1) - (riskOrder[b.riskLevel]||1) || a.deliveryPhase - b.deliveryPhase;
   });
-  const buySolutions    = sorted.filter(s => s.solutionApproach !== 'change');
+  const buySolutions    = sorted.filter(s => s.solutionApproach === 'buy');
+  const hybridSolutions = sorted.filter(s => s.solutionApproach === 'hybrid');
   const changeSolutions = sorted.filter(s => s.solutionApproach === 'change');
-  const recommendedId   = buySolutions[0]?.id || sorted[0]?.id;
+  const recommendedId   = buySolutions[0]?.id || hybridSolutions[0]?.id || sorted[0]?.id;
   _providerSelections   = {}; // reset on re-render
 
   function renderBuyCard(s) {
@@ -6450,22 +6451,68 @@ function renderSolutionPicker(solutions) {
     </div>`;
   }
 
+  function renderHybridCard(s) {
+    const isRec = s.id === recommendedId;
+    const intTypes = ['SOP / Process Docs','Staff Training','Policy Update','Workflow Redesign','Change Champions','Communication Plan'];
+    const chipHTML = intTypes.map(t =>
+      `<label class="pib-chip" onclick="this.classList.toggle('selected')"><input type="checkbox"> ${t}</label>`
+    ).join('');
+    return `<div class="sol-pick-card${isRec?' recommended':''}" id="spcard-${s.id}" style="border-color:#a78bfa;">
+      <div class="sol-pick-cb-wrap">
+        <input type="checkbox" class="sol-pick-cb" value="${s.id}" ${isRec ? 'checked' : ''} onchange="onSolPickCheck()" title="Select for provider search (software component)">
+      </div>
+      ${isRec ? '<div style="margin-bottom:8px;"><span class="sol-recommended-badge">⭐ Recommended — lowest risk</span></div>' : ''}
+      <div class="sol-pick-card-title">${s.id}: ${s.name}</div>
+      <div class="sol-pick-card-meta">
+        <span class="badge ${riskClass(s.riskLevel)}">${s.riskLevel} Risk</span>
+        <span class="badge ${phaseColor(s.deliveryPhase)}">Phase ${s.deliveryPhase}</span>
+        <span class="badge badge-muted">${fmt(s.costEstimate?.mid || s.totalCost || 0)}</span>
+        ${approachBadge(s.solutionApproach)}
+      </div>
+      <div class="sol-pick-card-desc">${s.description || (s.category||'').replace(/_/g,' ')}</div>
+      <div class="sol-provider-badge" id="sprovider-${s.id}" style="display:none;"></div>
+      <div style="margin-top:8px;font-size:11px;color:#6d28d9;font-weight:600;">☑ Check above to include in vendor search &nbsp;·&nbsp; Fill intervention below for the process stream</div>
+      <button class="pib-toggle-btn" onclick="togglePIB('${s.id}')" id="pibtoggle-${s.id}" style="margin-top:6px;">
+        ⚙️ Define Process Intervention
+        <span id="pibsaved-${s.id}" class="pib-saved-badge">✓ Saved</span>
+      </button>
+      <div class="pib-panel" id="pib-${s.id}">
+        <span class="pib-label">Intervention type (select all that apply)</span>
+        <div class="pib-chip-grid" id="pib-chips-${s.id}">${chipHTML}</div>
+        <span class="pib-label">Headcount affected</span>
+        <input class="pib-input" type="number" min="1" id="pib-hc-${s.id}" placeholder="e.g. 45">
+        <span class="pib-label">Key processes being changed</span>
+        <textarea class="pib-input" id="pib-proc-${s.id}" rows="2" placeholder="e.g. Invoice approval workflow, monthly close process"></textarea>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <button class="pib-save-btn" onclick="savePIB('${s.id}')">✓ Save</button>
+          <span style="font-size:11px;color:#5b21b6;opacity:.75;">Details flow into Phase 1.5 hybrid cost model</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
   let html = '';
+  const hasMultipleTypes = (buySolutions.length > 0 && (hybridSolutions.length > 0 || changeSolutions.length > 0)) ||
+                           (hybridSolutions.length > 0 && changeSolutions.length > 0);
   if (buySolutions.length > 0) {
-    if (changeSolutions.length > 0) {
+    if (hasMultipleTypes) {
       html += `<div style="grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:2px;">🛒 Software Solutions — select for provider research</div>`;
     }
     html += buySolutions.map(renderBuyCard).join('');
   }
+  if (hybridSolutions.length > 0) {
+    html += `<div style="grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--border);${buySolutions.length > 0 ? 'margin-top:10px;' : ''}margin-bottom:2px;">🔀 Hybrid Solutions — select for vendor search AND define process intervention</div>`;
+    html += hybridSolutions.map(renderHybridCard).join('');
+  }
   if (changeSolutions.length > 0) {
-    html += `<div style="grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--border);${buySolutions.length > 0 ? 'margin-top:10px;' : ''}margin-bottom:2px;">⚙️ Process Change Solutions — define your intervention</div>`;
+    html += `<div style="grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--border);${(buySolutions.length > 0 || hybridSolutions.length > 0) ? 'margin-top:10px;' : ''}margin-bottom:2px;">⚙️ Process Change Solutions — define your intervention</div>`;
     html += changeSolutions.map(renderChangeCard).join('');
   }
   grid.innerHTML = html;
 
-  // Highlight recommended buy card and enable batch button immediately
+  // Highlight recommended card and enable batch button immediately
   const recCard = grid.querySelector('#spcard-' + recommendedId);
-  if (recCard && buySolutions.find(s => s.id === recommendedId)) recCard.classList.add('sol-checked');
+  if (recCard && (buySolutions.find(s => s.id === recommendedId) || hybridSolutions.find(s => s.id === recommendedId))) recCard.classList.add('sol-checked');
   updateBatchBtn();
 }
 
@@ -6626,6 +6673,7 @@ async function launchBatchProviderSearch() {
   });
 
   const results = await Promise.all(apiCalls);
+  window._lastBatchVendorResults = results; // stored so acceptAllVendorRecommendations() can reach them
 
   const resultsEl = document.getElementById('vendor-results');
 
@@ -6651,6 +6699,10 @@ async function launchBatchProviderSearch() {
     <div style="margin-bottom:20px;border:1.5px solid var(--border-light);border-radius:12px;overflow:hidden;">
       <div style="padding:14px 20px;background:var(--surface-alt);border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
         <div style="font-size:14px;font-weight:700;">📊 Portfolio Snapshot — Best Vendor Per Solution</div>
+        <button onclick="acceptAllVendorRecommendations()" style="padding:6px 14px;border:none;border-radius:8px;background:#16a34a;color:#fff;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Accept AI Recommendations
+        </button>
       </div>
       <table style="width:100%;border-collapse:collapse;">
         <thead><tr style="background:var(--surface-alt);font-size:11px;text-transform:uppercase;color:var(--text-muted);">
@@ -6709,9 +6761,18 @@ function launchVendorSearch(solutionId, btn) {
 }
 
 function selectProvider(solutionId, vendorName, vendorData) {
+  // Normalise typicalCostRange → vendorCostLow/vendorCostHigh so buildPhase15Payload reads them correctly.
+  // Vendor cards store pricing as typicalCostRange:{low,high} but the payload builder expects vendorCostLow/High.
+  const normalized = Object.assign({}, vendorData);
+  if (!(normalized.vendorCostLow > 0) && normalized.typicalCostRange?.low > 0) {
+    normalized.vendorCostLow = normalized.typicalCostRange.low;
+  }
+  if (!(normalized.vendorCostHigh > 0) && normalized.typicalCostRange?.high > 0) {
+    normalized.vendorCostHigh = normalized.typicalCostRange.high;
+  }
   // Store selection
-  _providerSelections[solutionId] = { name: vendorName, data: vendorData };
-  _selectedVendorData = vendorData; // legacy compat
+  _providerSelections[solutionId] = { name: vendorName, data: normalized };
+  _selectedVendorData = normalized; // legacy compat
 
   // Update buttons within this solution section
   const section = document.querySelector(`.provider-section[data-sol="${solutionId}"]`);
@@ -6743,6 +6804,28 @@ function selectProvider(solutionId, vendorName, vendorData) {
     cardBadge.style.display = '';
   }
   // proceedCostWrap is always visible after batch search — no need to toggle
+}
+
+// Accept rank-1 vendor for every solution in the last batch search result
+function acceptAllVendorRecommendations() {
+  const results = window._lastBatchVendorResults || [];
+  if (!results.length) { showToast('No vendor results to accept — run provider search first.', 3000); return; }
+  let accepted = 0;
+  results.forEach(({ solutionId, data }) => {
+    if (!data) return;
+    // Top vendor is either first in vendors array or selectedVendor
+    const top = (data.vendors && data.vendors[0]) || data.selectedVendor;
+    if (!top) return;
+    const name = top.name || top.vendorName || '';
+    if (!name) return;
+    selectProvider(solutionId, name, top);
+    accepted++;
+  });
+  if (accepted > 0) {
+    showToast(`✓ Accepted AI recommendations for ${accepted} solution${accepted !== 1 ? 's' : ''}.`, 3500);
+  } else {
+    showToast('No top vendors found in results.', 3000);
+  }
 }
 
 // legacy shim for old renderVendorResults selectVendor calls
@@ -7431,6 +7514,56 @@ function renderVendorResults(r) {
 }
 
 // ─── Phase 1.5 — Cost Estimation ─────────────────────────────────
+// ─── Phase 1.5 pre-flight gap check ─────────────────────────────────────────
+
+function checkPhase15Gaps() {
+  const solutions = _phase1Results?.solutions || [];
+  const gaps = [];
+  for (const s of solutions) {
+    const hasVendor = !!_providerSelections[s.id];
+    const hasPIB    = !!_processInterventions[s.id];
+    if (s.solutionApproach === 'buy' && !hasVendor) {
+      gaps.push({ id: s.id, name: s.name, type: 'no_vendor', approach: 'buy' });
+    } else if (s.solutionApproach === 'change' && !hasPIB) {
+      gaps.push({ id: s.id, name: s.name, type: 'no_pib', approach: 'change' });
+    } else if (s.solutionApproach === 'hybrid') {
+      if (!hasVendor) gaps.push({ id: s.id, name: s.name, type: 'no_vendor', approach: 'hybrid' });
+      if (!hasPIB)    gaps.push({ id: s.id, name: s.name, type: 'no_pib',    approach: 'hybrid' });
+    }
+  }
+  return gaps;
+}
+
+function showPhase15GapPrompt(gaps) {
+  return new Promise(resolve => {
+    const el = document.getElementById('cost-results');
+    const gapLines = gaps.map(g => {
+      const impact = g.type === 'no_vendor'
+        ? `no vendor selected — AI will use market rate for <em>${g.approach}</em> solutions`
+        : `no process intervention data — AI will estimate headcount/training from description`;
+      const icon = g.type === 'no_vendor' ? '🛒' : '⚙️';
+      return `<li style="margin-bottom:6px;">${icon} <strong>${g.id}: ${g.name}</strong> — ${impact}</li>`;
+    }).join('');
+    el.innerHTML = `<div style="border:2px solid #f59e0b;border-radius:12px;padding:20px 24px;background:#fffbeb;margin-bottom:16px;">
+      <div style="font-weight:700;font-size:15px;color:#92400e;margin-bottom:10px;">⚠️ Missing data — some estimates will be less accurate</div>
+      <ul style="margin:0 0 14px 20px;font-size:13px;color:#374151;line-height:1.7;">${gapLines}</ul>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:16px;">You can proceed now and let the AI fill gaps from market data, or go back to add the missing details first.</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button id="gapGoBackBtn" style="padding:8px 16px;border:1.5px solid #d1d5db;border-radius:8px;background:white;font-size:13px;cursor:pointer;font-weight:600;">← Go back &amp; fill gaps</button>
+        <button id="gapProceedBtn" style="padding:8px 16px;border:none;border-radius:8px;background:#f59e0b;color:white;font-size:13px;cursor:pointer;font-weight:700;">Proceed with AI estimates →</button>
+      </div>
+    </div>`;
+    el.style.display = 'block';
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('gapGoBackBtn').onclick = () => {
+      el.innerHTML = ''; el.style.display = 'none'; resolve(false);
+    };
+    document.getElementById('gapProceedBtn').onclick = () => {
+      el.innerHTML = ''; el.style.display = 'none'; resolve(true);
+    };
+  });
+}
+
 async function runPhase15() {
   // Ensure costLaunchPanel is visible before running (btn lives inside it)
   const costPanel = document.getElementById('costLaunchPanel');
@@ -7455,6 +7588,35 @@ async function runPhase15() {
 
   try {
     if (!_phase1Results) { showToast('Run Discovery (Phase 1) first.', 3000); btn.disabled = false; clearInterval(p15Interval); spinner.classList.remove('active'); return; }
+
+    // Pre-flight: check for missing vendor selections or PIB data
+    const gaps = checkPhase15Gaps();
+    if (gaps.length > 0) {
+      clearInterval(p15Interval);
+      spinner.classList.remove('active');
+      btn.disabled = false;
+      const proceed = await showPhase15GapPrompt(gaps);
+      if (!proceed) return;
+      // User chose to proceed — restart spinner and re-lock button
+      btn.disabled = true;
+      spinner.classList.add('active');
+      const p15Interval2 = setInterval(() => { p15MsgIdx=(p15MsgIdx+1)%p15Msgs.length; if(spinText) spinText.textContent=p15Msgs[p15MsgIdx]; }, 2000);
+      try {
+        const payload2 = buildPhase15Payload();
+        const res2 = await fetch('/api/phase1-5-cost', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload2) });
+        if (!res2.ok) throw new Error(`HTTP ${res2.status}: ${res2.statusText}`);
+        const data2 = await res2.json();
+        const r2 = data2[0];
+        _phase15Results = r2;
+        renderCostResults(r2);
+      } finally {
+        clearInterval(p15Interval2);
+        spinner.classList.remove('active');
+        btn.disabled = false;
+      }
+      return;
+    }
+
     const payload = buildPhase15Payload();
     const res = await fetch('/api/phase1-5-cost', {
       method: 'POST',
