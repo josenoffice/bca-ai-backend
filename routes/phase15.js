@@ -23,7 +23,7 @@ Your job is to provide REALISTIC, MARKET-RATE cost estimates for each solution
 based on the tech stack, integrations, industry, and complexity.
 
 SOLUTION APPROACH AWARENESS (critical):
-Each solution has a solutionApproach field — "buy" or "change".
+Each solution has a solutionApproach field — "buy", "change", or "hybrid".
 Use the correct cost model for each:
 
 ► "buy" — Software / SaaS procurement:
@@ -48,6 +48,23 @@ Use the correct cost model for each:
   Also flag a productivityDipCost in the costNote: reduced output during
   transition (10–20% productivity loss for 2–6 months) — estimate in dollars
   and include in the recommended total.
+
+► "hybrid" — Combined software procurement + process change:
+  This solution requires BOTH a software/vendor component AND a people/process
+  change component. Combine both cost models:
+  - labour: split between implementation consultants (software) AND change
+    facilitators / programme management (process). List both in costNote.
+  - licensing: vendor product fees (from vendor anchor if provided)
+  - infrastructure: hosting / cloud (software component only)
+  - testing: QA + UAT for software, plus pilot testing of new process
+  - training: end-user training on the new software AND change training for
+    affected staff (use headcount from PIB data if provided)
+  - contingency: 10–15% — elevated because both streams run in parallel
+  Also flag a productivityDipCost in the costNote for the process change stream
+  (10–20% productivity loss for 2–6 months) in dollars.
+  If a vendor pricing anchor is provided, use it for the software component;
+  size the process change component separately using PIB headcount and
+  intervention types.
 
 PRICING PRINCIPLES:
 - Use actual market rates, not round numbers
@@ -120,7 +137,7 @@ function buildSolutionSummaries(activeSolutions) {
     id: s.id,
     name: s.name,
     category: s.category,
-    solutionApproach: s.solutionApproach === 'change' ? 'change' : 'buy',
+    solutionApproach: ['buy', 'change', 'hybrid'].includes(s.solutionApproach) ? s.solutionApproach : 'buy',
     description: (s.description || '').slice(0, 300),
     currentEstimate: s.costEstimate?.recommended || s.costEstimate?.mid || s.totalCost || 0,
     implementationTime: s.costEstimate?.implementationMonths || s.implementationTime || 0,
@@ -161,13 +178,19 @@ BUDGET AWARENESS:
     let vendorLine = ''
     if (s.selectedVendor) {
       const v = s.selectedVendor
-      vendorLine = `\nVendor pricing anchor: ${v.name} — total cost $${(v.vendorCostLow || 0).toLocaleString()} to $${(v.vendorCostHigh || 0).toLocaleString()}, timeline: ${v.implementationMonths || '?'} months.\nUse as primary market rate reference.`
+      if (v.vendorCostLow > 0 || v.vendorCostHigh > 0) {
+        vendorLine = `\nVendor pricing anchor: ${v.name} — total cost $${(v.vendorCostLow || 0).toLocaleString()} to $${(v.vendorCostHigh || 0).toLocaleString()}, timeline: ${v.implementationMonths || '?'} months.\nUse as primary market rate reference.`
+      } else {
+        vendorLine = `\nVendor: ${v.name} selected — pricing range not available. Use current market rate for this category and solution type.`
+      }
     }
     const approachLine = s.solutionApproach === 'change'
       ? 'Approach: PROCESS CHANGE — use change cost model (consulting + training + productivity dip). licensing and infrastructure should be $0 or near-zero.'
+      : s.solutionApproach === 'hybrid'
+      ? 'Approach: HYBRID — combine vendor software component (licensing + implementation) AND process change component (consulting + change training + productivity dip). Size each stream separately then sum.'
       : 'Approach: SOFTWARE/SAAS — use standard vendor cost model (licensing + implementation).'
     let pibLine = ''
-    if (s.solutionApproach === 'change' && s.processIntervention) {
+    if (['change', 'hybrid'].includes(s.solutionApproach) && s.processIntervention) {
       const p = s.processIntervention
       const types = p.interventionTypes?.length ? p.interventionTypes.join(', ') : 'Not specified'
       const hc = p.headcount > 0 ? p.headcount : 'Not specified'
