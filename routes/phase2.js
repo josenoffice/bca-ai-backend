@@ -309,16 +309,20 @@ function dcfNpvIrr(ctx) {
     const cost = n(s.totalCost)
     const annualBenefit = n(s.annualBenefit)
 
-    // Zero cost or zero benefit → all zeros
+    // Zero cost or zero benefit guard
     if (cost === 0 || annualBenefit === 0) {
-      s.npv = 0
-      s.roi = 0
+      // If zero cost but real benefit exists → "Net Benefit" mode (process change with no external spend)
+      const isNetBenefitMode = cost === 0 && annualBenefit > 0
+      s.npv = isNetBenefitMode ? Math.round(annualBenefit * horizonYears) : 0
+      s.roi = null           // null = trigger "Net Benefit" display in UI, not "0%"
+      s.netBenefitOnly = isNetBenefitMode
+      s.annualNetBenefit = isNetBenefitMode ? annualBenefit : 0
       s.irr = null
       s.irrExceedsCapacity = false
       s.paybackMonths = null
       s.breakEvenYear = null
       s.discountedCashFlows = [0]
-      s.financials = { npv: 0, roi: 0, irr: null, irrExceedsCapacity: false, paybackMonths: null, npvLow: null, npvHigh: null }
+      s.financials = { npv: s.npv, roi: null, netBenefitOnly: isNetBenefitMode, annualNetBenefit: s.annualNetBenefit, irr: null, irrExceedsCapacity: false, paybackMonths: null, npvLow: null, npvHigh: null }
       continue
     }
 

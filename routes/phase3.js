@@ -327,19 +327,33 @@ function timelineBuilder(ctx) {
   const endDate = new Date(startDate)
   endDate.setDate(endDate.getDate() + totalDuration * 7)
 
-  // 4 standard timeline phases
+  // 5 PLC standard timeline phases
+  // Weights: Definition/Discovery 15% → Acquisition 10% → Planning 15% → Execution 50% → Closing 10%
   const phases = [
-    { name: 'Discovery & Design',
+    { name: 'Definition / Discovery',
+      plcPhase: 1,
+      weightPct: 15,
       startWeek: 1,
       endWeek: Math.max(1, Math.round(totalDuration * 0.15)) },
-    { name: 'Build & Integrate',
+    { name: 'Acquisition',
+      plcPhase: 2,
+      weightPct: 10,
       startWeek: Math.round(totalDuration * 0.15) + 1,
-      endWeek: Math.round(totalDuration * 0.70) },
-    { name: 'Test & Validate',
-      startWeek: Math.round(totalDuration * 0.70) + 1,
-      endWeek: Math.round(totalDuration * 0.95) },
-    { name: 'Go-Live & Hypercare',
-      startWeek: Math.round(totalDuration * 0.95) + 1,
+      endWeek: Math.round(totalDuration * 0.25) },
+    { name: 'Planning',
+      plcPhase: 3,
+      weightPct: 15,
+      startWeek: Math.round(totalDuration * 0.25) + 1,
+      endWeek: Math.round(totalDuration * 0.40) },
+    { name: 'Execution',
+      plcPhase: 4,
+      weightPct: 50,
+      startWeek: Math.round(totalDuration * 0.40) + 1,
+      endWeek: Math.round(totalDuration * 0.90) },
+    { name: 'Closing',
+      plcPhase: 5,
+      weightPct: 10,
+      startWeek: Math.round(totalDuration * 0.90) + 1,
       endWeek: totalDuration }
   ]
 
@@ -480,7 +494,7 @@ function phase4ReadinessPackaging(ctx) {
     phase4ContractReady,
     hasTitle:         !!projectTitle,
     hasTimelineWeeks: totalDurationWeeks > 0,
-    hasPhases:        timelinePhases.length >= 3,
+    hasPhases:        timelinePhases.length >= 5,
     portfolioConfidence,
     completeness: {
       solutions:    solutions.length,

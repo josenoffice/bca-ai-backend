@@ -17,10 +17,37 @@ const ACTION_MAP = {
 }
 
 const SYSTEM_PROMPT = `You are a senior IT cost analyst with deep expertise in enterprise software
-implementation pricing.
+implementation pricing AND organisational change programmes.
 
 Your job is to provide REALISTIC, MARKET-RATE cost estimates for each solution
 based on the tech stack, integrations, industry, and complexity.
+
+SOLUTION APPROACH AWARENESS (critical):
+Each solution has a solutionApproach field — "buy" or "change".
+Use the correct cost model for each:
+
+► "buy" — Software / SaaS procurement:
+  Use standard vendor cost model:
+  - labour: implementation consultants ($100–$250/hr)
+  - licensing: vendor product or SaaS fees
+  - infrastructure: hosting, cloud, servers
+  - testing: QA, UAT, pen testing
+  - training: end-user and admin training
+  - contingency: 5–10% of total
+
+► "change" — Process redesign / people change:
+  Use the process change cost model instead:
+  - labour: process consultants / change facilitators ($150–$300/day), internal
+    programme management time, workshop facilitation
+  - licensing: $0 or minimal (collaboration tools, LMS only — no vendor product)
+  - infrastructure: $0 or minimal (no new systems)
+  - testing: pilot group testing, UAT of new process before rollout
+  - training: staff training hours × FTE day rate × headcount affected
+    (typical training is 1–5 days per affected employee)
+  - contingency: 10–15% — higher because change management is unpredictable
+  Also flag a productivityDipCost in the costNote: reduced output during
+  transition (10–20% productivity loss for 2–6 months) — estimate in dollars
+  and include in the recommended total.
 
 PRICING PRINCIPLES:
 - Use actual market rates, not round numbers
@@ -41,16 +68,16 @@ Use 0 for any category that does not apply. Never omit a key. Never use differen
 
 RECURRING COST REQUIREMENT:
 For EVERY solution, include recurringAnnualCost (integer, USD).
-This is the estimated ANNUAL ONGOING cost AFTER go-live. Must be realistic non-zero
-for any cloud, SaaS, or hosted solution.
-Includes: SaaS licences, platform fees, cloud hosting, support contracts, maintenance.
-One-time costs (implementation labour, testing, training) are NOT recurring.
+- "buy" solutions: SaaS licences, platform fees, hosting, support contracts
+- "change" solutions: ongoing coaching, quarterly refresher training, process
+  monitoring costs. Can be low but must be non-zero if ongoing effort is expected.
 
 RECURRING COST EXAMPLES:
 - AWS-hosted application: $30K/yr compute + $8K/yr support = 38000
 - SaaS compliance platform (e.g. Drata): $40K/yr licence + $5K/yr support = 45000
 - On-premise ERP integration: $15K/yr maintenance + $8K/yr support = 23000
 - Ecommerce platform (Shopify Plus): $24K/yr licence + $12K/yr platform fees = 36000
+- Process change programme: $8K/yr coaching + $5K/yr refresher training = 13000
 
 Return ONLY valid JSON — no markdown fences, no explanation text.`
 
@@ -93,6 +120,7 @@ function buildSolutionSummaries(activeSolutions) {
     id: s.id,
     name: s.name,
     category: s.category,
+    solutionApproach: s.solutionApproach === 'change' ? 'change' : 'buy',
     description: (s.description || '').slice(0, 300),
     currentEstimate: s.costEstimate?.recommended || s.costEstimate?.mid || s.totalCost || 0,
     implementationTime: s.costEstimate?.implementationMonths || s.implementationTime || 0,
@@ -102,6 +130,11 @@ function buildSolutionSummaries(activeSolutions) {
       vendorCostLow: s.selectedVendor.vendorCostLow || null,
       vendorCostHigh: s.selectedVendor.vendorCostHigh || null,
       implementationMonths: s.selectedVendor.implementationMonths || null
+    } : null,
+    processIntervention: s.processIntervention ? {
+      interventionTypes: s.processIntervention.interventionTypes || [],
+      headcount: s.processIntervention.headcount || 0,
+      processes: s.processIntervention.processes || ''
     } : null
   }))
 }
@@ -130,13 +163,25 @@ BUDGET AWARENESS:
       const v = s.selectedVendor
       vendorLine = `\nVendor pricing anchor: ${v.name} — total cost $${(v.vendorCostLow || 0).toLocaleString()} to $${(v.vendorCostHigh || 0).toLocaleString()}, timeline: ${v.implementationMonths || '?'} months.\nUse as primary market rate reference.`
     }
+    const approachLine = s.solutionApproach === 'change'
+      ? 'Approach: PROCESS CHANGE — use change cost model (consulting + training + productivity dip). licensing and infrastructure should be $0 or near-zero.'
+      : 'Approach: SOFTWARE/SAAS — use standard vendor cost model (licensing + implementation).'
+    let pibLine = ''
+    if (s.solutionApproach === 'change' && s.processIntervention) {
+      const p = s.processIntervention
+      const types = p.interventionTypes?.length ? p.interventionTypes.join(', ') : 'Not specified'
+      const hc = p.headcount > 0 ? p.headcount : 'Not specified'
+      const procs = p.processes || 'Not specified'
+      pibLine = `\nIntervention types: ${types}\nHeadcount affected: ${hc}\nKey processes: ${procs}\nUse headcount to size training costs (1–5 training days per person at local FTE day rate).`
+    }
     return `
 --- ${s.id}: ${s.name} ---
 Category: ${s.category}
+${approachLine}
 Description: ${s.description}
 Current estimate: $${s.currentEstimate.toLocaleString()}
 Implementation time: ${s.implementationTime} months
-Risk level: ${s.riskLevel}${vendorLine}`
+Risk level: ${s.riskLevel}${vendorLine}${pibLine}`
   }).join('\n')
 
   const userPrompt = `
@@ -360,7 +405,8 @@ function mergeCosts(solutions, estimates) {
       ...s,
       totalCost: est.costEstimate.mid,
       costEstimate: est.costEstimate,
-      recurringAnnualCost: est.recurringAnnualCost
+      recurringAnnualCost: est.recurringAnnualCost,
+      solutionApproach: s.solutionApproach || 'buy'
     }
   })
 

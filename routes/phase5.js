@@ -59,6 +59,8 @@ function extractAndNormalize(raw) {
 
   const traceability         = raw.traceability         || null
   const traceabilityCoverage = raw.traceabilityCoverage || raw.traceability || {}
+  const orgFriction          = raw.orgFriction          || null
+  const alreadyTried         = raw.validatedData?.alreadyTried || raw.alreadyTried || null
 
   const financialsP4Missing = !financialsP4?.totalPVBenefit3y
   const withinCeiling = raw.withinCeiling ?? budgetAnalysis.withinCeiling ?? null
@@ -81,6 +83,7 @@ function extractAndNormalize(raw) {
     recommendation, financialsP4, sensitivity, benefitSensitivity: benefitSens,
     budgetAnalysis, executiveHealth, cbaSummary, qualityScore,
     vendorData, timeline, phase5Contract, traceability, traceabilityCoverage,
+    orgFriction, alreadyTried,
     financialsP4Missing, withinCeiling, userOverride, portfolioMetrics,
     projectTitle, trackingId
   }
@@ -228,6 +231,7 @@ function buildExecutiveNarrative(ctx) {
     } : null,
     notes: [
       'Phase 5 does not override the decision from Phase 4; it explains and packages the result.',
+      `Portfolio definition: all ${solutions.length} solution${solutions.length !== 1 ? 's' : ''} are evaluated together as one combined investment — costs, benefits, and risks are assessed at the portfolio level, not per solution in isolation.`,
       recVendorName ? `Delivery vendor: ${recVendorName}${recFitScore != null ? ` (fit score: ${recFitScore}/100)` : ''}` : null
     ].filter(Boolean)
   }
@@ -315,7 +319,7 @@ function exportHtml(ctx) {
     recommendation, financialsP4, sensitivity, benefitSensitivity,
     budgetAnalysis, executiveSummary, executiveHealth, cbaSummary,
     traceability, traceabilityCoverage, qualityScore, vendorData,
-    timeline, withinCeiling, userOverride
+    timeline, withinCeiling, userOverride, orgFriction, alreadyTried
   } = ctx
 
   const ranking    = recommendation.ranking || []
@@ -399,27 +403,38 @@ function exportHtml(ctx) {
         <span>Traceability</span>
       </div>
       <div class="metric-card">
-        <strong>${esc(recRow?.vendorName || '—')}</strong>
-        <span>Recommended Vendor</span>
+        ${recRow?.solutionApproach === 'change'
+          ? `<strong>⚙️ Process Change</strong><span>Approach Type</span>`
+          : recRow?.solutionApproach === 'hybrid'
+          ? `<strong>🔀 Hybrid</strong><span>Approach Type</span>`
+          : `<strong>${esc(recRow?.vendorName || '—')}</strong><span>Recommended Vendor</span>`}
       </div>
     </div>`
 
   // Portfolio overview table
-  const portfolioRows = solutions.map(s => `
+  const portfolioRows = solutions.map(s => {
+    const approachLabel = s.solutionApproach === 'change' ? '⚙️ Process' : '🛒 Software'
+    const vendorCell = s.solutionApproach === 'change' ? 'Process Change' : esc(s.vendorName || '—')
+    const fitCell = s.solutionApproach === 'change' ? '—' : (s.vendorFitScore != null ? s.vendorFitScore + '/100' : '—')
+    return `
     <tr>
       <td>${esc(s.name)}</td>
+      <td style="font-size:11px;">${approachLabel}</td>
       <td>$${fmt(s.totalCost || s.estimatedCostUSD || 0)}</td>
-      <td>${esc(s.vendorName || '—')}</td>
-      <td>${s.vendorFitScore != null ? s.vendorFitScore + '/100' : '—'}</td>
+      <td>${vendorCell}</td>
+      <td>${fitCell}</td>
       <td>${esc(s.riskLevel || '—')}</td>
       <td>${s.deliveryPhase || '—'}</td>
-    </tr>`).join('')
+    </tr>`
+  }).join('')
 
   // Ranking table
   const rankingRows = ranking.map(r => {
     const highlight = r.solutionId === recId
     const style = highlight ? ' style="background:#e8f5e9;font-weight:600"' : ''
     const badge = highlight ? (isOverride ? ' 👤 USER SELECTED' : ' ⭐ RECOMMENDED') : ''
+    const rankVendor = r.solutionApproach === 'change' ? 'Process Change' : esc(r.vendorName || '—')
+    const rankFit = r.solutionApproach === 'change' ? '—' : (r.vendorFitScore != null ? r.vendorFitScore + '/100' : '—')
     return `
     <tr${style}>
       <td>${r.rank}</td>
@@ -428,8 +443,8 @@ function exportHtml(ctx) {
       <td>$${fmt(r.npv)}</td>
       <td>${Math.round(r.roiPct)}%</td>
       <td>${esc(r.riskLevel)}</td>
-      <td>${esc(r.vendorName || '—')}</td>
-      <td>${r.vendorFitScore != null ? r.vendorFitScore + '/100' : '—'}</td>
+      <td>${rankVendor}</td>
+      <td>${rankFit}</td>
       <td>${r.paybackMonths != null ? r.paybackMonths + 'mo' : '—'}</td>
     </tr>`
   }).join('')
@@ -438,13 +453,21 @@ function exportHtml(ctx) {
   const vendorRows = solutions.map(s => {
     const vc = vcById[s.id]
     const gapsList = vc?.gaps?.length ? vc.gaps.join(', ') : '✓ None'
-    const costRange = (s.vendorCostLow != null && s.vendorCostHigh != null)
-      ? `$${fmt(s.vendorCostLow)} – $${fmt(s.vendorCostHigh)}` : '—'
+    const isChange  = s.solutionApproach === 'change'
+    const isHybrid  = s.solutionApproach === 'hybrid'
+    const costRange = (s.vendorCostLow != null && s.vendorCostHigh != null && !isChange)
+      ? `$${fmt(s.vendorCostLow)} – $${fmt(s.vendorCostHigh)}` : (isChange ? 'No procurement cost' : '—')
+    const vendorCell = isChange
+      ? '<em style="color:#b45309;">Internal / Process delivery — no vendor required</em>'
+      : isHybrid
+        ? `${esc(s.vendorName || '—')} <span style="font-size:11px;color:#6d28d9;">(+ change management lead)</span>`
+        : esc(s.vendorName || '—')
+    const fitCell = isChange ? 'N/A' : (s.vendorFitScore != null ? s.vendorFitScore + '/100' : '—')
     return `
     <tr>
       <td>${esc(s.name)}</td>
-      <td>${esc(s.vendorName || '—')}</td>
-      <td>${s.vendorFitScore != null ? s.vendorFitScore + '/100' : '—'}</td>
+      <td>${vendorCell}</td>
+      <td>${fitCell}</td>
       <td>${costRange}</td>
       <td>${s.selectedVendor?.complianceCoverage?.join(', ') || '—'}</td>
       <td>${gapsList}</td>
@@ -495,22 +518,73 @@ function exportHtml(ctx) {
       <td>${s.portfolioROI}%</td>
     </tr>`).join('')
 
-  // Timeline section
+  // Org Friction section (only rendered when process-change solutions exist)
+  let orgFrictionHtml = ''
+  if (orgFriction && orgFriction.solutions && orgFriction.solutions.length > 0) {
+    const pfBanner = orgFriction.isProcessFirst
+      ? `<div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 16px;margin:12px 0">
+           ⚙️ <strong>Process-First Portfolio:</strong> ${orgFriction.changeCount} of ${orgFriction.totalSolutions} solutions are Process Change.
+           Delivery path: <strong>${orgFriction.deliveryPath.replace('_', ' ')}</strong>.
+           Primary workstream is change management, not vendor procurement.
+         </div>`
+      : ''
+
+    const hfWinner = orgFriction.winnerIsHighFriction
+      ? `<div style="background:#fef2f2;border-left:4px solid #dc2626;padding:12px 16px;margin:12px 0">
+           🔴 <strong>High-Friction Winner:</strong> The #1 ranked solution is a high-friction process change.
+           Ensure executive sponsorship, dedicated change management, and a full adoption plan before committing.
+         </div>`
+      : ''
+
+    const frictionRows = orgFriction.solutions.map(s => `
+      <tr>
+        <td>${esc(s.solutionName)}${s.ranksFirst ? ' ⭐' : ''}</td>
+        <td style="font-weight:700;color:${s.level === 'High' ? '#dc2626' : s.level === 'Medium' ? '#d97706' : '#16a34a'};">${s.score}/100 — ${s.level}</td>
+        <td>${esc(s.riskLevel)}</td>
+        <td>${s.headcount > 0 ? s.headcount : '—'}</td>
+        <td>${s.interventionTypes.length > 0 ? s.interventionTypes.join(', ') : '—'}</td>
+      </tr>`).join('')
+
+    orgFrictionHtml = `
+      ${pfBanner}
+      ${hfWinner}
+      <h2>Org Friction Analysis</h2>
+      <p style="color:#666;font-size:13px;">Friction score = Risk Factor × Headcount Factor × Complexity Factor (scaled 0–100).
+         Low &lt;30 · Medium 30–60 · High 60+. Higher friction = more change management investment required.</p>
+      <table>
+        <thead><tr><th>Process Change Solution</th><th>Friction Score</th><th>Risk</th><th>Headcount</th><th>Intervention Types</th></tr></thead>
+        <tbody>${frictionRows}</tbody>
+      </table>`
+  }
+
+  // Timeline section — PLC phase names with phase number, weight % and approx cost
   const timelinePhases = timeline?.phases || []
+  const timelineTotalCost = n(timeline?.projectTimeline?.totalCost) ||
+    solutions.reduce((sum, s) => sum + n(s.totalCost || s.estimatedCostUSD || 0), 0)
   const timelineHtml = timelinePhases.length > 0
     ? `<h2>Project Timeline</h2>
+       <p class="note">Approximate cost per phase is calculated by applying each phase's schedule weight to the total portfolio cost.
+          Actual spending will vary based on vendor payment milestones and resource scheduling.</p>
        <table>
-         <thead><tr><th>Phase</th><th>Start Week</th><th>End Week</th><th>Duration</th></tr></thead>
-         <tbody>${timelinePhases.map(p => `
+         <thead><tr><th>#</th><th>PLC Phase</th><th>Weight</th><th>Approx. Cost</th><th>Start Week</th><th>End Week</th><th>Duration</th></tr></thead>
+         <tbody>${timelinePhases.map(p => {
+           const approxCost = p.weightPct != null && timelineTotalCost > 0
+             ? `$${fmt(timelineTotalCost * p.weightPct / 100)}`
+             : '—'
+           return `
            <tr>
-             <td>${esc(p.name)}</td>
+             <td style="text-align:center;font-weight:700;color:#1976d2;">${p.plcPhase ?? '—'}</td>
+             <td><strong>${esc(p.name)}</strong></td>
+             <td style="text-align:center;color:#555;">${p.weightPct != null ? p.weightPct + '%' : '—'}</td>
+             <td style="font-weight:600;color:#1976d2;">${approxCost}</td>
              <td>Week ${p.startWeek}</td>
              <td>Week ${p.endWeek}</td>
              <td>${p.endWeek - p.startWeek + 1} weeks</td>
-           </tr>`).join('')}
+           </tr>`}).join('')}
          </tbody>
        </table>
-       <p class="note">Total duration: ${timeline?.projectTimeline?.totalDurationWeeks || '—'} weeks |
+       <p class="note">Total portfolio cost: $${fmt(timelineTotalCost)} |
+          Total duration: ${timeline?.projectTimeline?.totalDurationWeeks || '—'} weeks |
           Start: ${timeline?.projectTimeline?.projectStartDate || '—'}</p>`
     : ''
 
@@ -564,7 +638,7 @@ function exportHtml(ctx) {
 
   <h2>Portfolio Overview</h2>
   <table>
-    <thead><tr><th>Solution</th><th>Cost</th><th>Vendor</th><th>Fit</th><th>Risk</th><th>Phase</th></tr></thead>
+    <thead><tr><th>Solution</th><th>Approach</th><th>Cost</th><th>Vendor</th><th>Fit</th><th>Risk</th><th>Phase</th></tr></thead>
     <tbody>${portfolioRows}</tbody>
   </table>
 
@@ -611,6 +685,8 @@ function exportHtml(ctx) {
 
   ${timelineHtml}
 
+  ${orgFrictionHtml}
+
   <h2>Methodology</h2>
   <p class="note">
     Scoring weights: NPV 35% | ROI 20% | Confidence 15% | Risk 15% | Vendor Fit 15%<br>
@@ -619,11 +695,122 @@ function exportHtml(ctx) {
     Tracking ID: ${trackingId}
   </p>
 
-  <hr>
-  <p class="note" style="text-align:center">
-    © Nidhish Jose — BCA.AI Business Case Automation. All rights reserved.<br>
-    Generated: ${new Date().toLocaleDateString()} | Tracking: ${trackingId}
-  </p>
+  ${(() => {
+    // ── Alternatives Considered ──────────────────────────────────
+    const chips  = alreadyTried?.chips?.length ? alreadyTried.chips : []
+    const text   = alreadyTried?.text || ''
+    if (!chips.length && !text) return ''
+    const chipList = chips.length
+      ? `<ul>${chips.map(c => `<li>${esc(c)}</li>`).join('')}</ul>` : ''
+    const textPara = text
+      ? `<p style="margin:8px 0 0;font-size:14px;color:#444;">${esc(text)}</p>` : ''
+    return `
+    <h2>Alternatives Considered</h2>
+    <div class="info-box">
+      <p style="margin:0 0 8px;font-size:14px;"><strong>The following approaches were attempted or evaluated before this business case was commissioned.
+      They did not fully resolve the problem:</strong></p>
+      ${chipList}${textPara}
+    </div>`
+  })()}
+
+  ${(() => {
+    // ── Training & Adoption Plan ─────────────────────────────────
+    const changeSols  = solutions.filter(s => s.solutionApproach === 'change')
+    const hybridSols  = solutions.filter(s => s.solutionApproach === 'hybrid')
+    if (!changeSols.length && !hybridSols.length) return ''
+
+    const changeRows = changeSols.map(s => `
+      <tr>
+        <td>${esc(s.name)}</td>
+        <td>⚙️ Process Change</td>
+        <td>${s.orgFriction?.level || (s.riskLevel === 'High' ? 'High' : s.riskLevel === 'Medium' ? 'Medium' : 'Low')} friction</td>
+        <td>${s.orgFriction?.headcount > 0 ? s.orgFriction.headcount + ' staff' : 'TBD'}</td>
+        <td>SOP rewrites · Staff training · Change communications · Adoption monitoring</td>
+      </tr>`).join('')
+
+    const hybridRows = hybridSols.map(s => `
+      <tr>
+        <td>${esc(s.name)}</td>
+        <td>🔀 Hybrid</td>
+        <td>Vendor + Change lead</td>
+        <td>TBD</td>
+        <td>Vendor onboarding · Process redesign · End-user training · Adoption metrics</td>
+      </tr>`).join('')
+
+    return `
+    <h2>Training &amp; Adoption Plan</h2>
+    <div class="info-box" style="margin-bottom:12px;">
+      This portfolio includes <strong>${changeSols.length} process change</strong> and
+      <strong>${hybridSols.length} hybrid</strong> solution(s). These require a structured adoption
+      programme — software alone will not deliver the benefit. The organisation must invest in
+      training, communication, and change management to realise projected value.
+    </div>
+    <table>
+      <thead><tr><th>Solution</th><th>Type</th><th>Complexity</th><th>People Impact</th><th>Key Adoption Activities</th></tr></thead>
+      <tbody>${changeRows}${hybridRows}</tbody>
+    </table>
+    <p class="note">Recommended: assign a dedicated Change Manager before project kick-off. Set adoption KPIs (e.g. process compliance rate, training completion %) alongside technical KPIs.</p>`
+  })()}
+
+  ${(() => {
+    // ── Recommended Next Steps ───────────────────────────────────
+    const recSol     = solutions.find(s => s.id === recommendation.recommendedSolutionId) || solutions[0]
+    const recRank    = (recommendation.ranking || [])[0] || {}
+    const approach   = recRank.solutionApproach || recSol?.solutionApproach || 'buy'
+    const vendor     = recRank.vendorName || recSol?.vendorName || null
+    const solName    = recommendation.recommendedSolutionName || recSol?.name || '—'
+    const delivPath  = orgFriction?.deliveryPath || 'vendor_led'
+
+    const buySteps = vendor ? [
+      `Issue Request for Proposal (RFP) or begin contract negotiations with <strong>${esc(vendor)}</strong>`,
+      `Assign a Project Sponsor and Project Manager from the business side`,
+      `Schedule project kick-off meeting — align scope, timeline, and success criteria`,
+      `Set up governance: steering committee, monthly reporting cadence, and escalation path`,
+      `Establish benefit tracking baseline (measure current-state metrics before go-live)`
+    ] : [
+      `Identify and shortlist vendors for <strong>${esc(solName)}</strong> based on this analysis`,
+      `Assign a Project Sponsor and Project Manager`,
+      `Define procurement process and timeline`,
+      `Set governance and reporting cadence`,
+      `Baseline current-state metrics for benefit tracking`
+    ]
+
+    const changeSteps = [
+      `Appoint a dedicated <strong>Change Manager</strong> — this is critical for a process-first delivery`,
+      `Map all impacted staff and business units for <strong>${esc(solName)}</strong>`,
+      `Design training programme: SOP updates, role-specific guides, and sign-off checkpoints`,
+      `Schedule stakeholder communications and leadership alignment sessions`,
+      `Define adoption metrics (compliance rate, error rate, time saved) and set 30/60/90-day targets`
+    ]
+
+    const hybridSteps = [
+      `Negotiate contract with <strong>${esc(vendor || 'selected vendor')}</strong> and agree implementation timeline`,
+      `Appoint both a <strong>Project Manager</strong> (vendor delivery) and <strong>Change Manager</strong> (people adoption)`,
+      `Run parallel workstreams: vendor onboarding + internal process redesign`,
+      `Build a combined training plan covering both the new tool and the new process`,
+      `Define success criteria covering technology KPIs and adoption KPIs`
+    ]
+
+    const steps = approach === 'change' ? changeSteps
+      : approach === 'hybrid' ? hybridSteps
+      : buySteps
+
+    return `
+    <h2>Recommended Next Steps</h2>
+    <div class="banner" style="margin-bottom:16px;">
+      <strong>📋 Approved Recommendation: ${esc(solName)}</strong><br>
+      <span style="font-size:14px;opacity:0.9;">${approach === 'change' ? '⚙️ Process Change — internal delivery, no vendor procurement' : approach === 'hybrid' ? `🔀 Hybrid — ${esc(vendor || 'vendor')} + internal change management` : `🛒 Software — ${esc(vendor || 'vendor to be confirmed')} via vendor procurement`}</span>
+    </div>
+    <p style="font-size:14px;color:#444;margin-bottom:12px;">The following immediate actions are recommended upon approval of this business case:</p>
+    <ol style="font-size:14px;color:#333;line-height:1.8;padding-left:20px;">
+      ${steps.map(s => `<li>${s}</li>`).join('')}
+    </ol>
+    <div class="info-box" style="margin-top:14px;">
+      <strong>After delivery:</strong> Conduct a post-implementation review at 90 days. Compare actual
+      benefits against the projections in this report. Document lessons learned and update the business
+      case register.
+    </div>`
+  })()}
 
 </body>
 </html>`
@@ -642,7 +829,7 @@ function harmonizer(ctx) {
     budgetAnalysis, qualityScore, sensitivity, benefitSensitivity,
     traceability, traceabilityCoverage, cbaSummary, vendorData,
     timeline, validation, userOverride, htmlDocument,
-    projectTitle, trackingId, breadcrumb, portfolioMetrics
+    projectTitle, trackingId, breadcrumb, portfolioMetrics, orgFriction
   } = ctx
 
   return {
@@ -678,6 +865,8 @@ function harmonizer(ctx) {
       format:  'html',
       html:    htmlDocument
     },
+
+    orgFriction: orgFriction || null,
 
     validation,
     userOverride: userOverride.isOverride ? userOverride : null,

@@ -37,7 +37,7 @@ const W = {
   roi:         0.20,
   confidence:  0.15,
   riskPenalty: 0.15,
-  vendorFit:   0.15
+  approachFit: 0.15   // buy → vendorFitScore; hybrid/change → adoptionReadiness
 }
 
 // ─── PV helper ───────────────────────────────────────────────────
@@ -283,14 +283,40 @@ function rankingAndRecommendation(ctx) {
     return values.map(v => max === min ? 0.5 : (v - min) / (max - min))
   }
 
+  // B8: Compute adoptionReadiness inline for hybrid/change solutions
+  // Uses same friction formula as orgFrictionAnalysis (step 6b runs after, so we inline it here)
+  function computeAdoptionReadiness(s) {
+    if (s.solutionApproach === 'buy') return null
+    const pib = s.processIntervention || {}
+    const rf  = (s.riskLevel || 'medium').toLowerCase() === 'high' ? 2.0
+              : (s.riskLevel || 'medium').toLowerCase() === 'low'  ? 1.0 : 1.5
+    const h   = Number(pib.headcount) || 0
+    const hf  = h >= 200 ? 2.5 : h >= 50 ? 2.0 : h >= 10 ? 1.5 : 1.0
+    const len = Array.isArray(pib.interventionTypes) ? pib.interventionTypes.length : 0
+    const cf  = len >= 5 ? 2.0 : len >= 3 ? 1.5 : len >= 1 ? 1.2 : 1.0
+    const raw = rf * hf * cf
+    const frictionScore = Math.round((raw - 1.0) / (10.0 - 1.0) * 100)
+    return Math.round((100 - frictionScore) * 100) / 10000  // 0-1 range
+  }
+
   const N_npv   = normalize(solutions.map(s => n(s.phase4?.pvBenefit3y || s.npv || 0)))
   const N_roi   = normalize(solutions.map(s => n(s.phase4?.roiPct || s.roi || 0)))
   const N_conf  = normalize(solutions.map(s => n(s.confidenceScore || s.confidence || 70)))
 
-  const allVendorFitNull = solutions.every(s => s.vendorFitScore == null)
-  const N_vendorFit = allVendorFitNull
+  // B9: N_approachFit — vendorFitScore for buy; adoptionReadiness (0-100) for hybrid/change
+  const approachFitValues = solutions.map(s => {
+    if (s.solutionApproach !== 'buy') {
+      const ar = computeAdoptionReadiness(s)
+      return ar != null ? ar * 100 : 50
+    }
+    return s.vendorFitScore != null ? n(s.vendorFitScore) : 50
+  })
+  const allApproachFitDefault = solutions.every(
+    s => s.solutionApproach === 'buy' ? s.vendorFitScore == null : false
+  )
+  const N_approachFit = allApproachFitDefault
     ? solutions.map(() => 0.5)
-    : normalize(solutions.map(s => s.vendorFitScore != null ? n(s.vendorFitScore) : 0))
+    : normalize(approachFitValues)
 
   function riskPenaltyScore(level) {
     return level?.toLowerCase() === 'high' ? 1.0
@@ -299,11 +325,11 @@ function rankingAndRecommendation(ctx) {
   const N_riskPenalty = solutions.map(s => riskPenaltyScore(s.riskLevel))
 
   const compositeScores = solutions.map((s, i) =>
-    W.npv        * N_npv[i] +
-    W.roi        * N_roi[i] +
-    W.confidence * N_conf[i] +
+    W.npv         * N_npv[i] +
+    W.roi         * N_roi[i] +
+    W.confidence  * N_conf[i] +
     W.riskPenalty * (1 - N_riskPenalty[i]) +
-    W.vendorFit  * N_vendorFit[i]
+    W.approachFit * N_approachFit[i]
   )
 
   // Rationale generator
@@ -340,18 +366,21 @@ function rankingAndRecommendation(ctx) {
     .map((s, i) => ({ ...s, compositeScore: Math.round(compositeScores[i] * 1000) / 1000 }))
     .sort((a, b) => b.compositeScore - a.compositeScore)
     .map((s, i) => ({
-      rank:            i + 1,
-      solutionId:      s.id,
-      name:            s.name,
-      score:           s.compositeScore,
-      npv:             n(s.phase4?.pvBenefit3y || s.npv || 0),
-      roiPct:          n(s.phase4?.roiPct || s.roi || 0),
-      riskLevel:       s.riskLevel,
-      confidenceScore: n(s.confidenceScore || s.confidence || 70),
-      vendorName:      s.vendorName || s.selectedVendor?.name || null,
-      vendorFitScore:  s.vendorFitScore != null ? n(s.vendorFitScore) : null,
-      paybackMonths:   s.phase4?.paybackMonths || null,
-      rationale:       generateRationale(s, i + 1, solutions.length)
+      rank:                     i + 1,
+      solutionId:               s.id,
+      name:                     s.name,
+      solutionApproach:         ['buy', 'hybrid', 'change'].includes(s.solutionApproach) ? s.solutionApproach : 'buy',
+      processAddressabilityPct: n(s.processAddressabilityPct || 0),
+      adoptionReadiness:        computeAdoptionReadiness(s),
+      score:                    s.compositeScore,
+      npv:                      n(s.phase4?.pvBenefit3y || s.npv || 0),
+      roiPct:                   n(s.phase4?.roiPct || s.roi || 0),
+      riskLevel:                s.riskLevel,
+      confidenceScore:          n(s.confidenceScore || s.confidence || 70),
+      vendorName:               s.vendorName || s.selectedVendor?.name || null,
+      vendorFitScore:           s.solutionApproach === 'buy' && s.vendorFitScore != null ? n(s.vendorFitScore) : null,
+      paybackMonths:            s.phase4?.paybackMonths || null,
+      rationale:                generateRationale(s, i + 1, solutions.length)
     }))
 
   const recommended = ranked[0]
@@ -384,6 +413,83 @@ function rankingAndRecommendation(ctx) {
         name: recommended.name
       }
     }
+  }
+
+  return ctx
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Step 6b — orgFrictionAnalysis
+// ═════════════════════════════════════════════════════════════════
+function orgFrictionAnalysis(ctx) {
+  const { solutions, recommendation } = ctx
+
+  const changeCount = solutions.filter(s => s.solutionApproach === 'change').length
+  const total = solutions.length
+
+  const isProcessFirst = changeCount >= Math.ceil(total / 2)
+  const deliveryPath = changeCount === 0
+    ? 'procurement_first'
+    : isProcessFirst ? 'process_first'
+    : 'blended'
+
+  function riskFactor(riskLevel) {
+    const r = (riskLevel || 'medium').toLowerCase()
+    return r === 'high' ? 2.0 : r === 'low' ? 1.0 : 1.5
+  }
+
+  function headcountFactor(hc) {
+    const h = Number(hc) || 0
+    return h >= 200 ? 2.5 : h >= 50 ? 2.0 : h >= 10 ? 1.5 : 1.0
+  }
+
+  function complexityFactor(types) {
+    const len = Array.isArray(types) ? types.length : 0
+    return len >= 5 ? 2.0 : len >= 3 ? 1.5 : len >= 1 ? 1.2 : 1.0
+  }
+
+  const RAW_MIN = 1.0
+  const RAW_MAX = 10.0  // 2.0 × 2.5 × 2.0
+
+  const frictionSolutions = solutions
+    .filter(s => s.solutionApproach === 'change')
+    .map(s => {
+      const pib = s.processIntervention || {}
+      const rf  = riskFactor(s.riskLevel)
+      const hf  = headcountFactor(pib.headcount)
+      const cf  = complexityFactor(pib.interventionTypes)
+      const raw = rf * hf * cf
+      const score = Math.round((raw - RAW_MIN) / (RAW_MAX - RAW_MIN) * 100)
+      const level = score >= 60 ? 'High' : score >= 30 ? 'Medium' : 'Low'
+      const ranksFirst = recommendation?.ranking?.[0]?.solutionId === s.id
+      return {
+        solutionId:        s.id,
+        solutionName:      s.name,
+        score,
+        level,
+        riskLevel:         s.riskLevel || 'Medium',
+        headcount:         Number(pib.headcount) || 0,
+        interventionTypes: pib.interventionTypes || [],
+        ranksFirst
+      }
+    })
+
+  const avgFrictionScore = frictionSolutions.length > 0
+    ? Math.round(frictionSolutions.reduce((a, b) => a + b.score, 0) / frictionSolutions.length)
+    : null
+
+  const hasHighFriction = frictionSolutions.some(s => s.level === 'High')
+  const winnerIsHighFriction = frictionSolutions.some(s => s.ranksFirst && s.level === 'High')
+
+  ctx.orgFriction = {
+    isProcessFirst,
+    deliveryPath,
+    changeCount,
+    totalSolutions: total,
+    avgFrictionScore,
+    hasHighFriction,
+    winnerIsHighFriction,
+    solutions: frictionSolutions
   }
 
   return ctx
@@ -478,16 +584,19 @@ function cbaSummary(ctx) {
   html += `<p>Total Investment: $${financialsP4.totalCost.toLocaleString()} | PV Benefit: $${financialsP4.totalPVBenefit3y.toLocaleString()} | Avg ROI: ${financialsP4.avgROIPct}%</p>`
 
   // Per-solution table
-  md += '| Rank | Solution | Score | PV(3Y) | ROI | Risk | Vendor | Fit |\n'
-  md += '|------|----------|-------|--------|-----|------|--------|-----|\n'
-  html += '<table><thead><tr><th>Rank</th><th>Solution</th><th>Score</th><th>PV(3Y)</th><th>ROI</th><th>Risk</th><th>Vendor</th><th>Fit</th></tr></thead><tbody>'
+  md += '| Rank | Solution | Approach | Score | PV(3Y) | ROI | Risk | Approach Fit |\n'
+  md += '|------|----------|----------|-------|--------|-----|------|-------------|\n'
+  html += '<table><thead><tr><th>Rank</th><th>Solution</th><th>Approach</th><th>Score</th><th>PV(3Y)</th><th>ROI</th><th>Risk</th><th>Approach Fit</th></tr></thead><tbody>'
 
   ranked.forEach(r => {
-    const pv = `$${Math.round(r.npv / 1000)}K`
+    const pv  = `$${Math.round(r.npv / 1000)}K`
     const roi = `${Math.round(r.roiPct)}%`
-    const fit = r.vendorFitScore != null ? `${r.vendorFitScore}` : '-'
-    md += `| ${r.rank} | ${r.name} | ${r.score} | ${pv} | ${roi} | ${r.riskLevel} | ${r.vendorName || '-'} | ${fit} |\n`
-    html += `<tr><td>${r.rank}</td><td>${r.name}</td><td>${r.score}</td><td>${pv}</td><td>${roi}</td><td>${r.riskLevel}</td><td>${r.vendorName || '-'}</td><td>${fit}</td></tr>`
+    // Buy → vendorFitScore; hybrid/change → adoptionReadiness (as %)
+    const fitVal = r.solutionApproach === 'buy'
+      ? (r.vendorFitScore != null ? `${r.vendorFitScore}` : '-')
+      : (r.adoptionReadiness != null ? `${Math.round(r.adoptionReadiness * 100)}%` : '-')
+    md += `| ${r.rank} | ${r.name} | ${r.solutionApproach} | ${r.score} | ${pv} | ${roi} | ${r.riskLevel} | ${fitVal} |\n`
+    html += `<tr><td>${r.rank}</td><td>${r.name}</td><td>${r.solutionApproach}</td><td>${r.score}</td><td>${pv}</td><td>${roi}</td><td>${r.riskLevel}</td><td>${fitVal}</td></tr>`
   })
 
   html += '</tbody></table>'
@@ -542,7 +651,7 @@ function harmonizer(ctx) {
     financialsP4, sensitivity: sensList, benefitSensitivity,
     budgetAnalysisP4, withinCeiling, withinBudget,
     traceabilityCoverage, phase5Contract, cbaSummary: cba,
-    edges, criticalPath, config
+    orgFriction, edges, criticalPath, config
   } = ctx
 
   // Executive health badge
@@ -620,6 +729,7 @@ function harmonizer(ctx) {
 
     phase5Contract,
     cbaSummary: cba,
+    orgFriction: orgFriction || null,
 
     solutions,
     benefits,
@@ -662,7 +772,8 @@ router.post('/phase4', async (req, res) => {
     const step4  = edgeSynthesis(step3)
     const step5  = traceabilityReview(step4)
     const step6  = rankingAndRecommendation(step5)
-    const step7  = portfolioAggregator(step6)
+    const step6b = orgFrictionAnalysis(step6)
+    const step7  = portfolioAggregator(step6b)
     const step8  = cbaSummary(step7)
     const step9  = phase5ContractGuard(step8)
     const output = harmonizer(step9)

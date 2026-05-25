@@ -1467,6 +1467,24 @@
   .batch-find-btn:disabled { opacity:0.5;cursor:not-allowed; }
   .batch-sel-counter { font-size:12px;color:var(--text-muted);margin-top:8px; }
 
+  /* ─── Process Intervention Builder (PIB) ──────────────────────── */
+  .pib-panel { display:none;margin-top:12px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 16px; }
+  .pib-panel.open { display:block; }
+  .pib-label { font-size:10px;font-weight:700;text-transform:uppercase;color:#92400e;letter-spacing:.5px;margin-bottom:6px;display:block; }
+  .pib-chip-grid { display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px; }
+  .pib-chip { display:flex;align-items:center;gap:4px;padding:4px 10px;border:1.5px solid #fde68a;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;user-select:none;background:#fff;color:#92400e;transition:all .15s; }
+  .pib-chip.selected { background:#f59e0b;border-color:#f59e0b;color:#fff; }
+  .pib-chip input[type=checkbox] { display:none; }
+  .pib-input { width:100%;padding:6px 10px;border:1.5px solid #fde68a;border-radius:7px;font-size:12px;font-family:inherit;box-sizing:border-box;background:#fff;color:var(--text);margin-bottom:8px;outline:none; }
+  .pib-input:focus { border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.15); }
+  .pib-save-btn { display:inline-flex;align-items:center;gap:5px;padding:6px 14px;background:#f59e0b;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .15s; }
+  .pib-save-btn:hover { opacity:.85; }
+  .pib-saved-badge { display:none;font-size:10px;font-weight:700;color:#15803d;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;padding:2px 8px;margin-left:6px; }
+  .pib-saved-badge.show { display:inline-flex;align-items:center;gap:3px; }
+  .pib-toggle-btn { display:inline-flex;align-items:center;gap:5px;padding:6px 12px;background:transparent;border:1.5px solid #fde68a;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;color:#92400e;transition:all .15s;margin-top:8px; }
+  .pib-toggle-btn:hover { background:#fef3c7; }
+  .sol-pick-card.pib-configured { border-color:#f59e0b;box-shadow:0 0 0 3px rgba(245,158,11,.13); }
+
   /* ─── Per-Solution Provider Results ───────────────────────────── */
   .provider-section { background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px; }
   .provider-section-header { display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;flex-wrap:wrap; }
@@ -1741,6 +1759,11 @@
         <div class="role-toggle-thumb"></div>
       </div>
       <span class="role-toggle-label" id="role-label-fin" onclick="setRole('analyst')"><span class="role-icon">📊</span> Analyst</span>
+    </div>
+    <div style="display:flex;gap:6px;margin-left:16px;align-items:center;">
+      <button onclick="saveProjectJSON()" title="Save project to JSON file" style="padding:5px 12px;font-size:11px;font-weight:700;background:#f0fdf4;color:#166534;border:1.5px solid #86efac;border-radius:8px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;">💾 Save</button>
+      <button onclick="document.getElementById('loadProjectInput').click()" title="Load project from JSON file" style="padding:5px 12px;font-size:11px;font-weight:700;background:#eff6ff;color:#1d4ed8;border:1.5px solid #93c5fd;border-radius:8px;cursor:pointer;white-space:nowrap;display:flex;align-items:center;gap:4px;">📂 Load</button>
+      <input type="file" id="loadProjectInput" accept=".json" style="display:none;" onchange="loadProjectJSON(this)">
     </div>
   </div>
   <nav class="nav-bar">
@@ -2105,8 +2128,12 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
   <!-- Phase 1.6 — Solution Picker (multi-select) -->
   <div id="vendorLaunchPanel" style="display:none;">
     <div class="section" style="margin-top:8px;">
-      <div class="section-title" style="border-bottom-color:var(--purple);">Phase 1.6 — Find Software Solution Providers <span id="p16GuideBtn"></span></div>
-      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Select one or more solutions below, then click <strong>Find Software Solution Providers</strong> to research and shortlist the best providers for all selected solutions at once. <button class="guide-inline-btn" onclick="showGuideAnswer('Why pick one solution for Phase 1.6 at a time?')" title="How does provider search work?">Guide me</button></div>
+      <div class="section-title" style="border-bottom-color:var(--purple);">Phase 1.6 — Provider Search &amp; Process Planning <span id="p16GuideBtn"></span></div>
+      <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+        <strong>🛒 Software solutions</strong> — select solutions and click <strong>Find Software Solution Providers</strong> to shortlist vendors.
+        <strong style="margin-left:10px;">⚙️ Process Change solutions</strong> — define your intervention approach using the <strong>Process Intervention Builder</strong> on each card.
+        <button class="guide-inline-btn" style="margin-left:8px;" onclick="showGuideAnswer('What happens to Process Change solutions in Phase 1.6?')" title="How does Phase 1.6 work for process change solutions?">Guide me</button>
+      </div>
       <div id="solutionPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;"></div>
       <div style="margin-top:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
         <button class="batch-find-btn" id="batchFindProvidersBtn" onclick="launchBatchProviderSearch()" disabled>
@@ -2124,8 +2151,8 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 
   <!-- Phase 1.5 Launch -->
   <div class="cost-launch" id="costLaunchPanel" style="display:none;">
-    <h3>Phase 1.5 — Cost Estimation <button class="guide-inline-btn" onclick="showGuideAnswer('How are costs built from vendor pricing?')" title="How are costs calculated?">Guide me</button></h3>
-    <p>Generate AI market-rate cost estimates anchored to vendor pricing for all 5 solutions. <button class="guide-inline-btn" onclick="showGuideAnswer('What is NPV TCO?')" title="What is NPV TCO?">NPV TCO</button> <button class="guide-inline-btn" onclick="showGuideAnswer('How accurate are the cost estimates?')" title="How accurate are estimates?">Accuracy</button></p>
+    <h3>Phase 1.5 — Cost Estimation <button class="guide-inline-btn" onclick="showGuideAnswer('How are costs built from vendor pricing?')" title="How are costs calculated?">Software solutions</button> <button class="guide-inline-btn" onclick="showGuideAnswer('How are costs estimated for Process Change solutions?')" title="How are process change costs estimated?">Process solutions</button></h3>
+    <p>AI generates market-rate cost estimates for all solutions — <strong>🛒 Software</strong> solutions use vendor pricing anchors; <strong>⚙️ Process</strong> solutions use consulting, training, and change management rates. <button class="guide-inline-btn" onclick="showGuideAnswer('What is NPV TCO?')" title="What is NPV TCO?">NPV TCO</button> <button class="guide-inline-btn" onclick="showGuideAnswer('How accurate are the cost estimates?')" title="How accurate are estimates?">Accuracy</button></p>
     <button class="btn btn-info" id="costBtn" onclick="runPhase15()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
       Run Phase 1.5 — Cost Estimation
@@ -2434,16 +2461,16 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
       <div class="help-card" style="border-left-color:#7c3aed;" onclick="this.classList.toggle('open')">
         <div class="help-card-collapsed">
           <div class="help-card-icon" style="background:#7c3aed;">1.6</div>
-          <div class="help-card-title">Phase 1.6 — Vendors <button class="guide-inline-btn" onclick="event.stopPropagation();showGuideAnswer('What is a Vendor Fit Score?')" title="Guide Me — Vendors">Guide me</button></div>
-          <div class="help-card-desc">AI researches and ranks 3–5 vendors per solution with compliance scoring.</div>
-          <div class="help-card-trigger" style="color:#0891b2;"><span class="trigger-dot" style="background:#0891b2;"></span> Auto-run per solution</div>
+          <div class="help-card-title">Phase 1.6 — Vendors &amp; Interventions <button class="guide-inline-btn" onclick="event.stopPropagation();showGuideAnswer('What happens to Process Change solutions in Phase 1.6?')" title="Guide Me — Phase 1.6">Guide me</button></div>
+          <div class="help-card-desc">🛒 Software solutions: AI ranks 3–5 vendors with compliance scoring. ⚙️ Process solutions: define your intervention using the Process Intervention Builder.</div>
+          <div class="help-card-trigger" style="color:#0891b2;"><span class="trigger-dot" style="background:#0891b2;"></span> Select solutions or define interventions</div>
           <span class="help-card-expand-hint">Click to expand</span>
         </div>
         <div class="help-card-detail">
           <div class="help-detail-cols">
-            <div class="help-detail-col"><h4>You Provide</h4><ul><li>Nothing — runs automatically</li><li>Parallel per solution</li></ul></div>
-            <div class="help-detail-col"><h4>AI Does</h4><ul><li>Researches real vendors</li><li>Scores compliance &amp; integration</li><li>Flags coverage gaps</li><li>Estimates delivery timelines</li></ul></div>
-            <div class="help-detail-col"><h4>You Get Back</h4><ul><li>Ranked vendor cards</li><li>Fit scores per vendor</li><li>Cost ranges</li><li>Compliance coverage map</li></ul></div>
+            <div class="help-detail-col"><h4>You Provide</h4><ul><li>🛒 Select software solutions to search</li><li>⚙️ Fill in PIB for process solutions (optional but recommended)</li></ul></div>
+            <div class="help-detail-col"><h4>AI Does</h4><ul><li>Researches &amp; ranks real vendors (software)</li><li>Scores compliance &amp; integration fit</li><li>Flags coverage gaps</li><li>Process solutions: uses PIB data for cost sizing</li></ul></div>
+            <div class="help-detail-col"><h4>You Get Back</h4><ul><li>Ranked vendor cards per software solution</li><li>Fit scores, cost ranges, compliance map</li><li>Saved intervention plan per process solution</li></ul></div>
           </div>
         </div>
       </div>
@@ -3588,6 +3615,7 @@ function buildValueChainCard(sol, allBenefits, allRequirements, phaseContext) {
       <div class="vc-badges">
         ${riskLvl ? `<span class="badge ${riskClass(riskLvl)}" style="font-size:10px;">${riskLvl} Risk</span>` : ''}
         ${sol.deliveryPhase ? `<span class="badge ${phaseColor(sol.deliveryPhase)}" style="font-size:10px;">Phase ${sol.deliveryPhase}</span>` : ''}
+        ${approachBadge(sol.solutionApproach)}
       </div>
     </div>
     <div class="vc-chain">
@@ -3619,6 +3647,15 @@ function lrCalcNPV(cost, annualBenefit, rate, years) {
 function lrCalcROI(cost, annualBenefit, years) {
   if (!cost) return 0;
   return Math.round(((annualBenefit * years - cost) / cost) * 100);
+}
+
+// Zero-cost guard: renders ROI% normally, or "Net Benefit: $X/yr" when cost=0 and benefit>0
+function fmtROI(sol) {
+  if (sol.netBenefitOnly && sol.annualNetBenefit > 0) {
+    return `<span title="No direct cost — this solution delivers pure net benefit through process improvement" style="font-weight:700;color:var(--success);">Net Benefit: ${fmt(sol.annualNetBenefit)}/yr</span>`;
+  }
+  const r = sol.roi ?? sol.roiPct ?? 0;
+  return `${Math.round(r)}%`;
 }
 
 function lrCalcIRR(cost, annualBenefit, years) {
@@ -3843,6 +3880,16 @@ function phaseColor(p) {
   return 'badge-purple';
 }
 
+function approachBadge(approach) {
+  if (approach === 'change') {
+    return '<span title="Process Change — best addressed by redesigning workflows, retraining staff, or updating policies. Little or no software procurement required." style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;background:#fffbeb;color:#b45309;border:1px solid #fde68a;text-transform:uppercase;letter-spacing:0.4px;cursor:help;">⚙️ Process</span>';
+  }
+  if (approach === 'hybrid') {
+    return '<span title="Hybrid — combines software procurement with process/people change. Both a vendor and a change management programme are required." style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;text-transform:uppercase;letter-spacing:0.4px;cursor:help;">🔀 Hybrid</span>';
+  }
+  return '<span title="Software / SaaS — best addressed by procuring a vendor product, SaaS platform, or third-party tool. Vendor selection applies in Phase 1.6." style="display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;text-transform:uppercase;letter-spacing:0.4px;cursor:help;">🛒 Software</span>';
+}
+
 function confidenceColor(c) {
   if (c >= 0.85) return 'var(--success)';
   if (c >= 0.7) return 'var(--primary)';
@@ -3941,11 +3988,12 @@ let wizardData = {
   complianceRequirements: [],
   technicalStack: [],
   systemIntegrations: [],
+  alreadyTried: { chips: [], text: '' },
   projectTitle: '', projectOwner: ''
 };
 let wizardStep = 1;
 let wizStepsCompleted = new Set();
-const TOTAL_STEPS = 10;
+const TOTAL_STEPS = 11;
 
 // ── BU-specific role options ──
 const BU_ROLES = {
@@ -4324,7 +4372,8 @@ function buildProgressBar() {
     8:  'How is budget used in the analysis?',
     9:  'Why do compliance requirements matter for vendor selection?',
     10: 'Why do current systems affect vendor recommendations?',
-    11: 'What happens when I click Run Discovery?'
+    11: 'How does "What you already tried" affect the AI output?',
+    12: 'What happens when I click Run Discovery?'
   };
   const q = WIZ_STEP_GUIDES[wizardStep] || '';
   const escaped = q.replace(/'/g, "\\'");
@@ -4702,8 +4751,60 @@ function renderWizardStep() {
       </div>`;
   }
 
-  // ═══════ STEP 11 — REVIEW SCREEN ═══════
+  // ═══════ STEP 11 — WHAT HAVE YOU ALREADY TRIED? ═══════
   else if (wizardStep === 11) {
+    const AT_CHIPS = [
+      'Manual workarounds (Excel / spreadsheets)',
+      'Off-the-shelf software',
+      'Custom / in-house build',
+      'Process & workflow redesign',
+      'Outsourcing / third-party',
+      'Staff training & upskilling',
+      'Hired a consultant',
+      'Switched vendors'
+    ];
+    const selectedChips = wizardData.alreadyTried?.chips || [];
+    const triedText = wizardData.alreadyTried?.text || '';
+
+    const chipHtml = AT_CHIPS.map(c => {
+      const sel = selectedChips.includes(c) ? 'selected' : '';
+      const escaped = c.replace(/'/g, "\\'");
+      return `<div class="wiz-chip ${sel}" onclick="toggleAlreadyTriedChip('${escaped}')">${c}</div>`;
+    }).join('');
+
+    body = `${progress}
+      <div class="wiz-step-label">Step 11 of ${TOTAL_STEPS}</div>
+      <div class="wiz-question">What have you already tried? <span style="font-size:13px;font-weight:400;color:var(--text-muted);">(optional)</span></div>
+      <div class="wiz-why">Knowing what's been tried before helps the AI avoid re-recommending the same approaches — and means your business case won't propose something that's already been ruled out by leadership.</div>
+
+      <div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:8px;">Select all that apply</div>
+        <div class="wiz-chips" style="flex-wrap:wrap;gap:8px;">
+          ${chipHtml}
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;">
+        <div style="font-size:12px;font-weight:600;color:var(--text-muted);margin-bottom:6px;">What happened — why didn't it work? <span style="font-weight:400;">(optional)</span></div>
+        <textarea class="wiz-textarea" id="wiz-alreadyTried" style="min-height:90px;" placeholder="e.g. We bought a SaaS tool 2 years ago but adoption was poor — staff reverted to spreadsheets within 3 months. The vendor wasn't responsive and integration with our ERP failed." oninput="wizardData.alreadyTried.text=this.value">${esc(triedText)}</textarea>
+      </div>
+
+      <div class="wiz-guidelines">
+        ✓ The AI uses this to steer away from already-failed approaches<br>
+        ✓ If a prior approach is unavoidable, the AI will explain why it will succeed this time<br>
+        ✓ Nothing here is shown to approvers — it's for AI context only
+      </div>
+      <div class="wiz-footer">
+        <button class="wiz-back" onclick="wizardStep=10;renderWizardStep()">Back</button>
+        <div style="display:flex;align-items:center;gap:16px;">
+          <a href="#" class="wiz-skip" onclick="event.preventDefault();wizardData.alreadyTried={chips:[],text:''};wizardStep=12;renderWizardStep()">Skip for now</a>
+          <button class="wiz-next" onclick="wizardStep=12;renderWizardStep()">Continue</button>
+        </div>
+      </div>`;
+  }
+
+  // ═══════ STEP 12 — REVIEW SCREEN ═══════
+  else if (wizardStep === 12) {
     const trunc = (s, n) => s && s.length > n ? esc(s.slice(0,n)) + '...' : esc(s);
     const tagList = arr => (arr||[]).length ? arr.map(t => `<span style="display:inline-block;padding:2px 10px;background:var(--primary);color:#fff;border-radius:20px;font-size:11px;font-weight:600;margin:2px;">${esc(t)}</span>`).join(' ') : '<span style="color:var(--text-muted);font-style:italic;">Not specified</span>';
     const problems = wizardData.currentPainPoints.filter(Boolean);
@@ -4718,7 +4819,15 @@ function renderWizardStep() {
       { step: 7, label: 'Urgency', value: esc(wizardData._urgencyLabel || wizardData.urgency) || '<em style="color:var(--danger);">Not selected</em>' },
       { step: 8, label: 'Budget', value: wizardData.budget ? '$' + Number(wizardData.budget).toLocaleString() : '<span style="color:var(--text-muted);font-style:italic;">AI will suggest</span>' },
       { step: 9, label: 'Compliance', value: tagList(wizardData.complianceRequirements) },
-      { step: 10, label: 'Current Systems', value: tagList(wizardData.technicalStack) }
+      { step: 10, label: 'Current Systems', value: tagList(wizardData.technicalStack) },
+      { step: 11, label: 'Already Tried', value: (() => {
+          const at = wizardData.alreadyTried || {};
+          const chips = (at.chips||[]).filter(Boolean);
+          const text = (at.text||'').trim();
+          if (!chips.length && !text) return '<span style="color:var(--text-muted);font-style:italic;">Not specified</span>';
+          return (chips.length ? tagList(chips) : '') + (text ? `<div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${esc(text.slice(0,80))}${text.length>80?'...':''}</div>` : '');
+        })()
+      }
     ];
 
     const cardsHtml = reviewCards.map(rc => `
@@ -4762,7 +4871,10 @@ function renderWizardStep() {
         <strong>${qScore}/5</strong> ${qMsg}
       </div>
       <div class="wiz-footer" style="justify-content:center;flex-direction:column;gap:10px;align-items:center;">
-        <button class="btn btn-outline" onclick="openReviewOverlay()" style="padding:10px 24px;font-size:14px;font-weight:600;margin-right:10px;">📋 Review & Edit</button>
+        <div style="display:flex;gap:10px;width:100%;justify-content:center;">
+          <button class="wiz-back" onclick="wizardStep=11;renderWizardStep()">Back</button>
+          <button class="btn btn-outline" onclick="openReviewOverlay()" style="padding:10px 24px;font-size:14px;font-weight:600;">📋 Review & Edit</button>
+        </div>
         <button class="wiz-next" style="padding:14px 40px;font-size:16px;" ${!isValid ? 'disabled title="Complete all required steps"' : ''} onclick="runPhase1()">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
           Run Discovery
@@ -4866,8 +4978,19 @@ window.addEventListener('message', (event) => {
 });
 
 // ─── Form: Gather Payload (from wizard data) ────────────────────
+function toggleAlreadyTriedChip(chip) {
+  if (!wizardData.alreadyTried) wizardData.alreadyTried = { chips: [], text: '' };
+  const chips = wizardData.alreadyTried.chips;
+  const idx = chips.indexOf(chip);
+  if (idx >= 0) chips.splice(idx, 1);
+  else chips.push(chip);
+  renderWizardStep();
+}
+
 function gatherFormPayload() {
   const w = wizardData;
+  const at = w.alreadyTried || { chips: [], text: '' };
+  const hasAlreadyTried = at.chips.length > 0 || (at.text || '').trim().length > 0;
   return {
     projectTitle: w.projectTitle || w.currentPainPoints[0] || 'Business Case Analysis',
     businessUnit: w.businessUnit,
@@ -4887,6 +5010,7 @@ function gatherFormPayload() {
     companySize: w.scaleLabel || ((w.annualRevenue || 0) > 50000000 ? 'Enterprise' : 'SME'),
     timeHorizonYears: w.timeHorizonYears || 3,
     discountRatePct: w.discountRatePct || 12,
+    alreadyTried: hasAlreadyTried ? { chips: [...at.chips], text: (at.text || '').trim() } : null,
     discoverWithAI: true,
     mode: 'draft'
   };
@@ -5197,7 +5321,7 @@ function renderDemoResults(mock) {
   html += '</div>';
 
   // ─── Phase 1: Solutions Grid ───
-  html += '<div class="section"><div class="section-title">Phase 1 — Discovery Results</div></div>';
+  html += '<div class="section"><div class="section-title">Phase 1 — Discovery Results <button class="guide-inline-btn" onclick="showGuideAnswer(\'What do the Software and Process approach badges mean?\')" title="What do approach badges mean?">Approach badges</button></div></div>';
   html += '<div class="kpi-row" style="margin-bottom:20px;">';
   html += '<div class="kpi-card"><div class="kpi-label">Solutions</div><div class="kpi-value">' + mock.solutions.length + '</div></div>';
   html += '<div class="kpi-card"><div class="kpi-label">Benefits</div><div class="kpi-value">' + mock.benefits.length + '</div></div>';
@@ -5478,11 +5602,11 @@ const DEMO_VENDOR_DATA = {
 
 const COST_TEST_PAYLOAD = {
   solutions: [
-    { id: "SOL-001", name: "Security & Compliance Foundation", category: "security_compliance", description: "PCI-DSS and GDPR compliance implementation with security hardening.", riskLevel: "Low", deliveryPhase: 1, totalCost: 120000, costEstimate: { low: 95000, mid: 120000, high: 148000, recommended: 120000, implementationMonths: 5 }, selectedVendor: { name: "Vanta", fitScore: 94, vendorCostLow: 30000, vendorCostHigh: 60000, implementationMonths: 4 }, vendorName: "Vanta", vendorFitScore: 94 },
-    { id: "SOL-002", name: "Platform Modernisation & CDN", category: "frontend_modernization", description: "Modern React frontend with CDN acceleration and performance optimisation.", riskLevel: "Medium", deliveryPhase: 2, totalCost: 95000, costEstimate: { low: 75000, mid: 95000, high: 118000, recommended: 95000, implementationMonths: 4 }, selectedVendor: { name: "Vercel Enterprise", fitScore: 88, vendorCostLow: 18000, vendorCostHigh: 36000, implementationMonths: 3 }, vendorName: "Vercel Enterprise", vendorFitScore: 88 },
-    { id: "SOL-003", name: "Order Processing Automation", category: "process_optimization", description: "End-to-end order automation with AI routing and carrier integration.", riskLevel: "Medium", deliveryPhase: 2, totalCost: 108000, costEstimate: { low: 82000, mid: 108000, high: 138000, recommended: 108000, implementationMonths: 6 }, selectedVendor: { name: "Kissflow Process", fitScore: 85, vendorCostLow: 28000, vendorCostHigh: 55000, implementationMonths: 5 }, vendorName: "Kissflow Process", vendorFitScore: 85 },
-    { id: "SOL-004", name: "Cart Recovery & Conversion", category: "ecommerce_optimization", description: "AI-powered cart abandonment recovery with personalised flows.", riskLevel: "Low", deliveryPhase: 2, totalCost: 85000, costEstimate: { low: 65000, mid: 85000, high: 105000, recommended: 85000, implementationMonths: 4 }, selectedVendor: { name: "Dynamic Yield", fitScore: 82, vendorCostLow: 22000, vendorCostHigh: 45000, implementationMonths: 3 }, vendorName: "Dynamic Yield", vendorFitScore: 82 },
-    { id: "SOL-005", name: "Sustainable Operations & Carbon Tracking", category: "cloud_modernization", description: "Carbon footprint tracking with ESG reporting dashboard.", riskLevel: "Low", deliveryPhase: 3, totalCost: 55000, costEstimate: { low: 42000, mid: 55000, high: 70000, recommended: 55000, implementationMonths: 3 }, selectedVendor: { name: "Sweep", fitScore: 80, vendorCostLow: 20000, vendorCostHigh: 40000, implementationMonths: 3 }, vendorName: "Sweep", vendorFitScore: 80 }
+    { id: "SOL-001", name: "Security & Compliance Foundation", category: "security_compliance", solutionApproach: "buy", description: "PCI-DSS and GDPR compliance implementation with security hardening.", riskLevel: "Low", deliveryPhase: 1, totalCost: 120000, costEstimate: { low: 95000, mid: 120000, high: 148000, recommended: 120000, implementationMonths: 5 }, selectedVendor: { name: "Vanta", fitScore: 94, vendorCostLow: 30000, vendorCostHigh: 60000, implementationMonths: 4 }, vendorName: "Vanta", vendorFitScore: 94 },
+    { id: "SOL-002", name: "Platform Modernisation & CDN", category: "frontend_modernization", solutionApproach: "buy", description: "Modern React frontend with CDN acceleration and performance optimisation.", riskLevel: "Medium", deliveryPhase: 2, totalCost: 95000, costEstimate: { low: 75000, mid: 95000, high: 118000, recommended: 95000, implementationMonths: 4 }, selectedVendor: { name: "Vercel Enterprise", fitScore: 88, vendorCostLow: 18000, vendorCostHigh: 36000, implementationMonths: 3 }, vendorName: "Vercel Enterprise", vendorFitScore: 88 },
+    { id: "SOL-003", name: "Order Processing Automation", category: "process_optimization", solutionApproach: "change", description: "End-to-end order automation with AI routing and carrier integration.", riskLevel: "Medium", deliveryPhase: 2, totalCost: 108000, costEstimate: { low: 82000, mid: 108000, high: 138000, recommended: 108000, implementationMonths: 6 }, selectedVendor: { name: "Kissflow Process", fitScore: 85, vendorCostLow: 28000, vendorCostHigh: 55000, implementationMonths: 5 }, vendorName: "Kissflow Process", vendorFitScore: 85 },
+    { id: "SOL-004", name: "Cart Recovery & Conversion", category: "ecommerce_optimization", solutionApproach: "buy", description: "AI-powered cart abandonment recovery with personalised flows.", riskLevel: "Low", deliveryPhase: 2, totalCost: 85000, costEstimate: { low: 65000, mid: 85000, high: 105000, recommended: 85000, implementationMonths: 4 }, selectedVendor: { name: "Dynamic Yield", fitScore: 82, vendorCostLow: 22000, vendorCostHigh: 45000, implementationMonths: 3 }, vendorName: "Dynamic Yield", vendorFitScore: 82 },
+    { id: "SOL-005", name: "Sustainable Operations & Carbon Tracking", category: "cloud_modernization", solutionApproach: "buy", description: "Carbon footprint tracking with ESG reporting dashboard.", riskLevel: "Low", deliveryPhase: 3, totalCost: 55000, costEstimate: { low: 42000, mid: 55000, high: 70000, recommended: 55000, implementationMonths: 3 }, selectedVendor: { name: "Sweep", fitScore: 80, vendorCostLow: 20000, vendorCostHigh: 40000, implementationMonths: 3 }, vendorName: "Sweep", vendorFitScore: 80 }
   ],
   benefits: [
     { id: "BEN-001", category: "Operational Efficiency", riskAdjustedValue: 48000 },
@@ -5508,11 +5632,11 @@ const COST_TEST_PAYLOAD = {
 
 const REFLECTION_TEST_PAYLOAD = {
   solutions: [
-    { id: "SOL-001", name: "Security & Compliance Foundation", category: "security_compliance", riskLevel: "Low", deliveryPhase: 1, linkedBenefits: ["BEN-001","BEN-002","BEN-003"], linkedRequirements: ["REQ-001","REQ-002","REQ-003"], delivers_benefits: ["BEN-001","BEN-002","BEN-003"], depends_on_requirements: ["REQ-001","REQ-002","REQ-003"], costEstimate: { low: 42000, mid: 52000, high: 65000, recommended: 52000, breakdown: { labour: 26000, licensing: 10000, infrastructure: 5000, testing: 6000, training: 3000, contingency: 2000 }, implementationMonths: 5 }, recurringAnnualCost: 15000, selectedVendor: { name: "Vanta", fitScore: 94, complianceCoverage: ["PCI-DSS","GDPR"], vendorCostLow: 30000, vendorCostHigh: 60000 }, vendorName: "Vanta", vendorFitScore: 94 },
-    { id: "SOL-002", name: "Platform Modernisation & CDN", category: "frontend_modernization", riskLevel: "Medium", deliveryPhase: 2, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-002","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-002","REQ-004"], costEstimate: { low: 28000, mid: 35000, high: 44000, recommended: 35000, breakdown: { labour: 17000, licensing: 7000, infrastructure: 4000, testing: 4000, training: 2000, contingency: 1000 }, implementationMonths: 4 }, recurringAnnualCost: 24000, selectedVendor: { name: "Vercel Enterprise", fitScore: 88, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 18000, vendorCostHigh: 36000 }, vendorName: "Vercel Enterprise", vendorFitScore: 88 },
-    { id: "SOL-003", name: "Order Processing Automation", category: "process_optimization", riskLevel: "Medium", deliveryPhase: 2, linkedBenefits: ["BEN-001","BEN-003","BEN-005"], linkedRequirements: ["REQ-002","REQ-003","REQ-004"], delivers_benefits: ["BEN-001","BEN-003","BEN-005"], depends_on_requirements: ["REQ-002","REQ-003","REQ-004"], costEstimate: { low: 38000, mid: 48000, high: 60000, recommended: 48000, breakdown: { labour: 24000, licensing: 10000, infrastructure: 5000, testing: 5000, training: 2000, contingency: 2000 }, implementationMonths: 6 }, recurringAnnualCost: 18000, selectedVendor: { name: "Kissflow Process", fitScore: 85, complianceCoverage: ["SOC2","GDPR"], vendorCostLow: 28000, vendorCostHigh: 55000 }, vendorName: "Kissflow Process", vendorFitScore: 85 },
-    { id: "SOL-004", name: "Cart Recovery & Conversion", category: "ecommerce_optimization", riskLevel: "Low", deliveryPhase: 2, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-001","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-001","REQ-004"], costEstimate: { low: 30000, mid: 38000, high: 48000, recommended: 38000, breakdown: { labour: 19000, licensing: 8000, infrastructure: 4000, testing: 4000, training: 2000, contingency: 1000 }, implementationMonths: 4 }, recurringAnnualCost: 36000, selectedVendor: { name: "Dynamic Yield", fitScore: 82, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 22000, vendorCostHigh: 45000 }, vendorName: "Dynamic Yield", vendorFitScore: 82 },
-    { id: "SOL-005", name: "Sustainable Operations & Carbon Tracking", category: "cloud_modernization", riskLevel: "Low", deliveryPhase: 3, linkedBenefits: ["BEN-003","BEN-005"], linkedRequirements: ["REQ-003","REQ-005"], delivers_benefits: ["BEN-003","BEN-005"], depends_on_requirements: ["REQ-003","REQ-005"], costEstimate: { low: 28000, mid: 36000, high: 46000, recommended: 36000, breakdown: { labour: 18000, licensing: 7000, infrastructure: 4000, testing: 4000, training: 2000, contingency: 1000 }, implementationMonths: 3 }, recurringAnnualCost: 28000, selectedVendor: { name: "Sweep", fitScore: 80, complianceCoverage: ["PCI-DSS","GDPR","SOC2","ISO27001"], vendorCostLow: 20000, vendorCostHigh: 40000 }, vendorName: "Sweep", vendorFitScore: 80 }
+    { id: "SOL-001", name: "Security & Compliance Foundation", category: "security_compliance", solutionApproach: "buy", riskLevel: "Low", deliveryPhase: 1, linkedBenefits: ["BEN-001","BEN-002","BEN-003"], linkedRequirements: ["REQ-001","REQ-002","REQ-003"], delivers_benefits: ["BEN-001","BEN-002","BEN-003"], depends_on_requirements: ["REQ-001","REQ-002","REQ-003"], costEstimate: { low: 42000, mid: 52000, high: 65000, recommended: 52000, breakdown: { labour: 26000, licensing: 10000, infrastructure: 5000, testing: 6000, training: 3000, contingency: 2000 }, implementationMonths: 5 }, recurringAnnualCost: 15000, selectedVendor: { name: "Vanta", fitScore: 94, complianceCoverage: ["PCI-DSS","GDPR"], vendorCostLow: 30000, vendorCostHigh: 60000 }, vendorName: "Vanta", vendorFitScore: 94 },
+    { id: "SOL-002", name: "Platform Modernisation & CDN", category: "frontend_modernization", solutionApproach: "buy", riskLevel: "Medium", deliveryPhase: 2, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-002","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-002","REQ-004"], costEstimate: { low: 28000, mid: 35000, high: 44000, recommended: 35000, breakdown: { labour: 17000, licensing: 7000, infrastructure: 4000, testing: 4000, training: 2000, contingency: 1000 }, implementationMonths: 4 }, recurringAnnualCost: 24000, selectedVendor: { name: "Vercel Enterprise", fitScore: 88, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 18000, vendorCostHigh: 36000 }, vendorName: "Vercel Enterprise", vendorFitScore: 88 },
+    { id: "SOL-003", name: "Order Processing Automation", category: "process_optimization", solutionApproach: "change", riskLevel: "Medium", deliveryPhase: 2, linkedBenefits: ["BEN-001","BEN-003","BEN-005"], linkedRequirements: ["REQ-002","REQ-003","REQ-004"], delivers_benefits: ["BEN-001","BEN-003","BEN-005"], depends_on_requirements: ["REQ-002","REQ-003","REQ-004"], costEstimate: { low: 38000, mid: 48000, high: 60000, recommended: 48000, breakdown: { labour: 24000, licensing: 10000, infrastructure: 5000, testing: 5000, training: 2000, contingency: 2000 }, implementationMonths: 6 }, recurringAnnualCost: 18000, selectedVendor: { name: "Kissflow Process", fitScore: 85, complianceCoverage: ["SOC2","GDPR"], vendorCostLow: 28000, vendorCostHigh: 55000 }, vendorName: "Kissflow Process", vendorFitScore: 85 },
+    { id: "SOL-004", name: "Cart Recovery & Conversion", category: "ecommerce_optimization", solutionApproach: "buy", riskLevel: "Low", deliveryPhase: 2, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-001","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-001","REQ-004"], costEstimate: { low: 30000, mid: 38000, high: 48000, recommended: 38000, breakdown: { labour: 19000, licensing: 8000, infrastructure: 4000, testing: 4000, training: 2000, contingency: 1000 }, implementationMonths: 4 }, recurringAnnualCost: 36000, selectedVendor: { name: "Dynamic Yield", fitScore: 82, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 22000, vendorCostHigh: 45000 }, vendorName: "Dynamic Yield", vendorFitScore: 82 },
+    { id: "SOL-005", name: "Sustainable Operations & Carbon Tracking", category: "cloud_modernization", solutionApproach: "buy", riskLevel: "Low", deliveryPhase: 3, linkedBenefits: ["BEN-003","BEN-005"], linkedRequirements: ["REQ-003","REQ-005"], delivers_benefits: ["BEN-003","BEN-005"], depends_on_requirements: ["REQ-003","REQ-005"], costEstimate: { low: 28000, mid: 36000, high: 46000, recommended: 36000, breakdown: { labour: 18000, licensing: 7000, infrastructure: 4000, testing: 4000, training: 2000, contingency: 1000 }, implementationMonths: 3 }, recurringAnnualCost: 28000, selectedVendor: { name: "Sweep", fitScore: 80, complianceCoverage: ["PCI-DSS","GDPR","SOC2","ISO27001"], vendorCostLow: 20000, vendorCostHigh: 40000 }, vendorName: "Sweep", vendorFitScore: 80 }
   ],
   benefits: [
     { id: "BEN-001", category: "Operational Efficiency", description: "Automate 80% of order processing.", riskAdjustedValue: 48000, confidence: 0.85, valueBasis: "1.8 FTE equivalent savings [source: company financials]", linkedSolutions: ["SOL-003"], delivered_by_solutions: ["SOL-003"] },
@@ -5669,7 +5793,7 @@ function clearDemoData() {
   if (intakeEl) intakeEl.style.display = '';
   // Reset demo bar
   const demoBar = document.getElementById('demoLoadBar');
-  if (demoBar) demoBar.innerHTML = '<button class="btn" onclick="startIntakeWalkthrough()" style="padding:10px 28px;font-size:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(99,102,241,.35);transition:all .2s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Guided Demo — Eco Platform Upgrade (Retail)</button><div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Walk through all 9 intake sections, then see the full Discovery results</div>';
+  if (demoBar) demoBar.innerHTML = '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;"><button class="btn" onclick="startIntakeWalkthrough()" style="padding:10px 28px;font-size:14px;background:linear-gradient(135deg,#7c3aed,#6366f1);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(99,102,241,.35);transition:all .2s;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>Start Guided Demo — All 9 Sections</button><button class="btn" onclick="startIntakeWalkthrough();setTimeout(()=>{const b=document.getElementById(\'discoveryBtn\');if(b)b.click();},400);" style="padding:10px 24px;font-size:14px;background:linear-gradient(135deg,#059669,#10b981);border:none;border-radius:10px;color:#fff;cursor:pointer;font-weight:700;box-shadow:0 2px 10px rgba(5,150,105,.3);transition:all .2s;" title="Pre-fill demo data and run Discovery immediately — skip the form walkthrough"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:6px;"><polygon points="5 3 19 12 5 21 5 3"/><line x1="19" y1="3" x2="19" y2="21"/></svg>⚡ Run Demo Instantly</button></div><div style="font-size:11px;color:var(--text-muted);margin-top:6px;">Guided Demo: walk through all 9 sections · Instant: pre-fill and run Discovery in one click</div>';
   // Also hide walkthrough if visible
   const wt = document.getElementById('intakeWalkthrough');
   if (wt) wt.style.display = 'none';
@@ -5721,6 +5845,8 @@ function reAnalysis() {
   _phase4Results = null;
   _phase5Results = null;
   _providerSelections = {};
+  _processInterventions = {};
+  _clearPIBStorage();
   _selectedSolutionId = null;
   _selectedVendorData = null;
   // Unlock Discovery, re-lock downstream phases
@@ -5746,6 +5872,71 @@ function showToast(msg, duration = 3000) {
   toast.style.opacity = '1';
   clearTimeout(toast._t);
   toast._t = setTimeout(() => { toast.style.opacity = '0'; }, duration);
+}
+
+// ─── Project Save / Load (JSON export-import) ────────────────────
+function saveProjectJSON() {
+  const snapshot = {
+    version: 1,
+    savedAt: new Date().toISOString(),
+    projectTitle: window._phase1Results?.validatedData?.projectTitle || window._phase1Results?.projectMeta?.projectTitle || 'BCA Project',
+    wizardData: window.wizardData ? { ...window.wizardData } : null,
+    phase1Results:  window._phase1Results  || null,
+    phase15Results: window._phase15Results || null,
+    phase16Results: window._phase16Results || null,
+    phase2Results:  window._phase2Results  || null,
+    phase3Results:  window._phase3Results  || null,
+    phase4Results:  window._phase4Results  || null,
+    phase5Results:  window._phase5Results  || null,
+  };
+  const hasData = snapshot.phase1Results || snapshot.wizardData;
+  if (!hasData) { showToast('Nothing to save — run Discovery first.', 3000); return; }
+  const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  const title = (snapshot.projectTitle || 'bca-project').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+  a.href = URL.createObjectURL(blob);
+  a.download = `${title}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✅ Project saved — ' + a.download, 3000);
+}
+
+function loadProjectJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const snap = JSON.parse(e.target.result);
+      if (!snap.version || (!snap.phase1Results && !snap.wizardData)) {
+        showToast('❌ Invalid project file — not a BCA project snapshot.', 4000); return;
+      }
+      if (snap.wizardData)    { window.wizardData    = snap.wizardData; }
+      if (snap.phase1Results) { window._phase1Results  = snap.phase1Results;  renderResults(snap.phase1Results); }
+      if (snap.phase15Results){ window._phase15Results = snap.phase15Results; renderCostResults(snap.phase15Results); }
+      if (snap.phase2Results) { window._phase2Results  = snap.phase2Results;
+        const p2el = document.getElementById('phase2-results');
+        if (p2el) renderPhase2(snap.phase2Results); }
+      if (snap.phase3Results) { window._phase3Results  = snap.phase3Results;
+        const p3el = document.getElementById('phase3-results');
+        if (p3el) renderPhase3(snap.phase3Results, p3el); }
+      if (snap.phase4Results) { window._phase4Results  = snap.phase4Results;
+        const p4el = document.getElementById('phase4-results');
+        if (p4el) renderPhase4(snap.phase4Results, p4el); }
+      if (snap.phase5Results) { window._phase5Results  = snap.phase5Results;
+        const p5el = document.getElementById('phase5-results');
+        if (p5el && snap.phase5Results?.export?.html) {
+          p5el.innerHTML = snap.phase5Results.export.html;
+          p5el.style.display = 'block';
+        }
+      }
+      showToast(`✅ Project loaded: ${snap.projectTitle || 'BCA Project'} (saved ${snap.savedAt?.slice(0,10) || '—'})`, 4000);
+    } catch(err) {
+      showToast('❌ Could not load file: ' + err.message, 4000);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 // ─── Phase 1 — Discovery ────────────────────────────────────────
@@ -5883,6 +6074,7 @@ function renderResults(r) {
             <div class="sol-meta">
               <span class="badge ${riskClass(s.riskLevel)}">${s.riskLevel} Risk</span>
               <span class="badge ${phaseColor(s.deliveryPhase)}">Phase ${s.deliveryPhase}</span>
+              ${approachBadge(s.solutionApproach)}
               <span class="badge badge-muted">${s.category.replace(/_/g,' ')}</span>
               <span class="badge badge-muted">${s.implementationTime} wks</span>
             </div>
@@ -5891,6 +6083,16 @@ function renderResults(r) {
         </div>
         <div class="sol-card-body">
           <div class="sol-desc">${s.description}</div>
+          ${s.processAddressabilityPct != null ? `<div style="margin-bottom:14px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:700;color:var(--text-muted);">Process Addressability</span>
+              <span style="font-size:11px;font-weight:700;color:${s.processAddressabilityPct >= 80 ? '#b45309' : s.processAddressabilityPct >= 40 ? '#6d28d9' : '#1d4ed8'};">${s.processAddressabilityPct}%</span>
+            </div>
+            <div style="height:6px;background:var(--surface-alt);border-radius:4px;overflow:hidden;">
+              <div style="height:100%;width:${s.processAddressabilityPct}%;background:${s.processAddressabilityPct >= 80 ? '#f59e0b' : s.processAddressabilityPct >= 40 ? '#8b5cf6' : '#3b82f6'};border-radius:4px;transition:width .6s;"></div>
+            </div>
+            ${s.processAddressabilityRationale ? `<div style="font-size:10px;color:var(--text-muted);margin-top:3px;line-height:1.4;">${s.processAddressabilityRationale}</div>` : ''}
+          </div>` : ''}
           <div class="sol-costs">
             <div class="cost-box low"><div class="cost-box-label">Low ${guideBtn('What do the cost Low / Mid / High ranges mean?')}</div><div class="cost-box-value">${fmt(s.costEstimate?.low)}</div></div>
             <div class="cost-box mid"><div class="cost-box-label">Mid</div><div class="cost-box-value">${fmt(s.costEstimate?.mid)}</div></div>
@@ -5903,6 +6105,28 @@ function renderResults(r) {
         </div>
       </div>`;
   }).join('');
+
+  // F3 — Portfolio process split panel
+  const _buySols    = r.solutions.filter(s => s.solutionApproach === 'buy');
+  const _hybridSols = r.solutions.filter(s => s.solutionApproach === 'hybrid');
+  const _changeSols = r.solutions.filter(s => s.solutionApproach === 'change');
+  const _totalSols  = r.solutions.length || 1;
+  const _buyPct     = Math.round(_buySols.length / _totalSols * 100);
+  const _hybridPct  = Math.round(_hybridSols.length / _totalSols * 100);
+  const _changePct  = Math.round(_changeSols.length / _totalSols * 100);
+  const splitPanelHtml = `<div style="background:var(--surface-alt);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;">
+    <div style="font-size:12px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;white-space:nowrap;">Portfolio Mix</div>
+    <div style="flex:1;min-width:200px;display:flex;height:10px;border-radius:6px;overflow:hidden;gap:2px;">
+      ${_buySols.length > 0 ? `<div style="flex:${_buySols.length};background:#3b82f6;" title="Software: ${_buySols.length} solution(s)"></div>` : ''}
+      ${_hybridSols.length > 0 ? `<div style="flex:${_hybridSols.length};background:#8b5cf6;" title="Hybrid: ${_hybridSols.length} solution(s)"></div>` : ''}
+      ${_changeSols.length > 0 ? `<div style="flex:${_changeSols.length};background:#f59e0b;" title="Process: ${_changeSols.length} solution(s)"></div>` : ''}
+    </div>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;font-weight:700;">
+      ${_buySols.length > 0 ? `<span style="color:#1d4ed8;">🛒 Software ${_buySols.length} (${_buyPct}%)</span>` : ''}
+      ${_hybridSols.length > 0 ? `<span style="color:#6d28d9;">🔀 Hybrid ${_hybridSols.length} (${_hybridPct}%)</span>` : ''}
+      ${_changeSols.length > 0 ? `<span style="color:#b45309;">⚙️ Process ${_changeSols.length} (${_changePct}%)</span>` : ''}
+    </div>
+  </div>`;
 
   const benRows = r.benefits.map(b => {
     const confPct = Math.round((b.confidence || 0) * 100);
@@ -5937,6 +6161,29 @@ function renderResults(r) {
   if (r.budgetCeilingBreached) {
     ceilingAlert = `<div class="alert alert-danger" style="margin-top:14px;"><span class="alert-icon">&#9888;</span><div><strong>Budget Ceiling Breached!</strong> Total cost exceeds the 85% hard ceiling. Phase 1.6 and Phase 2 are blocked until resolved.</div></div>`;
   }
+  // Bonus: surface AI-suggested budget when no user budget was provided
+  const sugBudget = r.suggestedBudget || null;
+  const budRationale = r.budgetRationale || null;
+  const suggestedBudgetCallout = sugBudget && !r.validatedData?.budget ? `
+    <div style="background:#eff6ff;border-left:4px solid #3b82f6;border-radius:6px;padding:12px 16px;margin-bottom:10px;font-size:13px;">
+      <div style="font-weight:700;color:#1d4ed8;margin-bottom:4px;">💡 AI-Suggested Budget: ${fmt(sugBudget)}</div>
+      <div style="color:#374151;line-height:1.5;">No budget was provided in your intake. The AI has suggested a budget of <strong>${fmt(sugBudget)}</strong> based on your scope, business unit, and solution set.${budRationale ? ' <em>' + budRationale + '</em>' : ''}</div>
+      <div style="margin-top:6px;font-size:11px;color:#6b7280;">You can override this in the intake wizard (Step 9) at any time. This budget is used for all ceiling and utilisation checks.</div>
+    </div>` : '';
+  // Item 10: budget too low — show % increase needed
+  const budgetTooLow = ba.withinBudget === false && ba.budget > 0 && ba.totalRecommendedCost > 0;
+  const budgetShortfall = budgetTooLow ? ba.totalRecommendedCost - ba.budget : 0;
+  const budgetIncreasePct = budgetTooLow ? Math.ceil((ba.totalRecommendedCost / ba.budget - 1) * 100) : 0;
+  const minSol = budgetTooLow ? (r.solutions || []).slice().sort((a,b) => (a.totalCost||a.estimatedCostUSD||0) - (b.totalCost||b.estimatedCostUSD||0))[0] : null;
+  const budgetIncreaseCallout = budgetTooLow ? `
+    <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:6px;padding:12px 16px;margin-top:10px;font-size:13px;">
+      <div style="font-weight:700;color:#92400e;margin-bottom:4px;">📈 Budget Increase Required</div>
+      <div style="color:#78350f;line-height:1.5;">
+        Your stated budget of <strong>${fmt(ba.budget)}</strong> is <strong>${fmt(budgetShortfall)}</strong> short of the total solution cost (<strong>${fmt(ba.totalRecommendedCost)}</strong>).<br>
+        <span style="display:block;margin-top:6px;">To proceed with the full portfolio, consider increasing your budget by approximately <strong>${budgetIncreasePct}%</strong> to <strong>${fmt(ba.totalRecommendedCost)}</strong>.</span>
+        ${minSol ? `<span style="display:block;margin-top:4px;">Alternatively, the minimum viable solution is <strong>${minSol.name}</strong> at <strong>${fmt(minSol.totalCost || minSol.estimatedCostUSD || 0)}</strong> — within your current budget if approved in isolation.</span>` : ''}
+      </div>
+    </div>` : '';
 
   const deliveryPhases = (r.phaseSummary || []).map(ps => {
     const solBadges = ps.solutions.map(id => `<span class="badge badge-muted" style="font-size:10.5px;">${id}</span>`).join('');
@@ -6006,12 +6253,12 @@ function renderResults(r) {
     ${explainBtn('p1-glance','phase1','overall',()=>({projectContext:{industry:p1Industry,budget:r.projectMeta?.budget||r.validatedData?.budget||0},metricValue:p1QScore,additionalContext:{solutions:r.solutions.length,benefits:r.benefits.length,budgetUtil:Math.round(p1BudgUtil),verdict:p1GlanceVerdict}}))}
     ${kpiRow}
     ${p1QualInterp}
-    <div class="section"><div class="section-title">Solutions (${r.solutions.length})</div><div class="sol-grid">${solCards}</div></div>
+    <div class="section"><div class="section-title">Solutions (${r.solutions.length})</div>${splitPanelHtml}<div class="sol-grid">${solCards}</div></div>
     <div class="section analyst-emphasis"><div class="section-title">Benefits (${r.benefits.length}) ${guideBtn('What do the Benefits rows show?')}</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Value</th><th>Confidence</th><th>Source</th></tr></thead><tbody>${benRows}</tbody></table></div></div>
     <div class="section"><div class="section-title">Requirements (${r.requirements.length}) ${guideBtn('What are Requirements?')}</div><div class="req-list">${reqItems}</div></div>
     <div class="section">${buildValueChainSection(r.solutions, r.benefits, r.requirements, 'Value Chain — Solution → Requirement → Benefit ' + guideBtn('What does the Value Chain diagram show?'))}</div>
     <div class="section">${buildTraceabilityNarrative(r.solutions, r.benefits, r.requirements)}</div>
-    <div class="section analyst-emphasis"><div class="section-title">Budget Analysis ${guideBtn('What is the Budget Analysis section?')}</div><div class="budget-panel"><div class="budget-grid"><div><div class="budget-stat-label">Total Cost</div><div class="budget-stat-value">${fmt(ba.totalCost)}</div></div><div><div class="budget-stat-label">Budget</div><div class="budget-stat-value">${fmt(ba.budget)}</div></div><div><div class="budget-stat-label">Cost Range</div><div class="budget-stat-value" style="font-size:14px;">${fmt(r.portfolioCostSummary.totalLow)} &ndash; ${fmt(r.portfolioCostSummary.totalHigh)}</div></div></div><div class="progress-wrap"><div class="progress-header"><span class="progress-label">Budget Utilisation</span><span class="progress-pct" style="color:${progressColor(utilPct)}">${pct(utilPct)}</span></div><div class="progress-track"><div class="progress-fill" style="width:${Math.min(utilPct, 100)}%;background:${progressColor(utilPct)}"></div></div></div>${p1BudgetInterp}<div class="budget-badges">${withinBudgetBadge}${ceilingBadge}</div>${ceilingAlert}</div></div>
+    <div class="section analyst-emphasis"><div class="section-title">Budget Analysis ${guideBtn('What is the Budget Analysis section?')}</div><div class="budget-panel">${suggestedBudgetCallout}<div class="budget-grid"><div><div class="budget-stat-label">Total Cost</div><div class="budget-stat-value">${fmt(ba.totalCost)}</div></div><div><div class="budget-stat-label">Budget${sugBudget && !r.validatedData?.budget ? ' <span style="font-size:9px;color:#3b82f6;font-weight:700;">AI SUGGESTED</span>' : ''}</div><div class="budget-stat-value">${fmt(ba.budget)}</div></div><div><div class="budget-stat-label">Cost Range</div><div class="budget-stat-value" style="font-size:14px;">${fmt(r.portfolioCostSummary.totalLow)} &ndash; ${fmt(r.portfolioCostSummary.totalHigh)}</div></div></div><div class="progress-wrap"><div class="progress-header"><span class="progress-label">Budget Utilisation</span><span class="progress-pct" style="color:${progressColor(utilPct)}">${pct(utilPct)}</span></div><div class="progress-track"><div class="progress-fill" style="width:${Math.min(utilPct, 100)}%;background:${progressColor(utilPct)}"></div></div></div>${p1BudgetInterp}<div class="budget-badges">${withinBudgetBadge}${ceilingBadge}</div>${ceilingAlert}${budgetIncreaseCallout}</div></div>
     <div class="section business-emphasis"><div class="section-title">Delivery Sequence ${guideBtn('What is the Delivery Sequence?')}</div><div class="delivery-flow">${deliveryPhases}</div></div>
     <div class="section business-emphasis"><div class="section-title">Reflection ${guideBtn('What is the Reflection quality gate?')}</div><div class="reflection-panel"><div class="reflection-score" style="color:${scoreColor};border-color:${scoreColor};">${score}</div><div class="reflection-body"><div class="reflection-summary">${r.reflection.summary}</div><div style="display:flex;gap:8px;flex-wrap:wrap;">${readyBadge}<span class="badge badge-muted">Tracking: ${r.trackingId}</span><span class="badge badge-muted">Cost Estimation: ${r.costEstimationStatus}</span></div>${reflectionError}</div></div></div>
     ${warningsHTML}
@@ -6033,6 +6280,8 @@ function renderResults(r) {
   }));
   _phase1Results = r;
   _providerSelections = {}; // reset provider selections on new Phase 1
+  _processInterventions = {}; // reset PIB data on new Phase 1
+  _clearPIBStorage();
   renderSolutionPicker(r.solutions);
   $('#vendorLaunchPanel').style.display = 'block';
   lockDiscoveryTab();
@@ -6050,17 +6299,34 @@ let _phase3Results = null;        // Phase 3 output (traceability)
 let _phase4Results = null;        // Phase 4 output (ranking)
 let _phase5Results = null;        // Phase 5 output (report)
 let _providerSelections = {};     // { solutionId: { name, data } }
+let _processInterventions = (function() {
+  // Restore from localStorage so PIB data survives a browser refresh
+  try {
+    const saved = localStorage.getItem('bca_pib_v1');
+    if (saved) return JSON.parse(saved);
+  } catch {}
+  return {};
+})();   // { solutionId: { interventionTypes[], headcount, processes } }
+
+function _savePIBToStorage() {
+  try { localStorage.setItem('bca_pib_v1', JSON.stringify(_processInterventions)); } catch {}
+}
+function _clearPIBStorage() {
+  try { localStorage.removeItem('bca_pib_v1'); } catch {}
+}
 
 // ─── Payload Builders — build real payloads from prior phase data ─
 function buildPhase15Payload() {
   const r = _phase1Results || {};
   const wd = wizardData || {};
-  // Merge vendor selections into solutions
+  // Merge vendor selections + process intervention data into solutions
   const solutions = (r.solutions || []).map(sol => {
     const sel = _providerSelections[sol.id];
     const vendor = sel ? sel.data : null;
+    const pib = _processInterventions[sol.id] || null;
+    let merged = Object.assign({}, sol);
     if (vendor) {
-      return Object.assign({}, sol, {
+      merged = Object.assign(merged, {
         selectedVendor: {
           name: vendor.name || vendor.vendorName || '',
           fitScore: vendor.fitScore || 0,
@@ -6073,7 +6339,16 @@ function buildPhase15Payload() {
         vendorFitScore: vendor.fitScore || 0
       });
     }
-    return sol;
+    if (pib) {
+      merged = Object.assign(merged, {
+        processIntervention: {
+          interventionTypes: pib.interventionTypes || [],
+          headcount: pib.headcount || 0,
+          processes: pib.processes || ''
+        }
+      });
+    }
+    return merged;
   });
   return {
     solutions,
@@ -6106,9 +6381,12 @@ function renderSolutionPicker(solutions) {
     const riskOrder = {Low:0,Medium:1,High:2};
     return (riskOrder[a.riskLevel]||1) - (riskOrder[b.riskLevel]||1) || a.deliveryPhase - b.deliveryPhase;
   });
-  const recommendedId = sorted[0]?.id;
-  _providerSelections = {}; // reset on re-render
-  grid.innerHTML = solutions.map(s => {
+  const buySolutions    = sorted.filter(s => s.solutionApproach !== 'change');
+  const changeSolutions = sorted.filter(s => s.solutionApproach === 'change');
+  const recommendedId   = buySolutions[0]?.id || sorted[0]?.id;
+  _providerSelections   = {}; // reset on re-render
+
+  function renderBuyCard(s) {
     const isRec = s.id === recommendedId;
     return `<div class="sol-pick-card${isRec?' recommended':''}" id="spcard-${s.id}">
       <div class="sol-pick-cb-wrap">
@@ -6120,14 +6398,62 @@ function renderSolutionPicker(solutions) {
         <span class="badge ${riskClass(s.riskLevel)}">${s.riskLevel} Risk</span>
         <span class="badge ${phaseColor(s.deliveryPhase)}">Phase ${s.deliveryPhase}</span>
         <span class="badge badge-muted">${fmt(s.costEstimate?.mid || s.totalCost || 0)}</span>
+        ${approachBadge(s.solutionApproach)}
       </div>
       <div class="sol-pick-card-desc">${s.description || (s.category||'').replace(/_/g,' ')}</div>
       <div class="sol-provider-badge" id="sprovider-${s.id}" style="display:none;"></div>
     </div>`;
-  }).join('');
-  // Apply selected highlight to recommended card and enable the button immediately
+  }
+
+  function renderChangeCard(s) {
+    const intTypes = ['SOP / Process Docs','Staff Training','Policy Update','Workflow Redesign','Change Champions','Communication Plan'];
+    const chipHTML = intTypes.map(t =>
+      `<label class="pib-chip" onclick="this.classList.toggle('selected')"><input type="checkbox"> ${t}</label>`
+    ).join('');
+    return `<div class="sol-pick-card" id="spcard-${s.id}" style="border-color:#fde68a;">
+      <div class="sol-pick-card-title">${s.id}: ${s.name}</div>
+      <div class="sol-pick-card-meta">
+        <span class="badge ${riskClass(s.riskLevel)}">${s.riskLevel} Risk</span>
+        <span class="badge ${phaseColor(s.deliveryPhase)}">Phase ${s.deliveryPhase}</span>
+        <span class="badge badge-muted">${fmt(s.costEstimate?.mid || s.totalCost || 0)}</span>
+        ${approachBadge(s.solutionApproach)}
+      </div>
+      <div class="sol-pick-card-desc">${s.description || (s.category||'').replace(/_/g,' ')}</div>
+      <button class="pib-toggle-btn" onclick="togglePIB('${s.id}')" id="pibtoggle-${s.id}">
+        ⚙️ Define Intervention
+        <span id="pibsaved-${s.id}" class="pib-saved-badge">✓ Saved</span>
+      </button>
+      <div class="pib-panel" id="pib-${s.id}">
+        <span class="pib-label">Intervention type (select all that apply)</span>
+        <div class="pib-chip-grid" id="pib-chips-${s.id}">${chipHTML}</div>
+        <span class="pib-label">Headcount affected</span>
+        <input class="pib-input" type="number" min="1" id="pib-hc-${s.id}" placeholder="e.g. 45">
+        <span class="pib-label">Key processes being changed</span>
+        <textarea class="pib-input" id="pib-proc-${s.id}" rows="2" placeholder="e.g. Invoice approval workflow, monthly close process"></textarea>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+          <button class="pib-save-btn" onclick="savePIB('${s.id}')">✓ Save</button>
+          <span style="font-size:11px;color:#92400e;opacity:.75;">Details flow into Phase 1.5 cost model</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  let html = '';
+  if (buySolutions.length > 0) {
+    if (changeSolutions.length > 0) {
+      html += `<div style="grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--border);margin-bottom:2px;">🛒 Software Solutions — select for provider research</div>`;
+    }
+    html += buySolutions.map(renderBuyCard).join('');
+  }
+  if (changeSolutions.length > 0) {
+    html += `<div style="grid-column:1/-1;font-size:11px;font-weight:700;text-transform:uppercase;color:var(--text-muted);letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--border);${buySolutions.length > 0 ? 'margin-top:10px;' : ''}margin-bottom:2px;">⚙️ Process Change Solutions — define your intervention</div>`;
+    html += changeSolutions.map(renderChangeCard).join('');
+  }
+  grid.innerHTML = html;
+
+  // Highlight recommended buy card and enable batch button immediately
   const recCard = grid.querySelector('#spcard-' + recommendedId);
-  if (recCard) recCard.classList.add('sol-checked');
+  if (recCard && buySolutions.find(s => s.id === recommendedId)) recCard.classList.add('sol-checked');
   updateBatchBtn();
 }
 
@@ -6141,22 +6467,57 @@ function onSolPickCheck() {
   updateBatchBtn();
 }
 
+function togglePIB(solId) {
+  const panel = document.getElementById('pib-' + solId);
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  const btn = document.getElementById('pibtoggle-' + solId);
+  if (btn) btn.style.background = isOpen ? '#fef3c7' : '';
+}
+
+function savePIB(solId) {
+  const selectedChips = [...(document.querySelectorAll(`#pib-chips-${solId} .pib-chip.selected`))].map(el => el.textContent.trim());
+  const headcount = parseInt(document.getElementById('pib-hc-' + solId)?.value || '0') || 0;
+  const processes = document.getElementById('pib-proc-' + solId)?.value?.trim() || '';
+  _processInterventions[solId] = { interventionTypes: selectedChips, headcount, processes };
+  _savePIBToStorage(); // persist across page refresh
+  // Show saved badge and amber card border
+  const badge = document.getElementById('pibsaved-' + solId);
+  if (badge) badge.classList.add('show');
+  const card = document.getElementById('spcard-' + solId);
+  if (card) card.classList.add('pib-configured');
+  // Restore toggle button background and close panel
+  const btn = document.getElementById('pibtoggle-' + solId);
+  if (btn) btn.style.background = '';
+  const panel = document.getElementById('pib-' + solId);
+  if (panel) panel.classList.remove('open');
+  updateBatchBtn();
+}
+
 function updateBatchBtn() {
   const checked = [...document.querySelectorAll('.sol-pick-cb:checked')];
   const btn = document.getElementById('batchFindProvidersBtn');
   const counter = document.getElementById('batchSelCounter');
   const n = checked.length;
+  const nPIB = Object.keys(_processInterventions).length;
   if (btn) btn.disabled = n === 0;
   if (counter) {
-    if (n === 0) {
-      counter.textContent = 'Select solutions above to get started';
-    } else {
+    const parts = [];
+    if (n > 0) {
       const names = checked.map(cb => {
         const card = cb.closest('.sol-pick-card');
         const title = card ? card.querySelector('.sol-pick-card-title') : null;
         return title ? title.textContent.trim() : cb.value;
       });
-      counter.innerHTML = `<strong>${n} solution${n !== 1 ? 's' : ''} selected:</strong> ${names.join(' · ')}`;
+      parts.push(`<strong>${n} software solution${n !== 1 ? 's' : ''} selected:</strong> ${names.join(' · ')}`);
+    }
+    if (nPIB > 0) {
+      parts.push(`<span style="color:#b45309;">⚙️ ${nPIB} process intervention${nPIB !== 1 ? 's' : ''} saved</span>`);
+    }
+    if (parts.length === 0) {
+      counter.textContent = 'Select software solutions above — or save a process intervention to continue';
+    } else {
+      counter.innerHTML = parts.join(' &nbsp;·&nbsp; ');
     }
   }
 }
@@ -6995,10 +7356,18 @@ function renderVendorResults(r) {
       <p style="font-size:12px;color:var(--text-light);">Cost: ${fmt(sv.vendorCostLow)} &ndash; ${fmt(sv.vendorCostHigh)} &bull; ${(sv.costModel || '').replace(/_/g,' ')} &bull; ${sv.implementationMonths || '?'} months</p>
     </div>` : '';
 
+  // Item 11 — Budget ceiling label for vendor search
+  const p16Budget = window._phase1Results?.validatedData?.budget || window._phase15Results?.budgetAnalysis?.budget || 0;
+  const p16SugBudget = window._phase1Results?.suggestedBudget || window._phase15Results?.suggestedBudget || 0;
+  const p16BudgetLabel = p16Budget > 0
+    ? `<div style="background:#f0f9ff;border-left:3px solid #0891b2;border-radius:6px;padding:9px 14px;margin-bottom:12px;font-size:12px;color:#0c4a6e;display:flex;align-items:center;gap:8px;"><span>💰</span><span>Vendors are scored against your ${p16Budget === p16SugBudget && p16SugBudget ? 'AI-suggested' : 'stated'} budget: <strong>${fmt(p16Budget)}</strong> — only vendors with pricing within this envelope score highly for cost competitiveness.</span></div>`
+    : '';
+
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--purple);">Phase 1.6 — Software Solution Providers &bull; ${r.solutionId}: ${r.solutionName} ${guideBtn('Why is the top-ranked provider recommended?')}</div>
       ${buildInputTrace(window._phase1Results?.validatedData || {}, 'phase16')}
+      ${p16BudgetLabel}
       ${p16GlanceBanner}
       ${selectedSummary}${narrativesHTML}${explainBtn('p16-glance','phase1_6','vendor_selection',()=>({projectContext:{industry:(window._phase1Results?.validatedData?.industry||'')},metricValue:((r.vendors||[])[0]?.fitScore||0),additionalContext:{topVendor:((r.vendors||[])[0]?.name||'--'),selectedVendor:(r.selectedVendor?.name||'--'),vendorCount:(r.vendors||[]).length,solutionName:(r.solutionName||'')}}))}
       <div class="vendor-grid">${vendorCards}</div>
@@ -7075,9 +7444,34 @@ function renderCostResults(r) {
   const withinBudgetBadge = ba.withinBudget === true ? '<span class="badge badge-success">Within Budget</span>' : ba.withinBudget === false ? '<span class="badge badge-danger">Over Budget</span>' : '<span class="badge badge-muted">N/A</span>';
   const statusBadge = r.costEstimationStatus === 'success' ? '<span class="badge badge-success">Success</span>' : '<span class="badge badge-warning">' + (r.costEstimationStatus || 'Unknown') + '</span>';
 
+  // Bonus: surface AI-suggested budget in Phase 1.5
+  const p15SugBudget   = r.suggestedBudget || null;
+  const p15BudRationale = r.budgetRationale || null;
+  const p15HasUserBudget = (r.validatedData?.budget || 0) > 0;
+  const p15SugBudgetBanner = p15SugBudget && !p15HasUserBudget ? `
+    <div style="background:#eff6ff;border-left:4px solid #3b82f6;border-radius:6px;padding:12px 16px;margin-bottom:14px;font-size:13px;">
+      <div style="font-weight:700;color:#1d4ed8;margin-bottom:4px;">💡 No budget provided — AI has suggested: ${fmt(p15SugBudget)}</div>
+      <div style="color:#374151;line-height:1.5;">All ceiling and utilisation checks below use this AI-suggested figure.${p15BudRationale ? ' <em>' + p15BudRationale + '</em>' : ''} You can set an explicit budget in the intake wizard (Step 9).</div>
+    </div>` : '';
+
+  // Item 10: budget too low in Phase 1.5
+  const p15TooLow = ba.withinBudget === false && ba.budget > 0 && ba.totalRecommendedCost > 0;
+  const p15Shortfall = p15TooLow ? ba.totalRecommendedCost - ba.budget : 0;
+  const p15IncreasePct = p15TooLow ? Math.ceil((ba.totalRecommendedCost / ba.budget - 1) * 100) : 0;
+  const p15MinSol = p15TooLow ? (r.solutions || []).slice().sort((a,b) => (a.totalCost||0) - (b.totalCost||0))[0] : null;
+  const p15BudgetLowCallout = p15TooLow ? `
+    <div style="background:#fef3c7;border-left:4px solid #f59e0b;border-radius:6px;padding:12px 16px;margin-top:10px;font-size:13px;">
+      <div style="font-weight:700;color:#92400e;margin-bottom:4px;">📈 Budget Increase Needed to Proceed</div>
+      <div style="color:#78350f;line-height:1.5;">
+        Total solution cost is <strong>${fmt(ba.totalRecommendedCost)}</strong> against a budget of <strong>${fmt(ba.budget)}</strong> — a shortfall of <strong>${fmt(p15Shortfall)}</strong>.<br>
+        <span style="display:block;margin-top:4px;">To fund the full portfolio, increase your budget by approximately <strong>${p15IncreasePct}%</strong> to <strong>${fmt(ba.totalRecommendedCost)}</strong>.</span>
+        ${p15MinSol ? `<span style="display:block;margin-top:4px;">Minimum viable option: <strong>${p15MinSol.name}</strong> at <strong>${fmt(p15MinSol.totalCost || 0)}</strong>.</span>` : ''}
+      </div>
+    </div>` : '';
+
   const costKpiRow = `<div class="kpi-row">
     <div class="kpi-card"><div class="kpi-label">Total Recommended Cost ${guideBtn('How are costs built from vendor pricing?')}</div><div class="kpi-value">${fmt(ba.totalRecommendedCost)}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Budget</div><div class="kpi-value">${fmt(ba.budget)}</div></div>
+    <div class="kpi-card"><div class="kpi-label">Budget${p15SugBudget && !p15HasUserBudget ? ' <span style="font-size:9px;color:#3b82f6;font-weight:700;">AI SUGGESTED</span>' : ''}</div><div class="kpi-value">${fmt(ba.budget)}</div></div>
     <div class="kpi-card"><div class="kpi-label">Budget Utilisation ${guideBtn('What does Budget Utilisation mean in Phase 1.5?')}</div><div class="kpi-value">${pct(utilPct)}</div></div>
     <div class="kpi-card"><div class="kpi-label">Ceiling / Budget</div><div class="kpi-value" style="font-size:16px;margin-top:4px;">${withinCeilingBadge} ${withinBudgetBadge}</div></div>
     <div class="kpi-card"><div class="kpi-label">Estimation Status</div><div class="kpi-value" style="font-size:18px;margin-top:4px;">${statusBadge}</div></div>
@@ -7091,7 +7485,22 @@ function renderCostResults(r) {
     const recurringRow = s.recurringAnnualCost ? `<div class="cost-recurring"><span class="cost-recurring-label">Recurring Annual Cost</span><span class="cost-recurring-value">${fmt(s.recurringAnnualCost)}/yr</span></div>` : '';
     const notesRow = ce.notes ? `<div class="cost-notes"><div class="cost-notes-label">AI Rationale</div>${ce.notes}</div>` : '';
     const costModelBadge = ce.costModel ? `<span class="cost-model-badge">${ce.costModel.replace(/_/g, ' ')}</span>` : '';
-    return `<div class="cost-card"><div class="cost-card-top"><div><div class="cost-card-name">${s.id}: ${s.name}</div><div class="cost-card-meta"><span class="badge ${riskClass(s.riskLevel)}">${s.riskLevel}</span><span class="badge ${phaseColor(s.deliveryPhase)}">Phase ${s.deliveryPhase}</span>${costModelBadge}<span class="badge badge-muted">${ce.implementationMonths || '?'}m</span></div></div><div style="text-align:right;"><div style="font-size:18px;font-weight:800;color:var(--primary);">${fmt(s.totalCost)}</div><div style="font-size:10px;color:var(--text-light);text-transform:uppercase;">Recommended</div></div></div><div class="cost-card-body"><div class="cost-range-row"><div class="cost-range-box low"><div class="cost-range-label">Low</div><div class="cost-range-value">${fmt(ce.low)}</div></div><div class="cost-range-box mid"><div class="cost-range-label">Mid</div><div class="cost-range-value">${fmt(ce.mid)}</div></div><div class="cost-range-box high"><div class="cost-range-label">High</div><div class="cost-range-value">${fmt(ce.high)}</div></div></div>${vendorRow}${recurringRow}<button class="breakdown-toggle" onclick="event.stopPropagation();this.classList.toggle('open')"><span class="arrow">&#9654;</span> Cost Breakdown</button><div class="breakdown-body"><div class="breakdown-grid">${breakdownGrid}</div></div>${notesRow}</div></div>`;
+    const processChangeBanner = s.solutionApproach === 'change'
+      ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#78350f;display:flex;gap:8px;align-items:flex-start;">
+          <span style="font-size:15px;flex-shrink:0;">⚙️</span>
+          <span><strong>Process Change cost model</strong> — costs here represent <strong>consulting, facilitation, and staff training</strong>, not software licensing. Licensing and infrastructure are $0 or near-zero by design.
+          <button class="guide-inline-btn" onclick="showGuideAnswer('How are costs estimated for Process Change solutions?')" style="margin-left:6px;" title="How process change costs are calculated">How this works</button></span>
+        </div>`
+      : s.solutionApproach === 'hybrid'
+      ? `<div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:8px;padding:9px 12px;margin-bottom:12px;font-size:12px;color:#5b21b6;display:flex;gap:8px;align-items:flex-start;">
+          <span style="font-size:15px;flex-shrink:0;">🔀</span>
+          <div><strong>Hybrid cost model</strong> — total includes both a <strong>vendor/software component</strong> and a <strong>process change component</strong> (consulting, facilitation, training). Check the cost breakdown below to see each element.
+          ${s.processAddressabilityPct != null ? `<span style="margin-left:6px;font-size:10px;background:#ede9fe;padding:2px 7px;border-radius:10px;font-weight:700;">${s.processAddressabilityPct}% process-addressable</span>` : ''}</div>
+        </div>`
+      : '';
+    const recurringLabel = s.solutionApproach === 'change' ? 'Ongoing Coaching &amp; Refresher Training' : 'Recurring Annual Cost';
+    const recurringRowFinal = s.recurringAnnualCost ? `<div class="cost-recurring"><span class="cost-recurring-label">${recurringLabel}</span><span class="cost-recurring-value">${fmt(s.recurringAnnualCost)}/yr</span></div>` : '';
+    return `<div class="cost-card"><div class="cost-card-top"><div><div class="cost-card-name">${s.id}: ${s.name}</div><div class="cost-card-meta"><span class="badge ${riskClass(s.riskLevel)}">${s.riskLevel}</span><span class="badge ${phaseColor(s.deliveryPhase)}">Phase ${s.deliveryPhase}</span>${approachBadge(s.solutionApproach)}${costModelBadge}<span class="badge badge-muted">${ce.implementationMonths || '?'}m</span></div></div><div style="text-align:right;"><div style="font-size:18px;font-weight:800;color:var(--primary);">${fmt(s.totalCost)}</div><div style="font-size:10px;color:var(--text-light);text-transform:uppercase;">Recommended</div></div></div><div class="cost-card-body">${processChangeBanner}<div class="cost-range-row"><div class="cost-range-box low"><div class="cost-range-label">Low</div><div class="cost-range-value">${fmt(ce.low)}</div></div><div class="cost-range-box mid"><div class="cost-range-label">Mid</div><div class="cost-range-value">${fmt(ce.mid)}</div></div><div class="cost-range-box high"><div class="cost-range-label">High</div><div class="cost-range-value">${fmt(ce.high)}</div></div></div>${vendorRow}${recurringRowFinal}<button class="breakdown-toggle" onclick="event.stopPropagation();this.classList.toggle('open')"><span class="arrow">&#9654;</span> Cost Breakdown</button><div class="breakdown-body"><div class="breakdown-grid">${breakdownGrid}</div></div>${notesRow}</div></div>`;
   }).join('');
 
   const discountSrc = tco.discountRateSource === 'user_supplied' ? '<span class="badge badge-success" style="font-size:9px;">User Supplied</span>' : '<span class="badge badge-warning" style="font-size:9px;">Default</span>';
@@ -7148,7 +7557,7 @@ function renderCostResults(r) {
     </div>` : '';
 
   el.innerHTML = `
-    <div class="section" style="margin-top:8px;"><div class="section-title" style="border-bottom-color:var(--info);">Phase 1.5 — Cost Estimation ${guideBtn('How are costs built from vendor pricing?')}</div>${buildInputTrace(r.validatedData || {}, 'phase15')}${costGlanceBanner}${explainBtn('p15-glance','phase1_5','cost',()=>({projectContext:{industry:(r.validatedData?.industry||''),budget:(r.validatedData?.budget||0)},metricValue:Math.round(ba.totalCost||0),additionalContext:{utilisation:Math.round(costUtil),tcoNPV:Math.round(tcoDataA.npvTCO||0),solutions:costSolCount,verdict:costGlanceVerdict}}))}${warningsHTML}${costKpiRow}<div class="cost-grid">${costCards}</div></div>
+    <div class="section" style="margin-top:8px;"><div class="section-title" style="border-bottom-color:var(--info);">Phase 1.5 — Cost Estimation ${guideBtn('How are costs built from vendor pricing?')} ${guideBtn('How are costs estimated for Process Change solutions?')}</div>${buildInputTrace(r.validatedData || {}, 'phase15')}${p15SugBudgetBanner}${costGlanceBanner}${explainBtn('p15-glance','phase1_5','cost',()=>({projectContext:{industry:(r.validatedData?.industry||''),budget:(r.validatedData?.budget||0)},metricValue:Math.round(ba.totalCost||0),additionalContext:{utilisation:Math.round(costUtil),tcoNPV:Math.round(tcoDataA.npvTCO||0),solutions:costSolCount,verdict:costGlanceVerdict}}))}${warningsHTML}${costKpiRow}${p15BudgetLowCallout}<div class="cost-grid">${costCards}</div></div>
     ${portfolioPanel}${tcoPanel}${tcoExplainer}
     <div class="section"><div class="section-title" style="border-bottom-color:var(--info);">Delivery Sequence (Costed) ${guideBtn('What is the Delivery Sequence?')}</div><div class="delivery-flow">${deliveryPhases}</div></div>`;
 
@@ -7284,13 +7693,59 @@ function renderReflection(r) {
   const p1refIndustry = window._phase1Results?.validatedData?.industry || '';
   const p1refScoreInterp = buildMetricInterpretation('quality', score, p1refIndustry);
 
+  // F7 — Plain-English verdict label
+  const verdictPlain = ref.verdict === 'pass'
+    ? `Your business case passed all quality checks and is cleared for financial analysis. ${strengths.length > 0 ? strengths.length + ' strength' + (strengths.length > 1 ? 's' : '') + ' noted.' : ''}`
+    : ref.verdict === 'fail'
+    ? `This business case is blocked from Phase 2. Resolve ${critCount} critical issue${critCount !== 1 ? 's' : ''} before proceeding.`
+    : `Business case cleared for Phase 2${critCount > 0 ? ` — address ${critCount} critical issue${critCount !== 1 ? 's' : ''}` : ''}${warnings.length > 0 ? ` and review ${warnings.length} warning${warnings.length !== 1 ? 's' : ''}` : ''} to strengthen the financial case.`;
+
+  // F6 — 4-area scored breakdown
+  const areaScores = (() => {
+    const areas = ['benefits','costs','linkages','vendor_compliance'];
+    const areaLabels = { benefits: 'Benefits', costs: 'Costs', linkages: 'Linkages', vendor_compliance: 'Vendor Compliance' };
+    const areaIcons  = { benefits: '💰', costs: '📦', linkages: '🔗', vendor_compliance: '✅' };
+    const critsByArea = {};
+    const warnsByArea = {};
+    for (const c of criticals) { const a = (c.area || '').toLowerCase(); if (!critsByArea[a]) critsByArea[a] = 0; critsByArea[a]++; }
+    for (const w of warnings)  { const a = (w.area  || '').toLowerCase(); if (!warnsByArea[a]) warnsByArea[a] = 0; warnsByArea[a]++; }
+    return areas.map(a => {
+      const c = critsByArea[a] || 0; const w = warnsByArea[a] || 0;
+      const aScore = Math.max(0, Math.min(100, 100 - (c * 30) - (w * 10)));
+      const aColor = aScore >= 80 ? 'var(--success)' : aScore >= 50 ? '#d97706' : 'var(--danger)';
+      return `<div style="flex:1;min-width:120px;background:var(--surface-alt);border-radius:8px;padding:12px 14px;text-align:center;">
+        <div style="font-size:16px;margin-bottom:4px;">${areaIcons[a]}</div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;">${areaLabels[a]}</div>
+        <div style="font-size:20px;font-weight:800;color:${aColor};">${aScore}</div>
+        <div style="height:4px;background:var(--border-light);border-radius:2px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:${aScore}%;background:${aColor};border-radius:2px;"></div></div>
+        ${c > 0 ? `<div style="font-size:10px;color:var(--danger);margin-top:4px;">${c} critical</div>` : w > 0 ? `<div style="font-size:10px;color:#d97706;margin-top:4px;">${w} warning</div>` : `<div style="font-size:10px;color:var(--success);margin-top:4px;">✓ OK</div>`}
+      </div>`;
+    }).join('');
+  })();
+  const areaScorecardHtml = `<div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0;">${areaScores}</div>`;
+
+  // F8 — Readiness criteria footnote (collapsible)
+  const readinessCriteriaHtml = `<details style="margin-top:12px;background:var(--surface-alt);border-radius:8px;padding:10px 14px;font-size:12px;cursor:pointer;">
+    <summary style="font-weight:700;color:var(--text-muted);list-style:none;cursor:pointer;">📋 Phase 2 Readiness Criteria <span style="font-weight:400;">(click to expand)</span></summary>
+    <div style="margin-top:10px;line-height:1.7;color:var(--text-muted);">
+      <div>✅ <strong>No blocking critical issues</strong> — severity:critical flags block Phase 2 entirely</div>
+      <div>✅ <strong>At least 1 solution with a linked benefit</strong> — traceability chain must start</div>
+      <div>✅ <strong>Budget analysis completed</strong> — Phase 1.5 must have run successfully</div>
+      <div>⚠️ <strong>Warnings do not block</strong> — but reduce financial model accuracy</div>
+      <div>⚠️ <strong>Missing elements do not block</strong> — but lower the overall quality score</div>
+      <div style="margin-top:8px;color:var(--text);"><strong>Quality Score thresholds:</strong> ≥80 Strong · 60–79 Acceptable · &lt;60 Needs Work (does not block, but expect lower confidence in Phase 2 financials)</div>
+    </div>
+  </details>`;
+
   el.innerHTML = `
     <div class="section" style="margin-top:8px;">
       <div class="section-title" style="border-bottom-color:var(--warning);">Phase 1 Reflection — Quality Review ${guideBtn('What is the Reflection quality gate?')}</div>
       ${buildInputTrace(r.reflection ? (window._phase1Results?.validatedData || {}) : {}, 'reflection')}
       ${p1refGlanceBanner}
       ${explainBtn('p1ref-glance','quality_review','quality_gate',()=>({projectContext:{industry:p1refIndustry},metricValue:score,additionalContext:{verdict:ref.verdict,criticals:critCount,warnings:warnings.length,strengths:strengths.length,missing:missing.length,summary:(ref.summary||'')}}))}
-      <div class="reflection-header">${scoreRing}<div style="flex:1;min-width:200px;"><div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:8px;">${verdictBadge} ${guideBtn('What does the Reflection verdict mean?')}${readyBadge}</div>${countLine}</div></div>
+      <div class="reflection-header">${scoreRing}<div style="flex:1;min-width:200px;"><div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:8px;">${verdictBadge} ${guideBtn('What does the Reflection verdict mean?')}${readyBadge}</div>${countLine}<div style="margin-top:8px;font-size:13px;color:var(--text);line-height:1.5;">${verdictPlain}</div></div></div>
+      ${areaScorecardHtml}
+      ${readinessCriteriaHtml}
       ${p1refScoreInterp}
       ${summaryCard}${strengthsHTML}${criticalCards}${warningCards}${missingHTML}
     </div>`;
@@ -7331,11 +7786,11 @@ function renderReflection(r) {
 
 const PHASE2_TEST_PAYLOAD = {
   solutions: [
-    { id: "SOL-001", name: "Security & Compliance Foundation", category: "security_compliance", riskLevel: "Low", deliveryPhase: 1, totalCost: 52000, implementationTime: 5, recurringAnnualCost: 15000, linkedBenefits: ["BEN-003"], linkedRequirements: ["REQ-001","REQ-002"], delivers_benefits: ["BEN-003"], depends_on_requirements: ["REQ-001","REQ-002"], costEstimate: { low: 42000, mid: 52000, high: 65000, recommended: 52000, implementationMonths: 5 }, selectedVendor: { name: "Vanta", fitScore: 94, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 30000, vendorCostHigh: 60000, implementationMonths: 4 } },
-    { id: "SOL-002", name: "Platform Modernisation & CDN", category: "frontend_modernization", riskLevel: "Medium", deliveryPhase: 2, totalCost: 35000, implementationTime: 4, recurringAnnualCost: 24000, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-002","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-002","REQ-004"], costEstimate: { low: 28000, mid: 35000, high: 44000, recommended: 35000, implementationMonths: 4 }, selectedVendor: { name: "Vercel Enterprise", fitScore: 88, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 18000, vendorCostHigh: 36000, implementationMonths: 3 } },
-    { id: "SOL-003", name: "Order Processing Automation", category: "process_optimization", riskLevel: "Medium", deliveryPhase: 2, totalCost: 48000, implementationTime: 6, recurringAnnualCost: 18000, linkedBenefits: ["BEN-001","BEN-003"], linkedRequirements: ["REQ-002","REQ-003","REQ-004"], delivers_benefits: ["BEN-001","BEN-003"], depends_on_requirements: ["REQ-002","REQ-003","REQ-004"], costEstimate: { low: 38000, mid: 48000, high: 60000, recommended: 48000, implementationMonths: 6 }, selectedVendor: { name: "Kissflow Process", fitScore: 85, complianceCoverage: ["GDPR","SOC2"], vendorCostLow: 28000, vendorCostHigh: 55000, implementationMonths: 5 } },
-    { id: "SOL-004", name: "Cart Recovery & Conversion", category: "ecommerce_optimization", riskLevel: "Low", deliveryPhase: 2, totalCost: 38000, implementationTime: 4, recurringAnnualCost: 36000, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-001","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-001","REQ-004"], costEstimate: { low: 30000, mid: 38000, high: 48000, recommended: 38000, implementationMonths: 4 }, selectedVendor: { name: "Dynamic Yield", fitScore: 82, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 22000, vendorCostHigh: 45000, implementationMonths: 3 } },
-    { id: "SOL-005", name: "Sustainable Operations & Carbon Tracking", category: "cloud_modernization", riskLevel: "Low", deliveryPhase: 3, totalCost: 36000, implementationTime: 3, recurringAnnualCost: 28000, linkedBenefits: ["BEN-005"], linkedRequirements: ["REQ-003","REQ-005"], delivers_benefits: ["BEN-005"], depends_on_requirements: ["REQ-003","REQ-005"], costEstimate: { low: 28000, mid: 36000, high: 46000, recommended: 36000, implementationMonths: 3 }, selectedVendor: { name: "Sweep", fitScore: 80, complianceCoverage: ["PCI-DSS","GDPR","SOC2","ISO27001"], vendorCostLow: 20000, vendorCostHigh: 40000, implementationMonths: 3 } }
+    { id: "SOL-001", name: "Security & Compliance Foundation", category: "security_compliance", solutionApproach: "buy", riskLevel: "Low", deliveryPhase: 1, totalCost: 52000, implementationTime: 5, recurringAnnualCost: 15000, linkedBenefits: ["BEN-003"], linkedRequirements: ["REQ-001","REQ-002"], delivers_benefits: ["BEN-003"], depends_on_requirements: ["REQ-001","REQ-002"], costEstimate: { low: 42000, mid: 52000, high: 65000, recommended: 52000, implementationMonths: 5 }, selectedVendor: { name: "Vanta", fitScore: 94, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 30000, vendorCostHigh: 60000, implementationMonths: 4 } },
+    { id: "SOL-002", name: "Platform Modernisation & CDN", category: "frontend_modernization", solutionApproach: "buy", riskLevel: "Medium", deliveryPhase: 2, totalCost: 35000, implementationTime: 4, recurringAnnualCost: 24000, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-002","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-002","REQ-004"], costEstimate: { low: 28000, mid: 35000, high: 44000, recommended: 35000, implementationMonths: 4 }, selectedVendor: { name: "Vercel Enterprise", fitScore: 88, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 18000, vendorCostHigh: 36000, implementationMonths: 3 } },
+    { id: "SOL-003", name: "Order Processing Automation", category: "process_optimization", solutionApproach: "change", riskLevel: "Medium", deliveryPhase: 2, totalCost: 48000, implementationTime: 6, recurringAnnualCost: 18000, linkedBenefits: ["BEN-001","BEN-003"], linkedRequirements: ["REQ-002","REQ-003","REQ-004"], delivers_benefits: ["BEN-001","BEN-003"], depends_on_requirements: ["REQ-002","REQ-003","REQ-004"], costEstimate: { low: 38000, mid: 48000, high: 60000, recommended: 48000, implementationMonths: 6 }, selectedVendor: { name: "Kissflow Process", fitScore: 85, complianceCoverage: ["GDPR","SOC2"], vendorCostLow: 28000, vendorCostHigh: 55000, implementationMonths: 5 } },
+    { id: "SOL-004", name: "Cart Recovery & Conversion", category: "ecommerce_optimization", solutionApproach: "buy", riskLevel: "Low", deliveryPhase: 2, totalCost: 38000, implementationTime: 4, recurringAnnualCost: 36000, linkedBenefits: ["BEN-002","BEN-004"], linkedRequirements: ["REQ-001","REQ-004"], delivers_benefits: ["BEN-002","BEN-004"], depends_on_requirements: ["REQ-001","REQ-004"], costEstimate: { low: 30000, mid: 38000, high: 48000, recommended: 38000, implementationMonths: 4 }, selectedVendor: { name: "Dynamic Yield", fitScore: 82, complianceCoverage: ["PCI-DSS","GDPR","SOC2"], vendorCostLow: 22000, vendorCostHigh: 45000, implementationMonths: 3 } },
+    { id: "SOL-005", name: "Sustainable Operations & Carbon Tracking", category: "cloud_modernization", solutionApproach: "buy", riskLevel: "Low", deliveryPhase: 3, totalCost: 36000, implementationTime: 3, recurringAnnualCost: 28000, linkedBenefits: ["BEN-005"], linkedRequirements: ["REQ-003","REQ-005"], delivers_benefits: ["BEN-005"], depends_on_requirements: ["REQ-003","REQ-005"], costEstimate: { low: 28000, mid: 36000, high: 46000, recommended: 36000, implementationMonths: 3 }, selectedVendor: { name: "Sweep", fitScore: 80, complianceCoverage: ["PCI-DSS","GDPR","SOC2","ISO27001"], vendorCostLow: 20000, vendorCostHigh: 40000, implementationMonths: 3 } }
   ],
   benefits: [
     { id: "BEN-001", category: "Operational Efficiency", description: "Automate 80% of order processing, eliminating 4hrs/day manual effort.", riskAdjustedValue: 144000, confidence: 0.85, valueBasis: "1.8 FTE savings × $80K loaded cost [source: company financials]", linkedSolutions: ["SOL-003"] },
@@ -7495,6 +7950,9 @@ function renderPhase2(r) {
 
   const kpiRow = `<div class="p2-section">
     <div class="p2-section-title" style="border-bottom-color:var(--primary);">Portfolio Financial KPIs ${guideBtn('What financial metrics are calculated?')}</div>
+    <div style="margin-bottom:14px;padding:10px 14px;background:#eff6ff;border-radius:8px;border-left:3px solid #3b82f6;font-size:12px;color:#1e3a5f;line-height:1.5;">
+      <strong>📦 Portfolio view:</strong> All ${sols.length} solution${sols.length !== 1 ? 's' : ''} are evaluated together as one combined investment. Costs, benefits, and NPV are assessed at the portfolio level — not per solution in isolation. To compare individual solutions, see the Financial Summary table below.
+    </div>
     <div style="margin-bottom:16px;padding:12px 16px;border-radius:10px;border-left:4px solid ${glanceColor};background:${glanceBg};">
       <div style="font-size:12px;font-weight:700;color:${glanceColor};margin-bottom:4px;">${glanceIcon} Portfolio at a Glance — ${p2Bm.label} context</div>
       <div style="font-size:12px;color:var(--text);line-height:1.5;">${glanceVerdict}</div>
@@ -7519,21 +7977,21 @@ function renderPhase2(r) {
       <div class="p2-kpi">
         <div class="p2-kpi-label">Average ROI ${guideBtn('How is ROI calculated?')}</div>
         <div class="p2-kpi-value">${p.averageROI || 0}%</div>
-        <div class="p2-kpi-sub">${p2Bm.label} benchmark: ${p2Bm.roi}%</div>
+        <div class="p2-kpi-sub">${p2Bm.label} benchmark: ${p2Bm.roi}% <span title="${p2Bm.note}" style="cursor:help;color:var(--text-muted);font-size:10px;border-bottom:1px dotted var(--text-muted);">ⓘ source</span></div>
         ${buildMetricInterpretation('roi', p.averageROI, p2Industry)}
         ${roiKpiCalc}
       </div>
       <div class="p2-kpi">
         <div class="p2-kpi-label">Portfolio IRR ${guideBtn('How is IRR calculated?')}</div>
         <div class="p2-kpi-value">${p.portfolioIRR != null ? p.portfolioIRR + '%' : '—'}</div>
-        <div class="p2-kpi-sub">Hurdle rate: ${Math.round(rate * 100)}% · Benchmark: ${p2Bm.irr}%</div>
+        <div class="p2-kpi-sub">Hurdle rate: ${Math.round(rate * 100)}% · Benchmark: ${p2Bm.irr}% <span title="${p2Bm.note}" style="cursor:help;color:var(--text-muted);font-size:10px;border-bottom:1px dotted var(--text-muted);">ⓘ source</span></div>
         ${p.portfolioIRR != null ? buildMetricInterpretation('irr', p.portfolioIRR, p2Industry, { hurdle: Math.round(rate * 100) }) : ''}
         ${irrKpiCalc}
       </div>
       <div class="p2-kpi">
         <div class="p2-kpi-label">Payback Period ${guideBtn('How is Payback Period calculated?')}</div>
         <div class="p2-kpi-value">${p.paybackMonths != null ? p.paybackMonths + 'mo' : '—'}</div>
-        <div class="p2-kpi-sub">${p2Bm.label} benchmark: ${p2Bm.payback}mo</div>
+        <div class="p2-kpi-sub">${p2Bm.label} benchmark: ${p2Bm.payback}mo <span title="${p2Bm.note}" style="cursor:help;color:var(--text-muted);font-size:10px;border-bottom:1px dotted var(--text-muted);">ⓘ source</span></div>
         ${p.paybackMonths != null ? buildMetricInterpretation('payback', p.paybackMonths, p2Industry) : ''}
         ${paybackKpiCalc}
       </div>
@@ -7549,6 +8007,23 @@ function renderPhase2(r) {
         <div class="p2-kpi-sub">Trace ${qs.traceScore} · Budget ${qs.budgetScore} · NPV+ ${qs.npvPositive}%</div>
         ${buildMetricInterpretation('quality', qs.overallScore, p2Industry)}
         ${qsCalc}
+      </div>
+      <div class="p2-kpi" style="border-left:3px solid #f59e0b;padding-left:12px;">
+        <div class="p2-kpi-label">Portfolio Mix ${guideBtn('What is the portfolio mix?')}</div>
+        <div style="display:flex;gap:10px;align-items:center;margin:8px 0 4px;flex-wrap:wrap;">
+          <span style="font-size:20px;font-weight:800;color:#1d4ed8;">${sols.filter(s => s.solutionApproach === 'buy').length}</span>
+          <span style="font-size:11px;color:#1d4ed8;font-weight:600;">🛒 Software</span>
+          <span style="color:var(--border);font-size:18px;">·</span>
+          <span style="font-size:20px;font-weight:800;color:#6d28d9;">${sols.filter(s => s.solutionApproach === 'hybrid').length}</span>
+          <span style="font-size:11px;color:#6d28d9;font-weight:600;">🔀 Hybrid</span>
+          <span style="color:var(--border);font-size:18px;">·</span>
+          <span style="font-size:20px;font-weight:800;color:#b45309;">${sols.filter(s => s.solutionApproach === 'change').length}</span>
+          <span style="font-size:11px;color:#b45309;font-weight:600;">⚙️ Process</span>
+        </div>
+        <div class="p2-kpi-sub">${sols.filter(s => s.solutionApproach === 'change').length > 0 || sols.filter(s => s.solutionApproach === 'hybrid').length > 0 ? 'Blended portfolio — mix of procurement and change management' : 'All software — vendor procurement model'}</div>
+        <div style="margin-top:8px;font-size:10px;color:var(--text-muted);background:var(--surface-alt);border-radius:6px;padding:5px 8px;line-height:1.5;">
+          <strong>Industry config applied:</strong> ${p2Industry || 'default'} · Discount rate: ${Math.round((ic.discountRate||0.12)*100)}% · Benefit multiplier: ${(ic.benefitMultiplier||1).toFixed(2)}× · Risk penalty: ${((ic.riskPenalty||0.08)*100).toFixed(0)}%
+        </div>
       </div>
     </div>
   </div>`;
@@ -7577,11 +8052,11 @@ function renderPhase2(r) {
     const sCost = s.totalCost || 0;
     const sBen = s.annualBenefit || 0;
     return `<tr>
-      <td><span class="fin-sol-name">${s.name}</span><span class="fin-sol-id">${s.id}</span></td>
+      <td><span class="fin-sol-name">${s.name}</span><span class="fin-sol-id">${s.id}</span> ${approachBadge(s.solutionApproach)}</td>
       <td>${fmt(sCost)}</td>
       <td>${fmt(sBen)}</td>
       <td class="${npvClass}">${fmt(s.npv)} ${npvRange}</td>
-      <td>${s.roi || 0}%</td>
+      <td>${fmtROI(s)}</td>
       <td>${irrDisplay}</td>
       <td>${payback}</td>
       <td>${breakEven}</td>
@@ -7589,7 +8064,7 @@ function renderPhase2(r) {
     <tr class="calc-detail-row"><td colspan="8" style="padding:0 14px 12px;border-bottom:2px solid var(--border-light);background:var(--surface-alt);">
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;">
         <div>${calcToggle('NPV', buildNPVCalc(sCost, sBen, rate, years, s.npv))}</div>
-        <div>${calcToggle('ROI', buildROICalc(sCost, sBen, years, s.roi))}</div>
+        <div>${calcToggle('ROI', s.netBenefitOnly ? '<p style="font-size:12px;color:var(--text-muted);padding:8px 0;">No implementation cost — ROI is not applicable. This solution delivers <strong>' + fmt(s.annualNetBenefit) + '/yr</strong> net benefit through process change alone.</p>' : buildROICalc(sCost, sBen, years, s.roi))}</div>
         <div>${calcToggle('IRR', buildIRRCalc(s.irr, s.irrExceedsCapacity))}</div>
         <div>${calcToggle('Payback', buildPaybackCalc(sCost, sBen, s.paybackMonths))}</div>
       </div>
@@ -7617,10 +8092,10 @@ function renderPhase2(r) {
     const roiBar = Math.min(Math.round(sROI / (Math.max(...sols.map(x => x.roi || 0)) || 1) * 100), 100);
     const vendorLabel = s.vendorName || s.selectedVendor?.name || 'In-house / No vendor';
     return `<tr>
-      <td style="padding:10px 8px;font-weight:600;">${s.name}</td>
+      <td style="padding:10px 8px;font-weight:600;">${s.name} ${approachBadge(s.solutionApproach)}</td>
       <td style="padding:10px 8px;text-align:right;">${fmt(sCost)}</td>
       <td style="padding:10px 8px;text-align:right;">${fmt(sBen)}</td>
-      <td style="padding:10px 8px;text-align:right;font-weight:700;color:${sROI >= 200 ? 'var(--success)' : sROI >= 100 ? 'var(--primary)' : 'var(--danger)'};">${Math.round(sROI)}%</td>
+      <td style="padding:10px 8px;text-align:right;font-weight:700;color:${s.netBenefitOnly ? 'var(--success)' : sROI >= 200 ? 'var(--success)' : sROI >= 100 ? 'var(--primary)' : 'var(--danger)'};">${fmtROI(s)}</td>
       <td style="padding:10px 8px;text-align:right;font-weight:700;">${sIRR}</td>
       <td style="padding:10px 8px;text-align:right;">${s.paybackMonths ? s.paybackMonths + 'mo' : '—'}</td>
       <td style="padding:10px 8px;font-size:12px;color:var(--text-muted);">${vendorLabel}</td>
@@ -7823,11 +8298,11 @@ const PHASE3_TEST_PAYLOAD = {
   projectMeta:{projectTitle:'Eco Platform Upgrade',industry:'retail',timeHorizonYears:3,discountRatePct:12,budget:500000,annualRevenue:5000000,annualOperatingCost:2000000},
   validatedData:{projectTitle:'Eco Platform Upgrade',industry:'retail',budget:500000,annualRevenue:5000000,annualOperatingCost:2000000,headcount:50,companySize:'SME',onlineRevenuePct:68,timeHorizonYears:3,discountRatePct:12,complianceRequirements:['PCI-DSS','GDPR'],projectStartDate:'2026-04-01'},
   solutions:[
-    {id:'SOL-001',name:'Security & Compliance Foundation',category:'security_compliance',riskLevel:'Low',deliveryPhase:1,totalCost:52000,implementation_cost:52000,implementationTime:5,recurringAnnualCost:15000,linkedBenefits:['BEN-003'],delivers_benefits:['BEN-003'],linkedRequirements:['REQ-001','REQ-002'],depends_on_requirements:['REQ-001','REQ-002'],supported_by_requirements:['REQ-001','REQ-002'],npv:112000,roi:315,irr:88,paybackMonths:14,annualBenefit:62500,confidenceScore:78,confidence:0.78,selectedVendor:{name:'Vanta',fitScore:94,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:30000,vendorCostHigh:60000,implementationMonths:4,deliveryTimeline:{totalMonths:4,phases:[{name:'Discovery & Planning',months:0.6},{name:'Setup & Configuration',months:1.2},{name:'Integration',months:0.8},{name:'Testing & UAT',months:1.0},{name:'Go-Live & Hypercare',months:0.4}]}},vendorName:'Vanta',vendorFitScore:94,vendorCostLow:30000,vendorCostHigh:60000},
-    {id:'SOL-002',name:'Platform Modernisation & CDN',category:'frontend_modernization',riskLevel:'Medium',deliveryPhase:2,totalCost:35000,implementation_cost:35000,implementationTime:4,recurringAnnualCost:24000,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-002','REQ-004'],depends_on_requirements:['REQ-002','REQ-004'],supported_by_requirements:['REQ-002','REQ-004'],npv:98000,roi:280,irr:76,paybackMonths:16,annualBenefit:30467,confidenceScore:79,confidence:0.79,selectedVendor:{name:'Vercel Enterprise',fitScore:88,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:18000,vendorCostHigh:36000,implementationMonths:3},vendorName:'Vercel Enterprise',vendorFitScore:88,vendorCostLow:18000,vendorCostHigh:36000},
-    {id:'SOL-003',name:'Order Processing Automation',category:'process_optimization',riskLevel:'Medium',deliveryPhase:2,totalCost:48000,implementation_cost:48000,implementationTime:6,recurringAnnualCost:18000,linkedBenefits:['BEN-001','BEN-003'],delivers_benefits:['BEN-001','BEN-003'],linkedRequirements:['REQ-002','REQ-003','REQ-004'],depends_on_requirements:['REQ-002','REQ-003','REQ-004'],supported_by_requirements:['REQ-002','REQ-003','REQ-004'],npv:187000,roi:520,irr:118,paybackMonths:11,annualBenefit:68833,confidenceScore:74,confidence:0.74,selectedVendor:{name:'Kissflow Process',fitScore:85,complianceCoverage:['GDPR','SOC2'],vendorCostLow:28000,vendorCostHigh:55000,implementationMonths:5},vendorName:'Kissflow Process',vendorFitScore:85,vendorCostLow:28000,vendorCostHigh:55000},
-    {id:'SOL-004',name:'Cart Recovery & Conversion',category:'ecommerce_optimization',riskLevel:'Low',deliveryPhase:2,totalCost:38000,implementation_cost:38000,implementationTime:4,recurringAnnualCost:36000,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-001','REQ-004'],depends_on_requirements:['REQ-001','REQ-004'],supported_by_requirements:['REQ-001','REQ-004'],npv:143000,roi:395,irr:102,paybackMonths:13,annualBenefit:30467,confidenceScore:80,confidence:0.80,selectedVendor:{name:'Dynamic Yield',fitScore:82,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:22000,vendorCostHigh:45000,implementationMonths:3},vendorName:'Dynamic Yield',vendorFitScore:82,vendorCostLow:22000,vendorCostHigh:45000},
-    {id:'SOL-005',name:'Sustainable Operations & Carbon Tracking',category:'cloud_modernization',riskLevel:'Low',deliveryPhase:3,totalCost:36000,implementation_cost:36000,implementationTime:3,recurringAnnualCost:28000,linkedBenefits:['BEN-005'],delivers_benefits:['BEN-005'],linkedRequirements:['REQ-003','REQ-005'],depends_on_requirements:['REQ-003','REQ-005'],supported_by_requirements:['REQ-003','REQ-005'],npv:97000,roi:270,irr:71,paybackMonths:17,annualBenefit:22000,confidenceScore:77,confidence:0.77,selectedVendor:{name:'Sweep',fitScore:80,complianceCoverage:['PCI-DSS','GDPR','SOC2','ISO27001'],vendorCostLow:20000,vendorCostHigh:40000,implementationMonths:3},vendorName:'Sweep',vendorFitScore:80,vendorCostLow:20000,vendorCostHigh:40000}
+    {id:'SOL-001',name:'Security & Compliance Foundation',category:'security_compliance',solutionApproach:'buy',riskLevel:'Low',deliveryPhase:1,totalCost:52000,implementation_cost:52000,implementationTime:5,recurringAnnualCost:15000,linkedBenefits:['BEN-003'],delivers_benefits:['BEN-003'],linkedRequirements:['REQ-001','REQ-002'],depends_on_requirements:['REQ-001','REQ-002'],supported_by_requirements:['REQ-001','REQ-002'],npv:112000,roi:315,irr:88,paybackMonths:14,annualBenefit:62500,confidenceScore:78,confidence:0.78,selectedVendor:{name:'Vanta',fitScore:94,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:30000,vendorCostHigh:60000,implementationMonths:4,deliveryTimeline:{totalMonths:4,phases:[{name:'Discovery & Planning',months:0.6},{name:'Setup & Configuration',months:1.2},{name:'Integration',months:0.8},{name:'Testing & UAT',months:1.0},{name:'Go-Live & Hypercare',months:0.4}]}},vendorName:'Vanta',vendorFitScore:94,vendorCostLow:30000,vendorCostHigh:60000},
+    {id:'SOL-002',name:'Platform Modernisation & CDN',category:'frontend_modernization',solutionApproach:'buy',riskLevel:'Medium',deliveryPhase:2,totalCost:35000,implementation_cost:35000,implementationTime:4,recurringAnnualCost:24000,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-002','REQ-004'],depends_on_requirements:['REQ-002','REQ-004'],supported_by_requirements:['REQ-002','REQ-004'],npv:98000,roi:280,irr:76,paybackMonths:16,annualBenefit:30467,confidenceScore:79,confidence:0.79,selectedVendor:{name:'Vercel Enterprise',fitScore:88,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:18000,vendorCostHigh:36000,implementationMonths:3},vendorName:'Vercel Enterprise',vendorFitScore:88,vendorCostLow:18000,vendorCostHigh:36000},
+    {id:'SOL-003',name:'Order Processing Automation',category:'process_optimization',solutionApproach:'change',riskLevel:'Medium',deliveryPhase:2,totalCost:48000,implementation_cost:48000,implementationTime:6,recurringAnnualCost:18000,linkedBenefits:['BEN-001','BEN-003'],delivers_benefits:['BEN-001','BEN-003'],linkedRequirements:['REQ-002','REQ-003','REQ-004'],depends_on_requirements:['REQ-002','REQ-003','REQ-004'],supported_by_requirements:['REQ-002','REQ-003','REQ-004'],npv:187000,roi:520,irr:118,paybackMonths:11,annualBenefit:68833,confidenceScore:74,confidence:0.74,selectedVendor:{name:'Kissflow Process',fitScore:85,complianceCoverage:['GDPR','SOC2'],vendorCostLow:28000,vendorCostHigh:55000,implementationMonths:5},vendorName:'Kissflow Process',vendorFitScore:85,vendorCostLow:28000,vendorCostHigh:55000},
+    {id:'SOL-004',name:'Cart Recovery & Conversion',category:'ecommerce_optimization',solutionApproach:'buy',riskLevel:'Low',deliveryPhase:2,totalCost:38000,implementation_cost:38000,implementationTime:4,recurringAnnualCost:36000,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-001','REQ-004'],depends_on_requirements:['REQ-001','REQ-004'],supported_by_requirements:['REQ-001','REQ-004'],npv:143000,roi:395,irr:102,paybackMonths:13,annualBenefit:30467,confidenceScore:80,confidence:0.80,selectedVendor:{name:'Dynamic Yield',fitScore:82,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:22000,vendorCostHigh:45000,implementationMonths:3},vendorName:'Dynamic Yield',vendorFitScore:82,vendorCostLow:22000,vendorCostHigh:45000},
+    {id:'SOL-005',name:'Sustainable Operations & Carbon Tracking',category:'cloud_modernization',solutionApproach:'buy',riskLevel:'Low',deliveryPhase:3,totalCost:36000,implementation_cost:36000,implementationTime:3,recurringAnnualCost:28000,linkedBenefits:['BEN-005'],delivers_benefits:['BEN-005'],linkedRequirements:['REQ-003','REQ-005'],depends_on_requirements:['REQ-003','REQ-005'],supported_by_requirements:['REQ-003','REQ-005'],npv:97000,roi:270,irr:71,paybackMonths:17,annualBenefit:22000,confidenceScore:77,confidence:0.77,selectedVendor:{name:'Sweep',fitScore:80,complianceCoverage:['PCI-DSS','GDPR','SOC2','ISO27001'],vendorCostLow:20000,vendorCostHigh:40000,implementationMonths:3},vendorName:'Sweep',vendorFitScore:80,vendorCostLow:20000,vendorCostHigh:40000}
   ],
   benefits:[
     {id:'BEN-001',category:'Operational Efficiency',description:'Automate 80% of order processing.',riskAdjustedValue:144000,annualizedValue:48000,confidence:0.85,linkedSolutions:['SOL-003']},
@@ -7994,7 +8469,8 @@ function renderPhase3(d, el) {
 
   // ─── Timeline bar ───────────────────────────
   const totalWeeks = pt.totalDurationWeeks || 1;
-  const phaseColors = ['#2563eb', '#7c3aed', '#f59e0b', '#059669'];
+  // 5 PLC phase colours: Definition/Discovery, Acquisition, Planning, Execution, Closing
+  const phaseColors = ['#2563eb', '#7c3aed', '#0891b2', '#059669', '#64748b'];
   const timelineBar = phases.length > 0 ? `<div style="margin-bottom:28px;">
     <div style="font-size:14px;font-weight:700;margin-bottom:10px;">Project Timeline — ${totalWeeks} Weeks ${guideBtn('How is the project timeline generated?')}</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:11px;color:var(--text-muted);">
@@ -8003,13 +8479,20 @@ function renderPhase3(d, el) {
     <div class="p3-timeline-bar">
       ${phases.map((p, i) => {
         const span = (p.endWeek || 0) - (p.startWeek || 0) + 1;
-        const widthPct = Math.max(10, Math.round(span / totalWeeks * 100));
-        return `<div class="p3-timeline-seg" style="width:${widthPct}%;background:${phaseColors[i % 4]};" title="${p.name}: Week ${p.startWeek}–${p.endWeek}">${p.name}</div>`;
+        const widthPct = p.weightPct || Math.max(10, Math.round(span / totalWeeks * 100));
+        const label = p.plcPhase ? `${p.plcPhase}. ${p.name}` : p.name;
+        return `<div class="p3-timeline-seg" style="width:${widthPct}%;background:${phaseColors[i % 5]};" title="${p.name}: Week ${p.startWeek}–${p.endWeek} (${widthPct}%)">${label}</div>`;
       }).join('')}
     </div>
     <div class="p3-timeline-labels" style="justify-content:space-between;">
-      ${phases.map((p, i) => `<div class="p3-timeline-label" style="flex:1;"><strong>W${p.startWeek}–${p.endWeek}</strong></div>`).join('')}
+      ${phases.map((p, i) => {
+        const approxCost = p.weightPct && pt.totalCost > 0
+          ? fmt(Math.round(pt.totalCost * p.weightPct / 100))
+          : null;
+        return `<div class="p3-timeline-label" style="flex:${p.weightPct || 1};text-align:center;"><strong>W${p.startWeek}–${p.endWeek}</strong>${p.weightPct ? '<br>' + p.weightPct + '%' : ''}${approxCost ? '<br><span style="font-size:9px;color:' + phaseColors[i % 5] + ';font-weight:700;">~' + approxCost + '</span>' : ''}</div>`;
+      }).join('')}
     </div>
+    ${pt.totalCost > 0 ? `<div style="margin-top:6px;font-size:10px;color:var(--text-muted);text-align:right;">Approx. cost per phase — based on schedule weighting of total portfolio cost (${fmt(pt.totalCost)}). Actual spend depends on vendor payment milestones.</div>` : ''}
   </div>` : '';
 
   // ─── Confidence analysis ────────────────────
@@ -8095,11 +8578,12 @@ function renderPhase3(d, el) {
 
   // ─── Fulfillment table ──────────────────────
   const fRows = (fulfill.solutions || []).map(s => {
+    const fSol = (d.solutions || []).find(x => x.id === s.solutionId) || {};
     const rcColor = s.reqCoverage >= 80 ? 'var(--success)' : s.reqCoverage >= 60 ? 'var(--warning)' : 'var(--danger)';
     const bcColor = s.benContribution >= 80 ? 'var(--success)' : s.benContribution >= 60 ? 'var(--warning)' : 'var(--danger)';
     const tsColor = s.traceabilityScore >= 80 ? 'var(--success)' : s.traceabilityScore >= 60 ? 'var(--warning)' : 'var(--danger)';
     return `<tr>
-      <td style="font-weight:600;">${s.solutionId}</td>
+      <td style="font-weight:600;">${s.solutionId} ${approachBadge(fSol.solutionApproach)}</td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="p3-fulfill-bar" style="width:80px;flex-shrink:0;"><div class="p3-fulfill-bar-fill" style="width:${s.reqCoverage}%;background:${rcColor};"></div></div><span style="font-weight:600;color:${rcColor};">${s.reqCoverage}%</span></div></td>
       <td><div style="display:flex;align-items:center;gap:8px;"><div class="p3-fulfill-bar" style="width:80px;flex-shrink:0;"><div class="p3-fulfill-bar-fill" style="width:${s.benContribution}%;background:${bcColor};"></div></div><span style="font-weight:600;color:${bcColor};">${s.benContribution}%</span></div></td>
       <td style="font-weight:700;font-size:15px;color:${tsColor};">${s.traceabilityScore}</td>
@@ -8226,11 +8710,11 @@ const PHASE4_TEST_PAYLOAD = {
   projectMeta:{projectTitle:'Eco Platform Upgrade',industry:'retail',timeHorizonYears:3,discountRatePct:12,budget:500000,annualRevenue:5000000,annualOperatingCost:2000000},
   validatedData:{projectTitle:'Eco Platform Upgrade',industry:'retail',budget:500000,annualRevenue:5000000,annualOperatingCost:2000000,headcount:50,companySize:'SME',timeHorizonYears:3,discountRatePct:12,complianceRequirements:['PCI-DSS','GDPR']},
   solutions:[
-    {id:'SOL-001',name:'Security & Compliance Foundation',category:'security_compliance',riskLevel:'Low',deliveryPhase:1,totalCost:52000,estimatedCostUSD:52000,implementation_cost:52000,recurringAnnualCost:15000,annualBenefit:62500,confidenceScore:78,confidence:0.78,linkedBenefits:['BEN-003'],delivers_benefits:['BEN-003'],linkedRequirements:['REQ-001','REQ-002'],depends_on_requirements:['REQ-001','REQ-002'],supported_by_requirements:['REQ-001','REQ-002'],npv:112000,roi:315,irr:88,paybackMonths:14,selectedVendor:{name:'Vanta',fitScore:94,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:30000,vendorCostHigh:60000,implementationMonths:4},vendorName:'Vanta',vendorFitScore:94,vendorCostLow:30000,vendorCostHigh:60000},
-    {id:'SOL-002',name:'Platform Modernisation & CDN',category:'frontend_modernization',riskLevel:'Medium',deliveryPhase:2,totalCost:35000,estimatedCostUSD:35000,implementation_cost:35000,recurringAnnualCost:24000,annualBenefit:30467,confidenceScore:79,confidence:0.79,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-002','REQ-004'],depends_on_requirements:['REQ-002','REQ-004'],supported_by_requirements:['REQ-002','REQ-004'],npv:98000,roi:280,irr:76,paybackMonths:16,selectedVendor:{name:'Vercel Enterprise',fitScore:88,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:18000,vendorCostHigh:36000,implementationMonths:3},vendorName:'Vercel Enterprise',vendorFitScore:88,vendorCostLow:18000,vendorCostHigh:36000},
-    {id:'SOL-003',name:'Order Processing Automation',category:'process_optimization',riskLevel:'Medium',deliveryPhase:2,totalCost:48000,estimatedCostUSD:48000,implementation_cost:48000,recurringAnnualCost:18000,annualBenefit:68833,confidenceScore:74,confidence:0.74,linkedBenefits:['BEN-001','BEN-003'],delivers_benefits:['BEN-001','BEN-003'],linkedRequirements:['REQ-002','REQ-003','REQ-004'],depends_on_requirements:['REQ-002','REQ-003','REQ-004'],supported_by_requirements:['REQ-002','REQ-003','REQ-004'],npv:187000,roi:520,irr:118,paybackMonths:11,selectedVendor:{name:'Kissflow Process',fitScore:85,complianceCoverage:['GDPR','SOC2'],vendorCostLow:28000,vendorCostHigh:55000,implementationMonths:5},vendorName:'Kissflow Process',vendorFitScore:85,vendorCostLow:28000,vendorCostHigh:55000},
-    {id:'SOL-004',name:'Cart Recovery & Conversion',category:'ecommerce_optimization',riskLevel:'Low',deliveryPhase:2,totalCost:38000,estimatedCostUSD:38000,implementation_cost:38000,recurringAnnualCost:36000,annualBenefit:30467,confidenceScore:80,confidence:0.80,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-001','REQ-004'],depends_on_requirements:['REQ-001','REQ-004'],supported_by_requirements:['REQ-001','REQ-004'],npv:143000,roi:395,irr:102,paybackMonths:13,selectedVendor:{name:'Dynamic Yield',fitScore:82,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:22000,vendorCostHigh:45000,implementationMonths:3},vendorName:'Dynamic Yield',vendorFitScore:82,vendorCostLow:22000,vendorCostHigh:45000},
-    {id:'SOL-005',name:'Sustainable Operations & Carbon Tracking',category:'cloud_modernization',riskLevel:'Low',deliveryPhase:3,totalCost:36000,estimatedCostUSD:36000,implementation_cost:36000,recurringAnnualCost:28000,annualBenefit:22000,confidenceScore:77,confidence:0.77,linkedBenefits:['BEN-005'],delivers_benefits:['BEN-005'],linkedRequirements:['REQ-003','REQ-005'],depends_on_requirements:['REQ-003','REQ-005'],supported_by_requirements:['REQ-003','REQ-005'],npv:97000,roi:270,irr:71,paybackMonths:17,selectedVendor:{name:'Sweep',fitScore:80,complianceCoverage:['PCI-DSS','GDPR','SOC2','ISO27001'],vendorCostLow:20000,vendorCostHigh:40000,implementationMonths:3},vendorName:'Sweep',vendorFitScore:80,vendorCostLow:20000,vendorCostHigh:40000}
+    {id:'SOL-001',name:'Security & Compliance Foundation',category:'security_compliance',solutionApproach:'buy',riskLevel:'Low',deliveryPhase:1,totalCost:52000,estimatedCostUSD:52000,implementation_cost:52000,recurringAnnualCost:15000,annualBenefit:62500,confidenceScore:78,confidence:0.78,linkedBenefits:['BEN-003'],delivers_benefits:['BEN-003'],linkedRequirements:['REQ-001','REQ-002'],depends_on_requirements:['REQ-001','REQ-002'],supported_by_requirements:['REQ-001','REQ-002'],npv:112000,roi:315,irr:88,paybackMonths:14,selectedVendor:{name:'Vanta',fitScore:94,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:30000,vendorCostHigh:60000,implementationMonths:4},vendorName:'Vanta',vendorFitScore:94,vendorCostLow:30000,vendorCostHigh:60000},
+    {id:'SOL-002',name:'Platform Modernisation & CDN',category:'frontend_modernization',solutionApproach:'buy',riskLevel:'Medium',deliveryPhase:2,totalCost:35000,estimatedCostUSD:35000,implementation_cost:35000,recurringAnnualCost:24000,annualBenefit:30467,confidenceScore:79,confidence:0.79,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-002','REQ-004'],depends_on_requirements:['REQ-002','REQ-004'],supported_by_requirements:['REQ-002','REQ-004'],npv:98000,roi:280,irr:76,paybackMonths:16,selectedVendor:{name:'Vercel Enterprise',fitScore:88,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:18000,vendorCostHigh:36000,implementationMonths:3},vendorName:'Vercel Enterprise',vendorFitScore:88,vendorCostLow:18000,vendorCostHigh:36000},
+    {id:'SOL-003',name:'Order Processing Automation',category:'process_optimization',solutionApproach:'change',riskLevel:'Medium',deliveryPhase:2,totalCost:48000,estimatedCostUSD:48000,implementation_cost:48000,recurringAnnualCost:18000,annualBenefit:68833,confidenceScore:74,confidence:0.74,linkedBenefits:['BEN-001','BEN-003'],delivers_benefits:['BEN-001','BEN-003'],linkedRequirements:['REQ-002','REQ-003','REQ-004'],depends_on_requirements:['REQ-002','REQ-003','REQ-004'],supported_by_requirements:['REQ-002','REQ-003','REQ-004'],npv:187000,roi:520,irr:118,paybackMonths:11,selectedVendor:{name:'Kissflow Process',fitScore:85,complianceCoverage:['GDPR','SOC2'],vendorCostLow:28000,vendorCostHigh:55000,implementationMonths:5},vendorName:'Kissflow Process',vendorFitScore:85,vendorCostLow:28000,vendorCostHigh:55000},
+    {id:'SOL-004',name:'Cart Recovery & Conversion',category:'ecommerce_optimization',solutionApproach:'buy',riskLevel:'Low',deliveryPhase:2,totalCost:38000,estimatedCostUSD:38000,implementation_cost:38000,recurringAnnualCost:36000,annualBenefit:30467,confidenceScore:80,confidence:0.80,linkedBenefits:['BEN-002','BEN-004'],delivers_benefits:['BEN-002','BEN-004'],linkedRequirements:['REQ-001','REQ-004'],depends_on_requirements:['REQ-001','REQ-004'],supported_by_requirements:['REQ-001','REQ-004'],npv:143000,roi:395,irr:102,paybackMonths:13,selectedVendor:{name:'Dynamic Yield',fitScore:82,complianceCoverage:['PCI-DSS','GDPR','SOC2'],vendorCostLow:22000,vendorCostHigh:45000,implementationMonths:3},vendorName:'Dynamic Yield',vendorFitScore:82,vendorCostLow:22000,vendorCostHigh:45000},
+    {id:'SOL-005',name:'Sustainable Operations & Carbon Tracking',category:'cloud_modernization',solutionApproach:'buy',riskLevel:'Low',deliveryPhase:3,totalCost:36000,estimatedCostUSD:36000,implementation_cost:36000,recurringAnnualCost:28000,annualBenefit:22000,confidenceScore:77,confidence:0.77,linkedBenefits:['BEN-005'],delivers_benefits:['BEN-005'],linkedRequirements:['REQ-003','REQ-005'],depends_on_requirements:['REQ-003','REQ-005'],supported_by_requirements:['REQ-003','REQ-005'],npv:97000,roi:270,irr:71,paybackMonths:17,selectedVendor:{name:'Sweep',fitScore:80,complianceCoverage:['PCI-DSS','GDPR','SOC2','ISO27001'],vendorCostLow:20000,vendorCostHigh:40000,implementationMonths:3},vendorName:'Sweep',vendorFitScore:80,vendorCostLow:20000,vendorCostHigh:40000}
   ],
   benefits:[
     {id:'BEN-001',category:'Operational Efficiency',description:'Automate 80% of order processing.',riskAdjustedValue:144000,annualizedValue:48000,confidence:0.85,linkedSolutions:['SOL-003']},
@@ -8394,6 +8878,30 @@ function renderPhase4(d, el) {
     <span style="color:var(--text-muted);font-size:12px;margin-left:auto;">${p5.errors?.length ? p5.errors.join(' | ') : 'All checks passed — ready for Phase 5 report generation'}</span>
   </div>`;
 
+  // ── Process-First / Hybrid-First Path Banner ─────────────────
+  const orgF = d.orgFriction || {};
+  const _hybridCount = (d.solutions || []).filter(s => s.solutionApproach === 'hybrid').length;
+  const _isHybridFirst = !orgF.isProcessFirst && _hybridCount >= Math.ceil((orgF.totalSolutions || 1) / 2);
+  if (orgF.isProcessFirst || _isHybridFirst) {
+    const pfPathLabel = orgF.deliveryPath ? orgF.deliveryPath.replace('_', ' ') : (_isHybridFirst ? 'hybrid first' : 'blended');
+    const isHybrid = _isHybridFirst && !orgF.isProcessFirst;
+    html += `<div style="background:${isHybrid ? '#f5f3ff' : '#fffbeb'};border:1.5px solid ${isHybrid ? '#8b5cf6' : '#f59e0b'};border-radius:10px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:flex-start;gap:14px;">
+      <div style="font-size:22px;line-height:1;">${isHybrid ? '🔀' : '⚙️'}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:700;color:${isHybrid ? '#5b21b6' : '#92400e'};margin-bottom:6px;">${isHybrid ? 'Hybrid-First Portfolio' : 'Process-First Portfolio'} ${guideBtn('What does Process-First Path mean?')}</div>
+        <div style="font-size:13px;color:${isHybrid ? '#4c1d95' : '#78350f'};line-height:1.5;">
+          ${isHybrid
+            ? `<strong>${_hybridCount} of ${orgF.totalSolutions}</strong> solutions are <strong>🔀 Hybrid</strong> — combining vendor software with change management. Both procurement <em>and</em> adoption planning are critical workstreams.`
+            : `<strong>${orgF.changeCount} of ${orgF.totalSolutions}</strong> solutions are <strong>⚙️ Process Change</strong> — making this a <strong>process-first</strong> delivery. Your primary workstream is change management, not vendor procurement. No software licences are required for process solutions — success depends on people adoption and execution discipline.`}
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:${isHybrid ? '#ede9fe' : '#fde68a'};color:${isHybrid ? '#5b21b6' : '#92400e'};">${isHybrid ? '🔀' : '⚙️'} Delivery Path: ${pfPathLabel}</span>
+          ${orgF.avgFrictionScore != null ? `<span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:${isHybrid ? '#ede9fe' : '#fde68a'};color:${isHybrid ? '#5b21b6' : '#92400e'};">Avg Org Friction: ${orgF.avgFrictionScore}/100</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+  }
+
   // ── Recommendation Hero Card ─────────────────────────────────
   html += `<div class="card business-emphasis" style="border-left:5px solid var(--primary);margin-bottom:28px;padding:28px 32px;">
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
@@ -8403,8 +8911,10 @@ function renderPhase4(d, el) {
     </div>
     <h3 style="font-size:22px;font-weight:800;margin:0 0 6px;">${winner.name || '-'}</h3>
     <div style="font-size:14px;color:var(--text-muted);margin-bottom:12px;">
-      Vendor: <strong style="color:var(--text);">${winner.vendorName || '-'}</strong>
-      &nbsp;·&nbsp; Fit Score: <strong style="color:var(--text);">${winner.vendorFitScore != null ? winner.vendorFitScore : '-'}</strong>
+      ${winner.solutionApproach === 'change'
+        ? `<span style="color:#b45309;font-weight:600;">⚙️ Process Change</span> &nbsp;·&nbsp; <span style="color:#b45309;">No vendor procurement required</span>`
+        : `Vendor: <strong style="color:var(--text);">${winner.vendorName || '-'}</strong>
+      &nbsp;·&nbsp; Fit Score: <strong style="color:var(--text);">${winner.vendorFitScore != null ? winner.vendorFitScore : '-'}</strong>`}
       &nbsp;·&nbsp; Risk: <strong style="color:${riskColor(winner.riskLevel)};">${winner.riskLevel || '-'}</strong>
       &nbsp;·&nbsp; Payback: <strong style="color:var(--text);">${winner.paybackMonths ? winner.paybackMonths + ' months' : '-'}</strong>
     </div>
@@ -8440,6 +8950,47 @@ function renderPhase4(d, el) {
     </div>
   </div>`;
 
+  // ── Recommended Vendor / Delivery Card ──────────────────────
+  html += (() => {
+    const isChange = winner.solutionApproach === 'change';
+    const isHybrid = winner.solutionApproach === 'hybrid';
+    if (isChange) {
+      return `<div class="card business-emphasis" style="margin-bottom:28px;padding:20px 24px;border-left:5px solid #f59e0b;background:#fffbeb;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">⚙️</span>
+          <h4 style="font-size:14px;font-weight:700;margin:0;color:#92400e;">Recommended Delivery: Process Change</h4>
+        </div>
+        <div style="font-size:13px;color:#78350f;line-height:1.6;">
+          <strong>No vendor procurement required</strong> — this solution is delivered through internal process redesign, SOP updates, and staff training.<br>
+          <span style="display:block;margin-top:8px;">💡 <strong>Tip:</strong> Consider engaging a specialist <strong>change management consultancy</strong> or your internal PMO to lead this programme. Success depends on people adoption, not technology.</span>
+        </div>
+      </div>`;
+    }
+    if (!winner.vendorName) return '';
+    const isTopVendor = winner.vendorFitScore != null;
+    const adoptionNote = isHybrid
+      ? `<div style="margin-top:8px;padding:8px 12px;background:#f5f3ff;border-radius:6px;font-size:12px;color:#4c1d95;line-height:1.5;"><strong>Hybrid delivery:</strong> ${winner.vendorName} handles the software component. A separate change management lead or internal PMO is required to manage the process and people workstream.</div>`
+      : '';
+    return `<div class="card business-emphasis" style="margin-bottom:28px;padding:20px 24px;border-left:5px solid #0891b2;background:linear-gradient(135deg,#ecfeff 0%,#f0f9ff 100%);">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span style="font-size:20px;">🏢</span>
+        <h4 style="font-size:14px;font-weight:700;margin:0;color:#0c4a6e;">Recommended Vendor${isHybrid ? ' (Software Component)' : ''}</h4>
+        ${guideBtn('Why is the top-ranked vendor recommended?')}
+      </div>
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+        <div style="background:white;border:1.5px solid #bae6fd;border-radius:10px;padding:14px 20px;min-width:160px;text-align:center;">
+          <div style="font-size:22px;font-weight:800;color:#0369a1;">${winner.vendorName}</div>
+          ${isTopVendor ? `<div style="font-size:11px;font-weight:700;color:#0891b2;margin-top:4px;">Fit Score: ${winner.vendorFitScore}/100</div>` : ''}
+        </div>
+        <div style="flex:1;min-width:180px;font-size:13px;color:#374151;line-height:1.6;">
+          ${winner.rationale ? `<div style="margin-bottom:6px;"><strong>Why chosen:</strong> ${winner.rationale}</div>` : ''}
+          ${winner.paybackMonths ? `<div>Expected payback: <strong>${winner.paybackMonths} months</strong></div>` : ''}
+        </div>
+      </div>
+      ${adoptionNote}
+    </div>`;
+  })();
+
   // ── Scoring Weights (5 bars) — analyst-only ──────────────────
   html += '<div class="analyst-only">';
   const weightItems = [
@@ -8447,7 +8998,7 @@ function renderPhase4(d, el) {
     { label: 'ROI',          pct: (weights.roi || 0) * 100,        color: '#6366f1',        desc: 'Return on every dollar invested. How efficient is the spend?' },
     { label: 'Confidence',   pct: (weights.confidence || 0) * 100, color: 'var(--success)', desc: 'How certain are we that the stated benefits will actually materialise?' },
     { label: 'Risk Penalty', pct: (weights.riskPenalty || 0) * 100, color: '#d97706',       desc: 'Solutions with higher implementation risk are penalised. Safer bets score higher.' },
-    { label: 'Vendor Fit',   pct: (weights.vendorFit || 0) * 100,  color: '#8b5cf6',        desc: 'How well does the recommended vendor align to your industry, compliance, and tech stack?' }
+    { label: 'Approach Fit', pct: ((weights.approachFit || weights.vendorFit || 0)) * 100, color: '#8b5cf6', desc: 'For 🛒 Software solutions: vendor capability match and compliance coverage. For 🔀 Hybrid and ⚙️ Process solutions: adoption readiness — how easily the organisation can absorb the change.' }
   ];
   html += `<div class="card" style="margin-bottom:28px;padding:24px 28px;">
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:16px;">
@@ -8540,7 +9091,7 @@ function renderPhase4(d, el) {
           <th style="padding:10px 8px;font-weight:700;text-align:right;">NPV</th>
           <th style="padding:10px 8px;font-weight:700;text-align:right;">ROI</th>
           <th style="padding:10px 8px;font-weight:700;text-align:center;">Risk</th>
-          <th style="padding:10px 8px;font-weight:700;">Vendor</th>
+          <th style="padding:10px 8px;font-weight:700;">Vendor / Approach</th>
           <th style="padding:10px 8px;font-weight:700;text-align:right;">Fit</th>
           <th style="padding:10px 8px;font-weight:700;text-align:right;">Payback</th>
         </tr>
@@ -8551,13 +9102,13 @@ function renderPhase4(d, el) {
           const bg = isWinner ? 'var(--success-light)' : (i % 2 === 1 ? 'var(--surface-alt)' : 'transparent');
           return `<tr style="border-bottom:1px solid var(--border-light);background:${bg};">
             <td style="padding:10px 8px;font-weight:800;${isWinner ? 'color:var(--success);' : ''}">${r.rank}</td>
-            <td style="padding:10px 8px;font-weight:600;">${r.name}${isWinner ? ' <span style="font-size:10px;background:var(--success);color:white;padding:2px 8px;border-radius:10px;margin-left:6px;">WINNER</span>' : ''}</td>
+            <td style="padding:10px 8px;font-weight:600;">${r.name} ${approachBadge(r.solutionApproach)}${isWinner ? ' <span style="font-size:10px;background:var(--success);color:white;padding:2px 8px;border-radius:10px;margin-left:6px;">WINNER</span>' : ''}</td>
             <td style="padding:10px 8px;text-align:right;font-weight:700;">${r.score}<div style="margin-top:4px;">${calcToggle('Score', buildCompositeCalc(r, weights))}</div></td>
             <td style="padding:10px 8px;text-align:right;">${fmt(r.npv)}</td>
             <td style="padding:10px 8px;text-align:right;">${Math.round(r.roiPct)}%</td>
             <td style="padding:10px 8px;text-align:center;"><span style="color:${riskColor(r.riskLevel)};font-weight:600;">${r.riskLevel}</span></td>
-            <td style="padding:10px 8px;">${r.vendorName || '-'}</td>
-            <td style="padding:10px 8px;text-align:right;font-weight:600;">${r.vendorFitScore != null ? r.vendorFitScore : '-'}</td>
+            <td style="padding:10px 8px;">${r.solutionApproach === 'change' ? '<span style="font-size:11px;font-weight:700;color:#b45309;">⚙️ Process Change</span>' : r.solutionApproach === 'hybrid' ? `<span style="font-size:11px;font-weight:700;color:#6d28d9;">🔀 Hybrid</span>${r.vendorName ? '<br><span style="font-size:10px;color:var(--text-muted);">' + r.vendorName + '</span>' : ''}` : (r.vendorName || '—')}</td>
+            <td style="padding:10px 8px;text-align:right;font-weight:600;">${r.solutionApproach === 'change' ? '—' : r.solutionApproach === 'hybrid' ? (r.adoptionReadiness != null ? Math.round(r.adoptionReadiness * 100) + '%' : '—') : (r.vendorFitScore != null ? r.vendorFitScore : '—')}</td>
             <td style="padding:10px 8px;text-align:right;">${r.paybackMonths ? r.paybackMonths + 'mo' : '-'}</td>
           </tr>`;
         }).join('')}
@@ -8567,6 +9118,77 @@ function renderPhase4(d, el) {
       ${ranked.map(r => `<div style="margin-bottom:4px;"><strong>#${r.rank} ${r.name}:</strong> ${r.rationale}</div>`).join('')}
     </div>
   </div>`;
+
+  // ── Org Friction Panel — process + hybrid solutions ──────────────
+  // orgF.solutions only contains 'change' solutions from the backend; augment with hybrid
+  const frictionSols = (() => {
+    const existing = (orgF.solutions || []).map(s => ({ ...s, _approach: 'change' }));
+    const existingIds = new Set(existing.map(s => s.solutionId));
+    const hybridEntries = (d.solutions || [])
+      .filter(s => s.solutionApproach === 'hybrid' && !existingIds.has(s.id))
+      .map(s => ({
+        solutionId: s.id, solutionName: s.name, _approach: 'hybrid',
+        score: null, level: 'N/A', riskLevel: s.riskLevel || '—',
+        headcount: 0, interventionTypes: [],
+        ranksFirst: ranked?.[0]?.solutionId === s.id
+      }));
+    return [...existing, ...hybridEntries];
+  })();
+  if (frictionSols.length > 0) {
+    const frictionColor  = l => l === 'High' ? '#dc2626' : l === 'Medium' ? '#d97706' : 'var(--success)';
+    const frictionBg     = l => l === 'High' ? '#fef2f2' : l === 'Medium' ? '#fffbeb' : '#f0fdf4';
+    const frictionBorder = l => l === 'High' ? '#dc2626' : l === 'Medium' ? '#f59e0b' : 'var(--success)';
+
+    html += `<div class="card" style="margin-bottom:28px;padding:24px 28px;border-left:4px solid #f59e0b;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <span style="font-size:18px;">⚙️</span>
+        <h4 style="font-size:15px;font-weight:700;margin:0;">Org Friction Analysis ${guideBtn('What is Org Friction Score?')}</h4>
+        <span style="font-size:11px;color:var(--text-muted);background:var(--surface-alt);padding:4px 10px;border-radius:20px;margin-left:auto;">Process Change solutions only</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;line-height:1.5;">Org Friction measures how hard each process change is to implement — based on implementation risk, headcount impacted, and intervention complexity. Higher friction = more change management effort required before committing.</p>
+      ${orgF.winnerIsHighFriction ? `<div style="background:#fef2f2;border:1.5px solid #dc2626;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px;">
+        <span style="font-size:18px;line-height:1;">🔴</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#dc2626;margin-bottom:4px;">High-Friction Winner</div>
+          <div style="font-size:12px;color:#7f1d1d;line-height:1.5;">The #1 ranked solution is a <strong>high-friction process change</strong>. Ensure robust change management, dedicated executive sponsorship, and a full adoption plan before committing. Consider piloting with one team or location to de-risk the rollout.</div>
+        </div>
+      </div>` : ''}
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;">
+        ${frictionSols.map(s => {
+          const isHybridEntry = s._approach === 'hybrid';
+          const cardBorder = isHybridEntry ? '#8b5cf6' : frictionBorder(s.level);
+          const cardBg     = isHybridEntry ? '#f5f3ff' : frictionBg(s.level);
+          const scoreLabel = isHybridEntry ? '🔀' : s.score;
+          const levelLabel = isHybridEntry ? 'Hybrid — friction not scored' : s.level + ' Friction';
+          return `
+          <div style="padding:18px;border-radius:10px;border:1.5px solid ${cardBorder};background:${cardBg};">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:8px;">
+              <div style="font-size:13px;font-weight:700;color:var(--text);flex:1;">${s.solutionName}</div>
+              ${s.ranksFirst ? '<span style="font-size:10px;background:var(--success);color:white;padding:2px 8px;border-radius:10px;white-space:nowrap;">WINNER</span>' : ''}
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+              <div style="text-align:center;">
+                <div style="font-size:${isHybridEntry ? '22' : '28'}px;font-weight:800;color:${isHybridEntry ? '#6d28d9' : frictionColor(s.level)};">${scoreLabel}</div>
+                ${!isHybridEntry ? '<div style="font-size:9px;color:var(--text-muted);text-transform:uppercase;font-weight:600;">/100</div>' : ''}
+              </div>
+              <div>
+                <span style="font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:${isHybridEntry ? '#6d28d9' : frictionColor(s.level)};color:white;">${levelLabel}</span>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);display:flex;flex-direction:column;gap:5px;">
+              <div>📊 Risk: <strong style="color:var(--text);">${s.riskLevel}</strong></div>
+              ${!isHybridEntry ? '<div>👥 Headcount: <strong style="color:var(--text);">' + (s.headcount > 0 ? s.headcount + ' people' : 'Not specified') + '</strong></div>' : ''}
+              ${s.interventionTypes && s.interventionTypes.length > 0 ? '<div>🛠 Types: <strong style="color:var(--text);">' + s.interventionTypes.join(', ') + '</strong></div>' : ''}
+              ${isHybridEntry ? '<div style="font-size:10px;color:#6d28d9;margin-top:4px;">Hybrid solutions combine vendor delivery with people change — define the process component in the PIB to get a friction score.</div>' : ''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+      <div style="margin-top:14px;padding:10px 14px;background:#fffbeb;border-radius:6px;border-left:3px solid #f59e0b;font-size:11px;color:#78350f;line-height:1.6;">
+        <strong>Score methodology:</strong> Risk Factor (Low=1×, Med=1.5×, High=2×) × Headcount Factor (&lt;10=1×, 10–50=1.5×, 50–200=2×, 200+=2.5×) × Complexity Factor (0 types=1×, 1–2=1.2×, 3–4=1.5×, 5+=2×) — scaled 0–100. <strong>Low</strong> &lt;30 · <strong>Medium</strong> 30–60 · <strong>High</strong> 60+.
+      </div>
+    </div>`;
+  }
 
   // ── Decision Matrix ─────────────────────────────────────────────
   const buildDecisionMatrix = () => {
@@ -8596,7 +9218,7 @@ function renderPhase4(d, el) {
     const wROI  = Math.round((weights.roi           || 0.20) * 100);
     const wConf = Math.round((weights.confidence    || 0.15) * 100);
     const wRisk = Math.round((weights.riskPenalty   || 0.15) * 100);
-    const wFit  = Math.round((weights.vendorFit     || 0.15) * 100);
+    const wFit  = Math.round(((weights.approachFit || weights.vendorFit) || 0.15) * 100);
 
     const rows = ranked.map((r, i) => {
       const isWinner = i === 0;
@@ -8606,20 +9228,25 @@ function renderPhase4(d, el) {
       const rc = relColor(r.roiPct || 0, maxROI);
       const cc = confColor(r.confidenceScore || 0);
       const rk = riskColor2(r.riskLevel || 'Medium');
-      const fc = fitColor(r.vendorFitScore || 0);
+      // Approach Fit: vendorFitScore for buy; adoptionReadiness (%) for hybrid/change
+      const approachFitVal = r.solutionApproach === 'buy'
+        ? (r.vendorFitScore != null ? r.vendorFitScore : null)
+        : (r.adoptionReadiness != null ? Math.round(r.adoptionReadiness * 100) : null);
+      const approachFitSuffix = r.solutionApproach === 'buy' ? '/100' : '%';
+      const fc = fitColor(approachFitVal || 0);
 
       const cell = (val, color, suffix) =>
         `<td style="padding:9px 8px;text-align:center;font-weight:700;color:${color};">${val != null ? val + (suffix||'') : '—'}</td>`;
 
       return `<tr style="border-bottom:1px solid var(--border-light);background:${rowBg};">
         <td style="padding:9px 8px;text-align:center;font-weight:800;color:${isWinner ? 'var(--success)' : 'var(--text-muted)'};">${r.rank}${isWinner ? ' 🏆' : ''}</td>
-        <td style="padding:9px 8px;font-weight:600;max-width:170px;">${r.name}</td>
+        <td style="padding:9px 8px;font-weight:600;max-width:170px;">${r.name} ${approachBadge(r.solutionApproach)}</td>
         ${cell(r.score, sc, '/100')}
         <td style="padding:9px 8px;text-align:right;font-weight:700;color:${nc};">${fmt(r.npv)}</td>
         <td style="padding:9px 8px;text-align:right;font-weight:700;color:${rc};">${r.roiPct != null ? Math.round(r.roiPct) + '%' : '—'}</td>
         ${cell(r.confidenceScore, cc, '%')}
         <td style="padding:9px 8px;text-align:center;font-weight:700;color:${rk};">${r.riskLevel || '—'}</td>
-        ${cell(r.vendorFitScore, fc, '/100')}
+        ${cell(approachFitVal, fc, approachFitSuffix)}
         <td style="padding:9px 10px;font-size:11px;color:var(--text-muted);line-height:1.4;max-width:220px;">${r.rationale || '—'}</td>
       </tr>`;
     }).join('');
@@ -8641,7 +9268,7 @@ function renderPhase4(d, el) {
             <th style="padding:10px 8px;font-weight:700;text-align:right;white-space:nowrap;">ROI<br><span style="font-weight:400;font-size:10px;">${wROI}% weight</span></th>
             <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Confidence<br><span style="font-weight:400;font-size:10px;">${wConf}% weight</span></th>
             <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Risk<br><span style="font-weight:400;font-size:10px;">${wRisk}% weight</span></th>
-            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Vendor Fit<br><span style="font-weight:400;font-size:10px;">${wFit}% weight</span></th>
+            <th style="padding:10px 8px;font-weight:700;text-align:center;white-space:nowrap;">Approach Fit<br><span style="font-weight:400;font-size:10px;">${wFit}% weight</span></th>
             <th style="padding:10px 8px;font-weight:700;">Why this rank</th>
           </tr>
         </thead>
@@ -8649,7 +9276,7 @@ function renderPhase4(d, el) {
       </table>
       <div style="margin-top:14px;padding:10px 14px;background:#f8fafc;border-left:3px solid #94a3b8;border-radius:6px;font-size:11px;color:var(--text-muted);line-height:1.6;">
         <strong>Scoring formula:</strong>
-        Score = (${wNPV}% × NPV<sub>norm</sub>) + (${wROI}% × ROI<sub>norm</sub>) + (${wConf}% × Conf<sub>norm</sub>) + (${wRisk}% × (1 − Risk<sub>norm</sub>)) + (${wFit}% × Fit<sub>norm</sub>)
+        Score = (${wNPV}% × NPV<sub>norm</sub>) + (${wROI}% × ROI<sub>norm</sub>) + (${wConf}% × Conf<sub>norm</sub>) + (${wRisk}% × (1 − Risk<sub>norm</sub>)) + (${wFit}% × ApproachFit<sub>norm</sub>)
         &nbsp;·&nbsp; All dimensions min-max normalised 0–1 across the full portfolio before weighting. Risk is inverted so that lower risk earns a higher score.
       </div>
     </div>`;
@@ -8792,6 +9419,73 @@ function renderPhase4(d, el) {
   }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
+  // ── Value Chain Detail Panel (pre-report final check) ────────
+  const vcPanel = document.createElement('div');
+  vcPanel.className = 'card';
+  vcPanel.style.cssText = 'margin-bottom:24px;padding:24px 28px;border-left:4px solid #0891b2;';
+  const vcSols = d.solutions || [];
+  const vcBens = d.benefits || [];
+  const vcReqs = d.requirements || [];
+  const benMap = {};
+  vcBens.forEach(b => { benMap[b.id] = b; });
+  const reqMap = {};
+  vcReqs.forEach(r => { reqMap[r.id] = r; });
+  const vcRows = vcSols.map((s, i) => {
+    const isWinner = (d.recommendation?.recommendedSolutionId === s.id);
+    const rank = (d.recommendation?.ranking || []).find(r => r.solutionId === s.id);
+    const linkedReqs = (s.linkedRequirements || s.depends_on_requirements || []).map(id => reqMap[id]).filter(Boolean);
+    const linkedBens = (s.delivers_benefits || s.linkedBenefits || []).map(id => benMap[id]).filter(Boolean);
+    const totalBenValue = linkedBens.reduce((sum, b) => sum + (b.riskAdjustedValue || b.annualizedValue || 0), 0);
+    const approach = s.solutionApproach || 'buy';
+    const approachBadgeHtml = approach === 'change'
+      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#fef3c7;color:#92400e;">⚙️ Process</span>'
+      : approach === 'hybrid'
+      ? '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#f5f3ff;color:#6d28d9;">🔀 Hybrid</span>'
+      : '<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:#eff6ff;color:#1d4ed8;">🛒 Software</span>';
+    const vendorDisplay = approach === 'change'
+      ? '<span style="color:#92400e;font-style:italic;">Internal delivery</span>'
+      : (s.vendorName ? `<strong>${s.vendorName}</strong> <span style="color:var(--text-muted);font-size:11px;">${s.vendorFitScore != null ? '(' + s.vendorFitScore + '/100)' : ''}</span>` : '—');
+    return `<div style="border:1px solid var(--border-light);border-radius:10px;padding:16px 20px;margin-bottom:12px;background:${isWinner ? 'var(--success-light)' : 'var(--surface-alt)'};">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
+        <span style="font-size:12px;font-weight:800;color:${isWinner ? 'var(--success)' : 'var(--text-muted)'};width:28px;text-align:center;">#${rank?.rank || (i+1)}</span>
+        <span style="font-size:14px;font-weight:700;">${s.name}</span>
+        ${approachBadgeHtml}
+        ${isWinner ? '<span style="font-size:10px;background:var(--success);color:white;padding:2px 10px;border-radius:10px;font-weight:700;">⭐ RECOMMENDED</span>' : ''}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;font-size:12px;">
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Requirements Addressed</div>
+          ${linkedReqs.length ? linkedReqs.map(r => `<div style="margin-bottom:2px;padding:3px 8px;background:white;border-radius:4px;border-left:2px solid #6366f1;">${r.description || r.id} <span style="font-size:9px;color:#6366f1;font-weight:700;text-transform:uppercase;">${r.priority || ''}</span></div>`).join('') : '<span style="color:var(--text-muted);">No linked requirements</span>'}
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Benefits Delivered</div>
+          ${linkedBens.length ? linkedBens.map(b => `<div style="margin-bottom:2px;padding:3px 8px;background:white;border-radius:4px;border-left:2px solid var(--success);"><span style="font-weight:600;">${b.category || ''}</span> — ${fmt(b.riskAdjustedValue || b.annualizedValue || 0)}/yr <span style="font-size:9px;color:var(--text-muted);">${b.confidence != null ? Math.round(b.confidence <= 1 ? b.confidence * 100 : b.confidence) + '% conf' : ''}</span></div>`).join('') : '<span style="color:var(--text-muted);">No linked benefits</span>'}
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Financial Value</div>
+          <div style="padding:8px 12px;background:white;border-radius:6px;border-left:2px solid var(--primary);">
+            <div><span style="color:var(--text-muted);">NPV:</span> <strong>${rank?.npv != null ? fmt(rank.npv) : '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">ROI:</span> <strong>${rank?.roiPct != null ? Math.round(rank.roiPct) + '%' : '—'}</strong></div>
+            <div><span style="color:var(--text-muted);">Benefits/yr:</span> <strong>${fmt(totalBenValue)}</strong></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:10px;text-transform:uppercase;font-weight:700;color:var(--text-muted);margin-bottom:4px;">Vendor / Delivery</div>
+          <div style="padding:8px 12px;background:white;border-radius:6px;border-left:2px solid #0891b2;">${vendorDisplay}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  vcPanel.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <span style="font-size:18px;">🔗</span>
+      <h4 style="font-size:15px;font-weight:700;margin:0;">Value Chain — Final Check Before Report</h4>
+      <span style="font-size:11px;color:var(--text-muted);background:var(--surface-alt);padding:4px 10px;border-radius:20px;margin-left:auto;">Requirement → Solution → Benefit → Value → Vendor</span>
+    </div>
+    <p style="font-size:12px;color:var(--text-muted);margin:0 0 14px;line-height:1.5;">Review the full traceability chain for each solution before generating the executive report. Each solution should link to at least one requirement, deliver at least one quantified benefit, and have a vendor or delivery approach confirmed.</p>
+    ${vcRows || '<div style="color:var(--text-muted);font-size:13px;">No solution data available.</div>'}`;
+  el.appendChild(vcPanel);
+
   // ── Continue to Phase 5 CTA ──
   const cta4 = document.createElement('div');
   cta4.className = 'phase-next-cta';
@@ -8921,6 +9615,7 @@ function clearForm() {
     budgetMode: '', budget: null,
     complianceRequirements: [],
     technicalStack: [], systemIntegrations: [],
+    alreadyTried: { chips: [], text: '' },
     projectTitle: '', projectOwner: ''
   };
   wizardStep = 1;
@@ -9080,9 +9775,9 @@ function renderPhase5(d) {
       <div style="font-size:24px;font-weight:800;color:#8b5cf6;">${tc.coveragePct ?? '—'}%</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border-light);border-left:4px solid #0891b2;border-radius:8px;padding:16px 18px;">
-      <div style="font-size:12px;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:4px;">Recommended Vendor</div>
-      <div style="font-size:18px;font-weight:800;color:#0891b2;">${recRow.vendorName || '—'}</div>
-      <div style="font-size:12px;color:var(--text-light);margin-top:2px;">Fit: ${recRow.vendorFitScore != null ? recRow.vendorFitScore + '/100' : '—'}</div>
+      <div style="font-size:12px;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:4px;">${recRow.solutionApproach === 'change' ? 'Winner Approach' : 'Recommended Vendor'}</div>
+      <div style="font-size:18px;font-weight:800;color:#0891b2;">${recRow.solutionApproach === 'change' ? '⚙️ Process Change' : (recRow.vendorName || '—')}</div>
+      <div style="font-size:12px;color:var(--text-light);margin-top:2px;">${recRow.solutionApproach === 'change' ? 'No software vendor required' : 'Fit: ' + (recRow.vendorFitScore != null ? recRow.vendorFitScore + '/100' : '—')}</div>
     </div>
   </div>`;
 
@@ -9118,6 +9813,41 @@ function renderPhase5(d) {
       <div style="font-size:12px;color:${confC.text};">Overall: ${d.executiveHealth?.confidenceHealth?.overallConfidence ?? '—'}</div>
     </div>
   </div>`;
+
+  // ── Org Friction & Process Change (rendered only when process solutions exist) ──
+  const p5orgF = d.orgFriction || {};
+  const p5frictionSols = p5orgF.solutions || [];
+  const p5hybridSols = (d.solutions || []).filter(s => s.solutionApproach === 'hybrid' && !p5frictionSols.find(f => f.solutionId === s.id));
+  if (p5frictionSols.length > 0 || p5hybridSols.length > 0) {
+    const p5frictionColor = l => l === 'High' ? '#dc2626' : l === 'Medium' ? '#d97706' : '#16a34a';
+    const p5pfLabel = p5orgF.deliveryPath === 'process_first' ? 'Process-First' : (p5hybridSols.length > 0 && p5frictionSols.length === 0 ? 'Hybrid-First' : 'Blended');
+    html += `<div class="card analyst-only" style="margin-bottom:24px;padding:22px 26px;border-left:4px solid #f59e0b;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <span style="font-size:18px;">⚙️🔀</span>
+        <h4 style="font-size:15px;font-weight:700;margin:0;color:var(--text-strong);">Process Change &amp; Hybrid — Org Friction</h4>
+        <span style="margin-left:auto;font-size:11px;background:#fde68a;color:#92400e;font-weight:700;padding:3px 10px;border-radius:10px;">${p5pfLabel} Delivery · ${p5orgF.changeCount || 0}/${p5orgF.totalSolutions || (d.solutions||[]).length} Process · ${p5hybridSols.length} Hybrid</span>
+      </div>
+      ${p5orgF.winnerIsHighFriction ? `<div style="background:#fef2f2;border:1.5px solid #dc2626;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#7f1d1d;font-weight:600;">🔴 High-Friction Winner — ensure executive sponsorship and a phased adoption plan before committing.</div>` : ''}
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+        ${p5frictionSols.map(s => `
+          <div style="border:1.5px solid ${p5frictionColor(s.level)};border-radius:8px;padding:14px;background:#fff;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--text);">${s.solutionName}${s.ranksFirst ? ' ⭐' : ''}</div>
+            <div style="font-size:22px;font-weight:800;color:${p5frictionColor(s.level)};">${s.score}<span style="font-size:11px;color:var(--text-muted);">/100</span></div>
+            <div style="font-size:11px;font-weight:700;color:${p5frictionColor(s.level)};margin-bottom:6px;">${s.level} Friction</div>
+            <div style="font-size:11px;color:var(--text-muted);">Risk: ${s.riskLevel} · ${s.headcount > 0 ? s.headcount + ' people' : 'Headcount not set'}</div>
+            ${s.interventionTypes.length > 0 ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">${s.interventionTypes.join(', ')}</div>` : ''}
+          </div>`).join('')}
+        ${p5hybridSols.map(s => `
+          <div style="border:1.5px solid #8b5cf6;border-radius:8px;padding:14px;background:#f5f3ff;">
+            <div style="font-size:12px;font-weight:700;margin-bottom:6px;color:var(--text);">${s.name} 🔀${(d.recommendation?.ranking||[]).find(r=>r.solutionId===s.id)?.rank === 1 ? ' ⭐' : ''}</div>
+            <div style="font-size:18px;font-weight:800;color:#6d28d9;">Hybrid</div>
+            <div style="font-size:11px;font-weight:700;color:#6d28d9;margin-bottom:6px;">Process addressability: ${s.processAddressabilityPct != null ? s.processAddressabilityPct + '%' : 'N/A'}</div>
+            <div style="font-size:11px;color:var(--text-muted);">Risk: ${s.riskLevel} · Adoption readiness score applies (see Phase 4)</div>
+          </div>`).join('')}
+      </div>
+      ${p5orgF.avgFrictionScore != null ? `<div style="margin-top:12px;font-size:12px;color:#78350f;background:#fffbeb;border-radius:6px;padding:8px 12px;">Portfolio avg friction (process solutions): <strong>${p5orgF.avgFrictionScore}/100</strong> · Score = Risk × Headcount × Complexity factors, scaled 0–100</div>` : ''}
+    </div>`;
+  }
 
   // ── Value Chain ──
   html += buildValueChainSection(d.solutions || [], d.benefits || [], d.requirements || [], 'Value Chain — Full Traceability');
@@ -11029,6 +11759,7 @@ const GUIDE_KB = {
       { q: 'How are solutions generated?', a: 'The AI analyses your pain points, industry, budget, and compliance needs, then generates solutions that are <strong>specific to your context</strong> — not generic templates. Each includes a cost estimate, delivery phase, risk level, and linked requirements.' },
       { q: 'What does the Value Chain diagram show?', a: 'It maps how each solution connects to requirements and benefits, showing the <strong>traceability chain</strong>: Solution → Requirement → Benefit. This helps verify every dollar spent links to a measurable outcome.' },
       { q: 'What is the budget delivery breakdown?', a: 'Solutions are assigned to <strong>delivery phases</strong> (Phase 1, 2, 3) based on priority and dependencies. The budget breakdown shows how much is allocated to each phase, helping you plan staged investment.' },
+      { q: 'What do the Software and Process approach badges mean?', a: 'Each solution is classified by <strong>how it is best delivered</strong>:<br><br><strong>🛒 Software</strong> — the problem is best solved by procuring a vendor product, SaaS platform, or third-party tool. Vendor research runs in Phase 1.6 and cost modelling uses licensing + implementation fees.<br><br><strong>⚙️ Process</strong> — the problem is best solved through process redesign, staff retraining, SOP rewrites, or policy change — with little or no software spend. These solutions typically cost less but require stronger change management and internal resource commitment.<br><br>The AI classifies each solution automatically based on your problem description. In Phase 1.6, software solutions proceed to vendor research while process change solutions use the Process Intervention Builder instead.' },
     ]
   },
   phase2: {
@@ -11042,6 +11773,7 @@ const GUIDE_KB = {
       { q: 'How do the What-If sliders work?', a: 'The sliders let you adjust <strong>discount rate</strong>, <strong>cost variance</strong>, and <strong>benefit variance</strong> in real time. The financial table recalculates instantly — no AI call needed. This helps you test scenarios like "what if costs are 20% higher?" All formulas update live.' },
       { q: 'What is the sensitivity analysis?', a: 'The sensitivity chart tests NPV across <strong>5 discount rate scenarios</strong> (8%, 10%, 12%, 14%, 16%). Additionally, benefit sensitivity tests 3 scenarios: <strong>Pessimistic</strong> (benefits 30% lower), <strong>Base</strong> (as calculated), and <strong>Optimistic</strong> (benefits 20% higher). If NPV stays positive across all scenarios, the investment is robust.' },
       { q: 'What is portfolio NPV vs individual NPV?', a: '<strong>Portfolio NPV</strong> sums all solutions\' NPVs to show the total business case value. Individual NPV shows each solution in isolation. The portfolio view also shows total cost, weighted average risk, and overall ROI — helping leadership evaluate the full investment package.' },
+      { q: 'What is the portfolio mix?', a: 'The <strong>Portfolio Mix</strong> shows how many solutions are <strong>🛒 Software</strong> (vendor procurement) vs <strong>⚙️ Process</strong> (change management) in your portfolio.<br><br>This matters for three reasons:<br>• <strong>Budget allocation</strong>: Software solutions draw from CapEx/OpEx vendor budget; process solutions draw from people and change management budget — they may sit in different cost centres<br>• <strong>Delivery model</strong>: A "blended" portfolio (both types) requires coordinating both a procurement workstream and a change management workstream simultaneously — higher organisational complexity<br>• <strong>ROI profile</strong>: Process solutions often show higher ROI% because costs are lower, but they carry a higher change risk — people adoption is harder to guarantee than software licensing<br><br>A portfolio of 4 software + 1 process is typical. If you have 3+ process solutions, your biggest risk is change fatigue — too many behavioural changes at once.' },
       { q: 'What are the expandable formulas?', a: 'Click any number in the financial table to see its <strong>calculation formula</strong>. For example, NPV shows the discount rate applied to each year\'s cash flow. This ensures full transparency — no black boxes. Every number is auditable.' },
       { q: 'What is the difference between Business and Analyst view?', a: '<strong>Business view</strong> shows simplified KPIs and summaries. <strong>Analyst view</strong> adds the full financial table, expandable formulas, sensitivity charts, and detailed methodology notes for due diligence.' },
       { q: 'How does Phase 2 use my intake data?', a: 'Phase 2 takes <strong>solution costs from Phase 1</strong>, annual benefit estimates, and your stated budget. It applies the discount rate (default 12% for retail) and risk adjustments based on solution risk levels. Better intake data (specific costs, quantified benefits) produces more accurate financial projections.' },
@@ -11072,6 +11804,9 @@ const GUIDE_KB = {
       { q: 'What are benefit scenarios?', a: 'Three scenarios test the recommendation:<br>• <strong>Pessimistic:</strong> Benefits 30% lower — tests if the case still holds under conservative assumptions<br>• <strong>Base:</strong> As calculated from your inputs<br>• <strong>Optimistic:</strong> Benefits 20% higher — shows upside potential<br><br>If NPV stays positive in the pessimistic scenario, the investment is robust.' },
       { q: 'What is the portfolio view?', a: 'Instead of picking one solution, the portfolio view shows the <strong>combined value of implementing all solutions</strong>. Total cost, total NPV, budget utilisation %, weighted average risk, and overall ROI. This answers: "What if we do everything?"' },
       { q: 'How does my intake data affect ranking?', a: 'Your <strong>budget, compliance requirements, and pain points</strong> directly influence ranking. Budget determines whether solutions are within ceiling. Compliance requirements affect vendor fit scores. Quantified pain points anchor benefit calculations which drive NPV and ROI — the two heaviest weights in the scoring model.' },
+      { q: 'What is Org Friction Score?', a: '<strong>Org Friction</strong> measures how hard each ⚙️ Process Change solution is to implement — on a 0–100 scale.<br><br>Three factors multiply together:<br>• <strong>Risk Factor:</strong> Low=1×, Medium=1.5×, High=2×<br>• <strong>Headcount Factor:</strong> &lt;10=1×, 10–50=1.5×, 50–200=2×, 200+=2.5×<br>• <strong>Complexity Factor:</strong> 0 intervention types=1×, 1–2=1.2×, 3–4=1.5×, 5+=2×<br><br>Thresholds:<br>• <strong>Low (&lt;30)</strong>: Manageable change — standard comms and training plan sufficient<br>• <strong>Medium (30–60)</strong>: Significant effort — dedicated change lead and stakeholder engagement required<br>• <strong>High (60+)</strong>: High-risk change — executive sponsorship, phased rollout, and active resistance management needed<br><br>Friction does not affect the composite ranking score — it is a separate risk lens.' },
+      { q: 'What is Process Addressability %?', a: '<strong>Process Addressability %</strong> is the AI\'s assessment of how much of the problem could realistically be solved through process redesign, staff training, or policy change alone — without buying any software.<br><br><strong>Thresholds:</strong><br>• <strong>≥80% → ⚙️ Process Change</strong> — the problem is primarily behavioural or operational; software is not the answer<br>• <strong>40–79% → 🔀 Hybrid</strong> — both a vendor product and a change management programme are needed<br>• <strong>&lt;40% → 🛒 Software</strong> — the problem is fundamentally technical; a vendor product is the primary fix<br><br><strong>Anti-hallucination guardrails:</strong><br>• Compliance/regulatory solutions are capped at 30% (certified tooling is mandatory)<br>• Technical infrastructure solutions are capped at 50%<br>• When evidence is insufficient the AI defaults to a conservative (low) number<br><br>The one-sentence rationale below the bar is the CFO-facing justification — it must be factual, not marketing language.' },
+      { q: 'What does Process-First Path mean?', a: 'A <strong>Process-First Path</strong> means ≥50% of your solutions are ⚙️ Process Change (not software procurement).<br><br>This changes your delivery model entirely:<br>• <strong>No vendor RFP</strong> — you\'re not buying software; you\'re changing how people work<br>• <strong>Change management is the critical path</strong> — adoption is the primary risk, not integration<br>• <strong>Budget sits in people and training</strong>, not CapEx/OpEx vendor lines<br>• <strong>Governance differs</strong> — change advisory board (CAB) rather than procurement approval<br><br>Process-first portfolios typically have <strong>higher ROI%</strong> (lower cost) but <strong>slower time-to-value</strong> because behavioural change takes longer than a software deployment. The biggest risk is change fatigue — too many process changes at once erodes adoption across all of them.' },
     ]
   },
   phase5: {
@@ -11155,11 +11890,12 @@ const GUIDE_KB = {
       { q: 'What does the Value Chain diagram show?', a: 'The <strong>Value Chain</strong> maps the complete traceability chain in plain English:<br><strong>Solution → Requirements it satisfies → Benefits it delivers</strong><br><br>This answers the board\'s key question: "Why are we spending this money?" Every dollar spent on a solution links to specific requirements (compliance, integration, performance) and measurable outcomes (revenue, cost savings, risk reduction). Gaps in the chain = unaccountable spend.' },
       { q: 'What is the Budget Analysis section?', a: 'The <strong>Budget Analysis</strong> shows:<br>• <strong>Total Cost</strong>: sum of all solution mid estimates<br>• <strong>Budget</strong>: your stated budget from the intake form<br>• <strong>Cost Range</strong>: portfolio Low to portfolio High (the uncertainty envelope)<br>• <strong>Budget Utilisation bar</strong>: visual % of budget consumed<br>• <strong>Within Budget badge</strong>: green if total cost < budget<br>• <strong>Within 85% Ceiling badge</strong>: green if total cost < 85% of budget. The 85% ceiling is a hard gate — exceeding it blocks Phase 2 until you rescope.' },
       { q: 'What is the Delivery Sequence?', a: 'Solutions are grouped into <strong>delivery phases</strong> based on priority and dependencies:<br>• <strong>Phase 1</strong>: Foundation work — usually compliance, security, or critical infrastructure. Must happen first.<br>• <strong>Phase 2</strong>: Main workstreams — modernisation, automation, conversion improvements<br>• <strong>Phase 3</strong>: Strategic or lower-priority initiatives<br><br>Phasing helps you manage budget release, change management load, and risk. Phase 1 typically completes in months 1–6, Phase 2 in months 6–18.' },
-      { q: 'Why pick one solution for Phase 1.6 at a time?', a: 'Vendor research is done <strong>per solution</strong> because vendors are solution-specific. The compliance vendor for SOL-001 (Vanta) has nothing to do with the CDN vendor for SOL-002 (Vercel). Each solution has a different market, different pricing model, and different compliance coverage.<br><br>You select which solution to research first, then pick a vendor for it. That vendor\'s pricing anchors the cost estimate in Phase 1.5. The system suggests the lowest-risk, highest-scoring solution first — but you can research any solution.' },
+      { q: 'Why pick one solution for Phase 1.6 at a time?', a: '<strong>Phase 1.6 now runs in batch</strong> — you can select multiple software solutions at once and find providers for all of them in a single run. Each solution still gets its own vendor shortlist because vendors are solution-specific (the compliance vendor for SOL-001 has nothing to do with the CDN vendor for SOL-002).<br><br><strong>🛒 Software solutions</strong>: tick the checkbox on each card, then click "Find Software Solution Providers." Each gets a ranked vendor list with fit scores and compliance coverage.<br><br><strong>⚙️ Process Change solutions</strong>: these skip vendor research entirely. Click "⚙️ Define Intervention" on the card and fill in the Process Intervention Builder — intervention types, headcount, and key processes. That data flows into Phase 1.5 to size consulting and training costs accurately.' },
+      { q: 'What happens to Process Change solutions in Phase 1.6?', a: '<strong>Process Change (⚙️) solutions skip vendor research</strong> — there is no software to procure, so no vendor shortlist is needed.<br><br>Instead, each process change solution has a <strong>Process Intervention Builder (PIB)</strong>. Click <em>⚙️ Define Intervention</em> on the card to open it. You\'ll define:<br><br>• <strong>Intervention Type</strong> — select all that apply: SOP / Process Docs, Staff Training, Policy Update, Workflow Redesign, Change Champions, or Communication Plan<br>• <strong>Headcount Affected</strong> — how many staff will be impacted by the change<br>• <strong>Key Processes</strong> — a brief description of what\'s changing (e.g. "invoice approval workflow, month-end close")<br><br>Click <strong>Save</strong> — the card highlights amber and shows a ✓ Saved badge. This information flows directly into Phase 1.5, where the AI uses it to size the consulting, facilitation, and training costs more accurately.<br><br><strong>You don\'t need to fill in the PIB before running Phase 1.5</strong> — the AI will estimate using solution metadata alone — but providing headcount and process details significantly improves cost accuracy.' },
     ]
   },
   phase16: {
-    label: 'Vendor Research (Phase 1.6)',
+    label: 'Provider Search & Process Planning (Phase 1.6)',
     items: [
       { q: 'What is a Vendor Fit Score?', a: 'The <strong>Vendor Fit Score (0–100)</strong> is a composite rating of how well a vendor matches your specific solution:<br>• <strong>90–100 (Excellent)</strong>: Market leader, strong compliance coverage, native integrations<br>• <strong>75–89 (Strong)</strong>: Good fit, minor gaps manageable with configuration<br>• <strong>60–74 (Good)</strong>: Viable but requires custom integration or lacks some compliance<br>• <strong>Below 60 (Marginal)</strong>: Significant gaps — only use if no better option exists<br><br>The score factors in: compliance coverage, integration compatibility, market position, and cost competitiveness.' },
       { q: 'What does Compliance Coverage mean?', a: '<strong>Compliance Coverage</strong> shows which regulatory standards a vendor natively supports:<br>• <strong>PCI-DSS</strong>: Payment Card Industry Data Security Standard<br>• <strong>GDPR</strong>: EU General Data Protection Regulation<br>• <strong>SOC2</strong>: Security, availability, and confidentiality certification<br>• <strong>ISO27001</strong>: International information security standard<br><br>A vendor with PCI-DSS and GDPR coverage means they have documented controls and audit trails for those standards — saving you significant implementation effort. <strong>Gaps</strong> require you to build compliance controls in-house, which adds cost and timeline.' },
@@ -11174,6 +11910,8 @@ const GUIDE_KB = {
     label: 'Cost Estimation (Phase 1.5)',
     items: [
       { q: 'How are costs built from vendor pricing?', a: 'Phase 1.5 uses the <strong>selected vendor\'s pricing as the anchor</strong> and adds:<br>• <strong>Labour</strong>: Internal team time + systems integrator / consulting costs<br>• <strong>Licensing</strong>: Vendor software licence (from vendor price range)<br>• <strong>Infrastructure</strong>: Cloud hosting, storage, networking changes<br>• <strong>Testing</strong>: QA, UAT, penetration testing, performance testing<br>• <strong>Training</strong>: End-user and administrator training<br>• <strong>Contingency</strong>: 5–10% buffer for change requests and scope creep<br><br>Market rates are sourced from industry benchmarks for your sector (retail, finance, healthcare).' },
+      { q: 'How are costs estimated for Process Change solutions?', a: '<strong>Process Change (⚙️) solutions use a different cost model</strong> — there is no vendor product to price. Instead, costs are built from:<br><br>• <strong>Labour</strong>: Process consultants and change facilitators ($150–$300/day), internal programme manager time, workshop facilitation<br>• <strong>Licensing</strong>: $0 or near-zero — no software procurement<br>• <strong>Infrastructure</strong>: $0 or minimal — possibly an LMS (Learning Management System) for training delivery<br>• <strong>Testing</strong>: Pilot group testing of the new process before full rollout<br>• <strong>Training</strong>: Staff training hours × FTE day rate × number of people affected (typically 1–5 days per employee)<br>• <strong>Contingency</strong>: 10–15% — higher than software because change management outcomes are harder to predict<br><br><strong>Productivity Dip:</strong> The AI also estimates the cost of reduced output during the transition — typically 10–20% productivity loss for 2–6 months as staff adapt. This is included in the recommended total and explained in the AI Rationale on each card.<br><br>Recurring costs for process change solutions represent ongoing coaching, quarterly refresher training, and process monitoring.' },
+      { q: 'What does Net Benefit mean in Phase 2?', a: 'When a solution has <strong>zero direct cost</strong> — for example, a pure internal process change delivered entirely by existing staff with no external spend — the standard ROI formula (Benefit / Cost) becomes meaningless.<br><br>In this case, BCA.AI displays <strong>"Net Benefit: $X/yr"</strong> instead of a ROI percentage. This shows the annual value the solution delivers without a cost denominator.<br><br>This is most common for process-led solutions where the only "cost" is internal time, which has not been monetised in the intake form. If you want to see ROI, add the internal time cost to the budget (e.g. "2 staff × 3 months × $5K/month = $30K") and re-run Phase 1.5.' },
       { q: 'What is NPV TCO?', a: '<strong>NPV TCO (Net Present Value of Total Cost of Ownership)</strong> is the present-day value of all costs over your time horizon, discounted at your stated rate.<br><br>Formula: NPV_TCO = ImplementationCost + Σ(AnnualRecurring / (1+r)^t) for each year t<br><br>Example: $209K implementation + $121K/yr recurring over 3 years at 12% discount = $389K NPV TCO. This is the most accurate cost figure for ROI comparison because it accounts for the time value of money — costs incurred in Year 3 are worth less than costs today.' },
       { q: 'What is Simple TCO?', a: '<strong>Simple TCO</strong> is the undiscounted total: Implementation cost + (Annual Recurring × Years). No time-value adjustment.<br><br>Example: $209K + ($121K × 3) = $572K simple TCO over 3 years.<br><br>Use Simple TCO for budget conversations with non-finance stakeholders (it\'s easier to explain). Use NPV TCO for formal business cases and IRR/ROI calculations — finance teams will expect it.' },
       { q: 'What is the cost breakdown per solution?', a: 'Each solution\'s cost breakdown shows six categories:<br>• <strong>Labour</strong> (typically 45–55% of total): Delivery team time — the biggest variable<br>• <strong>Licensing</strong> (15–25%): Vendor subscription or licence fees<br>• <strong>Infrastructure</strong> (8–12%): Cloud, servers, networking<br>• <strong>Testing</strong> (8–12%): QA, security testing, UAT<br>• <strong>Training</strong> (4–6%): User adoption and admin training<br>• <strong>Contingency</strong> (4–8%): Risk buffer<br><br>Labour is the most negotiable item — using an in-house team reduces it significantly vs a systems integrator.' },
@@ -11223,6 +11961,7 @@ const GUIDE_KB = {
     label: 'Input Quality',
     items: [
       { q: 'Why does input quality matter so much?', a: 'BCA.AI is a <strong>garbage-in, garbage-out</strong> system — but smarter. It flags when inputs are vague and tells you exactly what is missing. High-quality inputs produce: specific solutions (not generic templates), benefit values anchored to your own financials (not industry benchmarks), and a financial case that passes board scrutiny. Low-quality inputs produce a case that leadership will immediately question: "Where did this $500K benefit figure come from?"' },
+      { q: 'How does "What you already tried" affect the AI output?', a: 'The <strong>Already Tried</strong> step tells the AI what approaches have already been attempted and failed. The AI uses this to:<br><br>• <strong>Exclude already-failed solutions</strong> — if you\'ve already tried off-the-shelf software and it didn\'t work, the AI won\'t recommend the same class of solution as your primary option<br>• <strong>Explain differences</strong> — if a similar approach is unavoidable (e.g., compliance tools), the AI will explicitly explain in the solution description why this recommendation will succeed where the previous attempt failed (different scope, vendor, governance, or methodology)<br>• <strong>Steer toward complementary approaches</strong> — if you tried process redesign alone, the AI may recommend a tech-enabled version with better adoption tools<br><br>This field is for AI context only — it does not appear in your BRD or executive report. It\'s completely optional but significantly improves the quality of recommendations when you\'ve been through a failed project before.' },
       { q: 'What is the quality bar on Step 5?', a: 'The quality bar scores your <strong>Current State text</strong> from 0–10. It looks for: system names (+2), metrics with numbers (+3), time indicators (+1), affected people/teams (+1), and root cause (+1). A score of 7+ produces "Excellent" — your benefit values will be anchored to your data. Below 4 means the AI will rely on conservative industry benchmarks for most figures.' },
       { q: 'Which fields have the biggest impact?', a: '<strong>1. Current State</strong> — anchors all solutions and benefits.<br><strong>2. Business Impact (Section A)</strong> — directly becomes your benefit values in the financial model.<br><strong>3. Budget</strong> — enables the 85% ceiling check and rescoping logic.<br><strong>4. Compliance requirements</strong> — filters vendors so you only see compliant options.<br><strong>5. Scale</strong> — calibrates every financial metric.<br>Problems, role and BU also matter, but these 5 have the largest financial impact.' },
       { q: 'Can I improve my inputs after running?', a: 'Yes — but you will need to re-run Phase 1 and all downstream phases. The <strong>Re-run Discovery</strong> button appears at the top of results. Note: re-running overwrites all existing results including any user edits in Phases 2–5. For the demo, re-runs are instant because they use the same demo dataset. For real analyses, re-running costs ~$0.05 and takes 15–30 seconds.' }
@@ -11400,10 +12139,15 @@ function _applyConversationalIntakeData(data) {
     data.currentState,
     data.symptoms,
     data.urgencyDriver  && ('Why now: ' + data.urgencyDriver),
-    data.alternativesTried && ('Previously tried: ' + data.alternativesTried),
     data.additionalContext
   ].filter(Boolean);
   wizardData.currentState = cs.join('. ');
+
+  // Route alternativesTried into the dedicated alreadyTried prompt block
+  // (keeps it out of currentState to avoid duplication in the PREVIOUS ATTEMPTS section)
+  if (data.alternativesTried && data.alternativesTried.trim()) {
+    wizardData.alreadyTried = { chips: [], text: data.alternativesTried.trim() };
+  }
 
   const bi = [
     data.kpis        && ('KPIs: ' + data.kpis),

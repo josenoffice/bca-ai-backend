@@ -21,6 +21,17 @@ const COST_SPLITS = {
   general_modernization:  { labour: 0.50, licensing: 0.12, infrastructure: 0.15, testing: 0.12, training: 0.07, contingency: 0.04 }
 }
 
+// 3-tier approach by category — module-scope so both template builder and AI validator can reference it
+const APPROACH_BY_CATEGORY = {
+  security_compliance:    { approach: 'buy',    pct: 10, rationale: 'Compliance controls require certified technology tooling; process alone cannot meet regulatory standards.' },
+  frontend_modernization: { approach: 'buy',    pct: 20, rationale: 'UI/UX modernisation is primarily a software delivery; some UX process improvement is possible but limited.' },
+  backend_infrastructure: { approach: 'buy',    pct: 10, rationale: 'Infrastructure upgrades require platform tooling; operational process change has minimal impact on infrastructure gaps.' },
+  ecommerce_optimization: { approach: 'hybrid', pct: 45, rationale: 'Checkout and conversion improvements combine platform tooling with merchandising and operational process changes.' },
+  cloud_modernization:    { approach: 'buy',    pct: 15, rationale: 'Cloud migration is platform-driven; operational procedures are a minor component.' },
+  process_optimization:   { approach: 'change', pct: 85, rationale: 'Workflow and operational improvements are primarily delivered through process redesign and staff training.' },
+  general_modernization:  { approach: 'hybrid', pct: 40, rationale: 'General modernisation typically requires both technology procurement and operational change.' }
+}
+
 const SYSTEM_PROMPT = `You are an expert business case analyst and technology strategist.
 Your job is to analyse a project brief and generate a structured,
 realistic, and commercially credible set of solutions, benefits,
@@ -89,7 +100,13 @@ function normalizeAndValidate(raw) {
     companySize:            (raw.companySize || '').trim(),
     onlineRevenuePct:       Math.min(100, Math.max(0, num(raw.onlineRevenuePct) || 0)),
     budgetStatus:           num(raw.budget) > 0 ? 'user_provided' : 'ai_suggestion_needed',
-    discoverWithAI:         raw.discoverWithAI !== false
+    discoverWithAI:         raw.discoverWithAI !== false,
+    alreadyTried:           (raw.alreadyTried && (raw.alreadyTried.chips?.length || raw.alreadyTried.text?.trim()))
+                              ? {
+                                  chips: Array.isArray(raw.alreadyTried.chips) ? raw.alreadyTried.chips.filter(Boolean) : [],
+                                  text:  (raw.alreadyTried.text || '').trim()
+                                }
+                              : null
   }
 
   // Benefit anchors
@@ -184,6 +201,7 @@ function buildSolutionTemplates(validated, ceiling, needsSecurity) {
     for (const [key, pct] of Object.entries(splits)) {
       breakdown[key] = Math.round(cost * pct)
     }
+    const catConfig = APPROACH_BY_CATEGORY[category] || { approach: 'buy', pct: 15, rationale: 'Software procurement is the primary delivery mechanism for this category.' }
 
     return {
       id,
@@ -194,6 +212,9 @@ function buildSolutionTemplates(validated, ceiling, needsSecurity) {
       riskLevel: category === 'security_compliance' ? 'High' : (phase === 1 ? 'Medium' : 'Low'),
       category,
       deliveryPhase: phase,
+      solutionApproach: catConfig.approach,
+      processAddressabilityPct: catConfig.pct,
+      processAddressabilityRationale: catConfig.rationale,
       linkedBenefits: [],
       linkedRequirements: [],
       delivers_benefits: [],
@@ -464,12 +485,68 @@ Add "deliveryPhase" to each solution:
 Phase 1 must be completed before Phase 2 can begin.
 Phase 2 must be completed before Phase 3 can begin.`
 
+  const solutionApproachRule = `SOLUTION APPROACH RULE (mandatory — OPEX/CAPEX impact, no hallucination):
+For EVERY solution you must:
+
+STEP 1 — Assess process addressability first:
+Ask yourself: "What percentage of this problem could realistically be resolved through
+process redesign, staff training, policy change, or operational improvement alone —
+WITHOUT buying any software or engaging a vendor?"
+Set "processAddressabilityPct" (0–100) based ONLY on what the problem description explicitly states.
+DO NOT invent a percentage. If the problem description does not give enough evidence to
+justify a high process-addressability score, default to a LOW number (0–30).
+
+STEP 2 — Provide a one-sentence rationale:
+Set "processAddressabilityRationale" explaining WHY you chose that percentage.
+This will be shown to the client's CFO — it must be factual, not marketing language.
+
+STEP 3 — Assign solutionApproach using these thresholds:
+- "change" → processAddressabilityPct is 80 or above
+  (The problem can be fully or almost fully resolved without software)
+- "hybrid" → processAddressabilityPct is 40 to 79
+  (Process change addresses part of the problem; software is also needed)
+- "buy"    → processAddressabilityPct is below 40
+  (Software or vendor procurement is the primary delivery mechanism)
+
+ANTI-HALLUCINATION RULES (non-negotiable):
+- Never set processAddressabilityPct above 50 for problems that are fundamentally technical
+  (e.g. system integrations, security vulnerabilities, data infrastructure gaps).
+- Never set processAddressabilityPct above 30 for compliance/regulatory solutions —
+  technology controls are usually mandatory, not optional.
+- Never invent company revenue, headcount, customer counts, or market share figures.
+- Every benefit riskAdjustedValue MUST cite its calculation source in valueBasis.
+- If you are uncertain about a percentage, choose the LOWER value — conservative estimates
+  protect the client from misallocating OPEX and CAPEX.`
+
   let suggestedBudgetRule = ''
   if (validated.budget <= 0) {
     suggestedBudgetRule = `SUGGESTED BUDGET RULE (mandatory — no user budget provided):
 suggestedBudget MUST be >= sum of ALL solution costs across ALL phases.
 Do NOT set it to cover only Phase 1 or a subset.
 If total solution costs = $X, then suggestedBudget >= $X.`
+  }
+
+  // Already-tried block — injected only when the user provided this data
+  let alreadyTriedBlock = ''
+  if (validated.alreadyTried) {
+    const chips = validated.alreadyTried.chips.length
+      ? validated.alreadyTried.chips.join(', ')
+      : null
+    const text = validated.alreadyTried.text || null
+    if (chips || text) {
+      alreadyTriedBlock = `PREVIOUS ATTEMPTS (CRITICAL — read before generating solutions)
+=============================================================
+The client has already tried the following and they did not fully succeed:
+${chips ? `Approaches attempted: ${chips}` : ''}
+${text ? `What happened / why it failed: ${text}` : ''}
+
+INSTRUCTIONS:
+- Do NOT recommend any of the above as a primary solution.
+- If an approach above is truly foundational (e.g. compliance), you MAY include it only if you
+  explicitly acknowledge in the solution description why this attempt will succeed where the
+  prior one failed (different scope, vendor, methodology, or governance).
+- Prioritise solutions that approach the problem from a different angle than what was tried.`
+    }
   }
 
   const userPrompt = `PROJECT BRIEF
@@ -504,11 +581,12 @@ FINANCIAL CONTEXT
 =================
 ${financialContext}
 
-MANDATORY RULES
+${alreadyTriedBlock ? alreadyTriedBlock + '\n\n' : ''}MANDATORY RULES
 ===============
 ${complianceMandate}
 ${budgetCeilingInstruction}
 ${deliveryPhaseInstruction}
+${solutionApproachRule}
 ${suggestedBudgetRule}
 
 BENEFIT CATEGORY RULES (mandatory)
@@ -536,6 +614,9 @@ REQUIRED OUTPUT FORMAT
       "riskLevel": "Low|Medium|High",
       "category": "security_compliance|frontend_modernization|backend_infrastructure|ecommerce_optimization|cloud_modernization|process_optimization|general_modernization",
       "deliveryPhase": 1|2|3,
+      "solutionApproach": "buy|hybrid|change",
+      "processAddressabilityPct": number (0-100),
+      "processAddressabilityRationale": "one sentence — factual, CFO-facing, no marketing language",
       "linkedBenefits": ["BEN-001", ...],
       "linkedRequirements": ["REQ-001", ...],
       "delivers_benefits": ["BEN-001", ...],
@@ -765,6 +846,36 @@ function parseAndValidateAI(text, validated, benefitAnchors) {
     if (ls.length === 0) issues.push(`Orphaned requirement: ${r.id}`)
   }
 
+  // Auto-repair solutionApproach + processAddressabilityPct — 3-tier validation with anti-hallucination caps
+  const COMPLIANCE_CATEGORIES = ['security_compliance']
+  const TECHNICAL_CATEGORIES  = ['backend_infrastructure', 'cloud_modernization', 'frontend_modernization']
+  for (const s of parsed.solutions) {
+    // 1. Repair invalid solutionApproach
+    if (!['buy', 'hybrid', 'change'].includes(s.solutionApproach)) {
+      const catConfig = APPROACH_BY_CATEGORY[s.category] || { approach: 'buy' }
+      warnings.push(`AUTO-FIXED: ${s.id} (${s.name}) had invalid solutionApproach '${s.solutionApproach}' — inferred '${catConfig.approach}' from category '${s.category}'`)
+      s.solutionApproach = catConfig.approach
+    }
+    // 2. Repair missing processAddressabilityPct — infer from approach
+    if (typeof s.processAddressabilityPct !== 'number') {
+      const inferred = s.solutionApproach === 'change' ? 85 : s.solutionApproach === 'hybrid' ? 55 : 15
+      warnings.push(`AUTO-FIXED: ${s.id} (${s.name}) was missing processAddressabilityPct — set to ${inferred} based on solutionApproach '${s.solutionApproach}'`)
+      s.processAddressabilityPct = inferred
+    }
+    // 3. Enforce compliance cap: max 30%
+    if (COMPLIANCE_CATEGORIES.includes(s.category) && s.processAddressabilityPct > 30) {
+      warnings.push(`ANTI-HALLUCINATION CAP: ${s.id} (${s.name}) processAddressabilityPct was ${s.processAddressabilityPct} — compliance solutions capped at 30%`)
+      s.processAddressabilityPct = 30
+      if (s.solutionApproach !== 'buy') { s.solutionApproach = 'buy' }
+    }
+    // 4. Enforce technical cap: max 50%
+    if (TECHNICAL_CATEGORIES.includes(s.category) && s.processAddressabilityPct > 50) {
+      warnings.push(`ANTI-HALLUCINATION CAP: ${s.id} (${s.name}) processAddressabilityPct was ${s.processAddressabilityPct} — technical solutions capped at 50%`)
+      s.processAddressabilityPct = 50
+      if (s.solutionApproach === 'change') { s.solutionApproach = 'hybrid' }
+    }
+  }
+
   // Invented financials detection
   const inventedPattern = /\$[\d,]+[MK]?\s*(annual|revenue|turnover|ARR)|[\d,]+\s*(users|customers|subscribers)/i
   if (!benefitAnchors.hasRevenue && !benefitAnchors.hasOpCost) {
@@ -827,6 +938,9 @@ function harmonizeResponse(final, validated, benefitAnchors, discoveryMethod, fa
       riskLevel: s.riskLevel || 'Medium',
       category: s.category,
       deliveryPhase: s.deliveryPhase || 2,
+      solutionApproach: ['buy', 'hybrid', 'change'].includes(s.solutionApproach) ? s.solutionApproach : 'buy',
+      processAddressabilityPct: typeof s.processAddressabilityPct === 'number' ? s.processAddressabilityPct : (s.solutionApproach === 'change' ? 85 : s.solutionApproach === 'hybrid' ? 55 : 15),
+      processAddressabilityRationale: s.processAddressabilityRationale || '',
       linkedBenefits: s.linkedBenefits || s.delivers_benefits || [],
       linkedRequirements: s.linkedRequirements || s.depends_on_requirements || [],
       delivers_benefits: s.delivers_benefits || s.linkedBenefits || [],
@@ -961,7 +1075,8 @@ function harmonizeResponse(final, validated, benefitAnchors, discoveryMethod, fa
       headcount: validated.headcount,
       companySize: validated.companySize,
       onlineRevenuePct: validated.onlineRevenuePct,
-      budgetStatus: validated.budgetStatus
+      budgetStatus: validated.budgetStatus,
+      alreadyTried: validated.alreadyTried || null
     },
 
     validation: {
