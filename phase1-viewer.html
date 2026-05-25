@@ -6523,6 +6523,22 @@ function updateBatchBtn() {
 }
 
 async function launchBatchProviderSearch() {
+  // If no software solutions exist in the portfolio at all, skip vendor search
+  const allSols = window._phase1Results?.solutions || [];
+  const hasSoftware = allSols.some(s => s.solutionApproach !== 'change');
+  if (allSols.length > 0 && !hasSoftware) {
+    const resultsEl = document.getElementById('vendor-results');
+    if (resultsEl) {
+      resultsEl.innerHTML = `<div style="padding:16px 20px;border-radius:10px;background:var(--surface-alt);border-left:4px solid var(--info,#0891b2);font-size:13px;color:var(--text);">
+        <div style="font-weight:700;margin-bottom:4px;">⚙️ Process-Change Portfolio — Vendor Selection Skipped</div>
+        <div style="color:var(--text-muted);">All solutions in this analysis are process-change. No software vendor research is needed.
+        Use the <strong>Process Intervention Builder</strong> on each card, then proceed to <strong>Phase 1.5 Cost Estimation</strong>.</div>
+      </div>`;
+      resultsEl.style.display = 'block';
+    }
+    return;
+  }
+
   const checkedIds = [...document.querySelectorAll('.sol-pick-cb:checked')].map(cb => cb.value);
   if (!checkedIds.length) return;
 
@@ -7176,6 +7192,22 @@ async function runPhase16() {
   const btn = $('#vendorBtn');
   const spinner = $('#spinner');
   const spinText = spinner ? spinner.querySelector('.spinner-text') : null;
+
+  // ── Skip Phase 1.6 if ALL solutions are process-change (no vendor needed) ──
+  const allSolutions = window._phase1Results?.solutions || [];
+  const softwareSolutions = allSolutions.filter(s => s.solutionApproach !== 'change');
+  if (allSolutions.length > 0 && softwareSolutions.length === 0) {
+    const el = $('#vendor-results');
+    el.innerHTML = `<div style="padding:16px 20px;border-radius:10px;background:var(--surface-alt);border-left:4px solid var(--info,#0891b2);font-size:13px;color:var(--text);">
+      <div style="font-weight:700;margin-bottom:4px;">⚙️ Vendor Selection Not Applicable</div>
+      <div style="color:var(--text-muted);">All ${allSolutions.length} solution${allSolutions.length !== 1 ? 's' : ''} in this portfolio are process-change solutions — no software vendor is needed.
+      Vendor research has been skipped. Proceed to <strong>Phase 1.5 Cost Estimation</strong> to size consulting, training, and adoption costs.</div>
+    </div>`;
+    el.style.display = 'block';
+    if (btn) btn.disabled = false;
+    return; // Skip API call entirely — saves 1 AI call (~3 seconds)
+  }
+
   if (btn) btn.disabled = true;
   if (spinText) spinText.textContent = 'Researching Software Solution Providers via Claude AI...';
   if (spinner) spinner.classList.add('active');
@@ -8489,7 +8521,7 @@ function renderPhase3(d, el) {
         const approxCost = p.weightPct && pt.totalCost > 0
           ? fmt(Math.round(pt.totalCost * p.weightPct / 100))
           : null;
-        return `<div class="p3-timeline-label" style="flex:${p.weightPct || 1};text-align:center;"><strong>W${p.startWeek}–${p.endWeek}</strong>${p.weightPct ? '<br>' + p.weightPct + '%' : ''}${approxCost ? '<br><span style="font-size:9px;color:' + phaseColors[i % 5] + ';font-weight:700;">~' + approxCost + '</span>' : ''}</div>`;
+        return `<div class="p3-timeline-label" style="flex:${p.weightPct || 1};text-align:center;"><strong>W${p.startWeek}–${p.endWeek}</strong>${p.weightPct ? '<br>' + p.weightPct + '%' : ''}${approxCost ? '<br><span style="display:inline-block;margin-top:3px;padding:2px 6px;border-radius:4px;font-size:11px;background:' + phaseColors[i % 5] + '18;color:' + phaseColors[i % 5] + ';font-weight:700;letter-spacing:0.2px;">~' + approxCost + '</span>' : ''}</div>`;
       }).join('')}
     </div>
     ${pt.totalCost > 0 ? `<div style="margin-top:6px;font-size:10px;color:var(--text-muted);text-align:right;">Approx. cost per phase — based on schedule weighting of total portfolio cost (${fmt(pt.totalCost)}). Actual spend depends on vendor payment milestones.</div>` : ''}

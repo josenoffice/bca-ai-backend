@@ -29,17 +29,45 @@ const INDUSTRY_CONFIGS = {
 }
 
 // ─── Requirement cost estimation ─────────────────────────────────
+// Base costs reflect mid-market (50–500 employees) as the anchor.
+// These are the technical work type baseline costs — complexity and company
+// size multipliers are applied on top.
 const REQ_BASE = 15000
 const CATEGORY_COSTS = {
-  integration:       60000,
-  compliance:        70000,
-  security:          50000,
-  performance:       30000,
-  mobile:            35000,
-  user_experience:   15000,
-  change_management: 20000
+  integration:       60000,   // API work, data pipelines, middleware
+  compliance:        70000,   // Regulatory certs, audit trails, controls
+  security:          50000,   // Auth, encryption, access control
+  performance:       30000,   // Perf tuning, uptime SLA, scalability
+  mobile:            35000,   // Native/responsive app development
+  user_experience:   15000,   // UI redesign, accessibility, UX work
+  change_management: 20000,   // Training, adoption, process re-engineering
+  general:           15000    // Catch-all — same as REQ_BASE
 }
 const COMPLEXITY_MULTIPLIER = { 1: 0.5, 2: 0.8, 3: 1.0, 4: 1.5, 5: 2.0 }
+
+// Scale category base costs by company size.
+// A 10-person SME and a 5,000-person enterprise face fundamentally different
+// implementation scopes even for the same category of requirement.
+const COMPANY_SIZE_MULTIPLIER = {
+  sme:        0.35,   // <50 employees — streamlined scope, lower staff overhead
+  mid_market: 1.00,   // 50–500 employees — calibration baseline
+  enterprise: 2.80,   // 500+ employees — governance, change mgmt, scale complexity
+  default:    1.00
+}
+
+// Derive company size bucket from headcount if companySize label is absent
+function deriveCompanySizeBucket(companySize, headcount) {
+  const label = (companySize || '').toLowerCase()
+  if (label.includes('enterprise') || label.includes('large')) return 'enterprise'
+  if (label.includes('mid') || label.includes('medium'))        return 'mid_market'
+  if (label.includes('sme') || label.includes('small') || label.includes('startup')) return 'sme'
+  // Fall back to headcount
+  const hc = Number(headcount) || 0
+  if (hc >= 500)  return 'enterprise'
+  if (hc >= 50)   return 'mid_market'
+  if (hc > 0)     return 'sme'
+  return 'default'
+}
 
 // ═════════════════════════════════════════════════════════════════
 // Step 1 — inputValidation
@@ -69,6 +97,8 @@ function inputValidation(raw) {
   const horizonYears   = n(validatedData.timeHorizonYears, 3)
   const annualRevenue  = validatedData.annualRevenue ?? null
   const withinCeiling  = raw.budgetAnalysis?.withinCeiling ?? null
+  const companySize    = validatedData.companySize || null
+  const headcount      = validatedData.headcount   || null
 
   return {
     raw,
@@ -81,6 +111,8 @@ function inputValidation(raw) {
     horizonYears,
     annualRevenue,
     withinCeiling,
+    companySize,
+    headcount,
     errors,
     warnings
   }
@@ -173,11 +205,28 @@ function benefitCalculator(ctx) {
 // Step 5 — requirementEstimator
 // ═════════════════════════════════════════════════════════════════
 function requirementEstimator(ctx) {
+  // Determine company size bucket once for the whole portfolio
+  const sizeBucket   = deriveCompanySizeBucket(ctx.companySize, ctx.headcount)
+  const sizeMult     = COMPANY_SIZE_MULTIPLIER[sizeBucket] || 1.0
+  ctx.companySizeBucket = sizeBucket  // expose for debugging / response enrichment
+
   ctx.requirements = ctx.requirements.map(r => {
     if (!r.estimatedCost) {
-      const complexity = Math.max(1, Math.min(5, n(r.complexity, 3)))
-      r.estimatedCost = CATEGORY_COSTS[r.category?.toLowerCase()] ||
-        Math.round(REQ_BASE * complexity * (COMPLEXITY_MULTIPLIER[complexity] || 1.0))
+      const complexity   = Math.max(1, Math.min(5, n(r.complexity, 3)))
+      const complexMult  = COMPLEXITY_MULTIPLIER[complexity] || 1.0
+      const catKey       = r.category?.toLowerCase()
+      const catBase      = CATEGORY_COSTS[catKey]  // undefined if category missing
+
+      if (catBase !== undefined) {
+        // Use category-specific base × complexity × company size
+        r.estimatedCost = Math.round(catBase * complexMult * sizeMult)
+      } else {
+        // No category supplied (legacy / fallback) — use generic base formula
+        r.estimatedCost = Math.round(REQ_BASE * complexity * complexMult * sizeMult)
+      }
+      r.costBasis = catBase !== undefined
+        ? `${catKey} category ($${catBase.toLocaleString()} base) × complexity ${complexity} × ${sizeBucket} size`
+        : `generic base × complexity ${complexity} × ${sizeBucket} size`
     }
     return r
   })

@@ -327,17 +327,19 @@ function generateBenefitDescription(category, validated) {
 
 function buildTemplateRequirements(validated) {
   const reqs = [
-    { description: `${validated.complianceRequirements.length > 0 ? validated.complianceRequirements.join(', ') + ' compliance' : 'Security compliance'} certification and audit readiness`, priority: 'must_have' },
-    { description: 'Platform performance targets: sub-1s page load, 99.9% uptime SLA', priority: 'must_have' },
-    { description: 'Data migration strategy with zero-downtime cutover plan', priority: 'must_have' },
-    { description: 'Integration with existing systems: ' + (validated.systemIntegrations.join(', ') || 'current ecosystem'), priority: 'should_have' },
-    { description: 'Staff training program and change management support', priority: 'should_have' }
+    { description: `${validated.complianceRequirements.length > 0 ? validated.complianceRequirements.join(', ') + ' compliance' : 'Security compliance'} certification and audit readiness`, priority: 'must_have', category: 'compliance', complexity: 4 },
+    { description: 'Platform performance targets: sub-1s page load, 99.9% uptime SLA', priority: 'must_have', category: 'performance', complexity: 3 },
+    { description: 'Data migration strategy with zero-downtime cutover plan', priority: 'must_have', category: 'integration', complexity: 4 },
+    { description: 'Integration with existing systems: ' + (validated.systemIntegrations.join(', ') || 'current ecosystem'), priority: 'should_have', category: 'integration', complexity: 3 },
+    { description: 'Staff training program and change management support', priority: 'should_have', category: 'change_management', complexity: 2 }
   ]
 
   return reqs.map((r, i) => ({
     id: `REQ-${String(i + 1).padStart(3, '0')}`,
     description: r.description,
     priority: r.priority,
+    category: r.category,
+    complexity: r.complexity,
     linkedSolutions: [],
     supports_solutions: []
   }))
@@ -601,6 +603,22 @@ BENEFIT CATEGORY RULES (mandatory)
    [source: company financials] or [source: budget-scaled estimate] or
    [source: industry benchmark estimate]
 
+REQUIREMENT CATEGORY RULES (mandatory)
+========================================
+Every requirement MUST include a "category" field and a "complexity" field (1–5).
+Category must be exactly one of: integration, compliance, security, performance,
+mobile, user_experience, change_management, general.
+Complexity scale: 1=trivial (hours), 2=easy (days), 3=standard (weeks), 4=complex (1–2 months), 5=very complex (quarter+).
+Category selection guide:
+- integration: API connections, data pipelines, system interoperability, middleware
+- compliance: regulatory certifications, audit trails, GDPR/HIPAA/SOX controls
+- security: authentication, encryption, access control, vulnerability management
+- performance: speed, uptime SLA, scalability, load handling
+- mobile: native app, responsive design, offline capability
+- user_experience: UI redesign, accessibility, usability improvements
+- change_management: training, adoption, process re-engineering, organisational change
+- general: any requirement that does not fit the above categories
+
 REQUIRED OUTPUT FORMAT
 ======================
 {
@@ -656,6 +674,8 @@ REQUIRED OUTPUT FORMAT
       "id": "REQ-001",
       "description": "string",
       "priority": "must_have|should_have",
+      "category": "integration|compliance|security|performance|mobile|user_experience|change_management|general",
+      "complexity": number (1-5, where 1=trivial, 3=standard, 5=very complex),
       "linkedSolutions": ["SOL-001", ...],
       "supports_solutions": ["SOL-001", ...]
     }
