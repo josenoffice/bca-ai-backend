@@ -1791,6 +1791,10 @@
 <div class="spinner-overlay" id="spinner">
   <div class="spinner"></div>
   <div class="spinner-text">Preparing your analysis...</div>
+  <div id="spinnerContext" style="display:none;margin-top:24px;max-width:480px;width:90%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);border-radius:12px;padding:16px 20px;text-align:left;">
+    <div id="spinnerContextWhat" style="font-size:13px;color:rgba(255,255,255,0.95);font-weight:600;margin-bottom:8px;"></div>
+    <div id="spinnerContextExpect" style="font-size:12px;color:rgba(255,255,255,0.72);line-height:1.6;"></div>
+  </div>
 </div>
 
 <!-- ─── Main Content ─────────────────────────────────────────────── -->
@@ -2145,6 +2149,7 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
     </div>
   </div>
   <div id="vendor-results"></div>
+  <div id="vendor-traceability" style="display:none;"></div>
 
   <!-- Phase 1.5 Pre-Selection Panel -->
   <div class="preselect-panel" id="costPreSelectPanel" style="display:none;"></div>
@@ -5872,6 +5877,59 @@ function reAnalysis() {
   showSection('analysis');
 }
 
+// ── Phase Context Panel — shown inside spinner during AI calls ──────────────
+const PHASE_CONTEXT = {
+  phase1: {
+    what: '🔍 Phase 1 — AI Discovery running',
+    expect: 'The AI is reading your business problem and generating candidate solutions, quantified benefits, and non-negotiable requirements — calibrated against Retail industry benchmarks.\n\nYou will see: up to 5 solutions (Software, Process Change, or Hybrid), annual benefit values with confidence ratings, and tagged requirements (Must Have / Should Have).'
+  },
+  phase16: {
+    what: '🏢 Phase 1.6 — Vendor Matching running',
+    expect: 'The AI is researching vendors for each software or hybrid solution — scoring them on compliance coverage, integration compatibility with your tech stack, and pricing fit against your budget.\n\nYou will see: up to 3 vendors per solution ranked by Fit Score (0–100), with compliance coverage, pricing range, and implementation timeline for each.'
+  },
+  phase15: {
+    what: '💰 Phase 1.5 — Cost Estimation running',
+    expect: 'The AI is pricing each solution using vendor anchors (for software) and consultant day rates (for process change). It applies your company size, requirement complexity, and PIB headcount data.\n\nYou will see: Low / Mid / High cost range per solution, total portfolio cost, and budget utilisation percentage.'
+  },
+  reflection: {
+    what: '✅ Quality Gate — Validation running',
+    expect: 'The AI is checking four dimensions: Are all benefits quantified? Are all solutions costed? Does every requirement link to a solution? Does every selected vendor cover your declared compliance standards?\n\nYou will see: a PASS, PASS WITH WARNINGS, or FAIL — BLOCKED verdict. A business case cannot proceed to financial analysis until it passes this gate.'
+  },
+  phase2: {
+    what: '📊 Phase 2 — Financial Analysis running',
+    expect: 'Pure formula-based calculation — no AI. NPV, ROI, IRR, and Payback Period are being computed from your real costs and benefits, discounted at your declared rate (12%), and benchmarked against Retail industry targets.\n\nYou will see: Portfolio NPV, Average ROI, Portfolio IRR, Payback Period — each with a Show Calculation link so every number is fully auditable.'
+  },
+  phase3: {
+    what: '🔗 Phase 3 — Traceability & Timeline running',
+    expect: 'The AI is validating the complete logic chain: every requirement must link to a solution, every solution to a benefit, every benefit to a dollar value. It is also generating a 5-phase project delivery timeline with cost phasing.\n\nYou will see: a Traceability Health Score, Linkage Score, 30-week delivery timeline with PLC phase costs, and a compliance coverage check per vendor.'
+  },
+  phase4: {
+    what: '🏆 Phase 4 — Ranking & Recommendation running',
+    expect: 'Composite scoring is being applied to all solutions using fixed weights: NPV (25%), ROI (20%), Risk (20%), Vendor/Approach Fit (15%), Payback (20%). This is fully formula-based — the same inputs always produce the same ranking.\n\nYou will see: an objective ranked shortlist with the primary recommendation, composite score, and a full value chain panel confirming the traceability audit trail.'
+  },
+  phase5: {
+    what: '📋 Phase 5 — Executive Report generating',
+    expect: 'The AI is synthesising all phases into a board-ready executive narrative — investment rationale, recommendation with justification, alternatives considered, training & adoption plan, and recommended next steps tailored to your solution type and vendor.\n\nYou will see: a complete executive summary with health indicators (Budget, Traceability, Confidence), full value chain, and a one-click export for board submission.'
+  }
+};
+
+function showPhaseContext(phase) {
+  const ctx = PHASE_CONTEXT[phase];
+  if (!ctx) return;
+  const panel = document.getElementById('spinnerContext');
+  const what  = document.getElementById('spinnerContextWhat');
+  const exp   = document.getElementById('spinnerContextExpect');
+  if (!panel || !what || !exp) return;
+  what.textContent = ctx.what;
+  exp.innerHTML = ctx.expect.split('\n\n').map(p => `<p style="margin:0 0 6px;">${p}</p>`).join('');
+  panel.style.display = 'block';
+}
+
+function hidePhaseContext() {
+  const panel = document.getElementById('spinnerContext');
+  if (panel) panel.style.display = 'none';
+}
+
 function showToast(msg, duration = 3000) {
   let toast = document.getElementById('bcaToast');
   if (!toast) {
@@ -5980,6 +6038,12 @@ async function runPhase1() {
   let mi = 0;
   loadingMsg.textContent = msgs[0];  // update immediately — don't wait for first interval tick
   const msgInterval = setInterval(() => { mi = (mi + 1) % msgs.length; loadingMsg.textContent = msgs[mi]; }, 2000);
+  const p1Spinner = document.getElementById('spinner');
+  const p1SpinText = p1Spinner ? p1Spinner.querySelector('.spinner-text') : null;
+  showPhaseContext('phase1');
+  if (p1Spinner) p1Spinner.classList.add('active');
+  if (p1SpinText) p1SpinText.textContent = msgs[0];
+  setInterval(() => { if (p1SpinText) p1SpinText.textContent = msgs[mi]; }, 2000);
 
   $('#results').style.display = 'none';
   $('#vendorLaunchPanel').style.display = 'none';
@@ -6023,6 +6087,8 @@ async function runPhase1() {
     clearTimeout(_fetchTimeout);
     clearInterval(msgInterval);
     loadingEl.style.display = 'none';
+    hidePhaseContext();
+    if (p1Spinner) p1Spinner.classList.remove('active');
   }
 }
 
@@ -7305,6 +7371,7 @@ async function runPhase16() {
 
   if (btn) btn.disabled = true;
   if (spinText) spinText.textContent = 'Researching Software Solution Providers via Claude AI...';
+  showPhaseContext('phase16');
   if (spinner) spinner.classList.add('active');
   $('#vendor-results').style.display = 'none';
   $('#costPreSelectPanel').style.display = 'none';
@@ -7314,23 +7381,216 @@ async function runPhase16() {
   $('#reflection-results').style.display = 'none';
 
   try {
-    const res = await fetch('/api/phase1-6-vendors', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(VENDOR_TEST_PAYLOAD)
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-    const data = await res.json();
-    const r = data[0];
-    renderVendorResults(r);
+    if (!_phase1Results) { showToast('Run Discovery (Phase 1) first.', 3000); return; }
+
+    const softHybridSols = allSolutions.filter(s => s.solutionApproach !== 'change');
+    const allVendorResults = [];
+
+    for (let i = 0; i < softHybridSols.length; i++) {
+      const sol = softHybridSols[i];
+      if (spinText) spinText.textContent = `Researching vendors for ${sol.name} (${i + 1} of ${softHybridSols.length})...`;
+      const payload = buildPhase16Payload(sol, _phase1Results);
+      const res = await fetch('/api/phase1-6-vendors', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      const data = await res.json();
+      const r = data[0];
+      r._solutionId   = sol.id;
+      r._solutionName = sol.name;
+      allVendorResults.push(r);
+    }
+
+    window._phase16AllResults = allVendorResults;
+    renderVendorResults(allVendorResults[0] || {});
   } catch (err) {
     const el = $('#vendor-results');
     el.innerHTML = `<div class="error-panel"><h3>Vendor Request Failed</h3><p>${err.message}</p></div>`;
     el.style.display = 'block';
   } finally {
+    hidePhaseContext();
     if (spinner) spinner.classList.remove('active');
     if (btn) btn.disabled = false;
   }
+}
+
+// ─── Post-Phase 1.6 Traceability View ────────────────────────────────────────
+function renderPostVendorTraceability() {
+  const el = document.getElementById('vendor-traceability');
+  if (!el || !_phase1Results) return;
+
+  const solutions    = _phase1Results.solutions    || [];
+  const requirements = _phase1Results.requirements || [];
+  const benefits     = _phase1Results.benefits     || [];
+  const vendorMap    = {};
+  (window._phase16AllResults || []).forEach(r => {
+    if (r._solutionId) vendorMap[r._solutionId] = r;
+  });
+
+  const approachLabel = a =>
+    a === 'buy'    ? '<span style="background:#dbeafe;color:#1d4ed8;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;">Software</span>' :
+    a === 'hybrid' ? '<span style="background:#ede9fe;color:#6d28d9;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;">Hybrid</span>' :
+                     '<span style="background:#dcfce7;color:#15803d;font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;">Process Change</span>';
+
+  const riskLabel = r =>
+    r === 'Low'    ? '<span style="color:#15803d;font-size:11px;font-weight:600;">● Low Risk</span>' :
+    r === 'Medium' ? '<span style="color:#d97706;font-size:11px;font-weight:600;">● Medium Risk</span>' :
+                     '<span style="color:#dc2626;font-size:11px;font-weight:600;">● High Risk</span>';
+
+  const fmtMoney = v => v >= 1000 ? '$' + Math.round(v / 1000) + 'K' : '$' + v;
+
+  const sectionHead = label => `<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text-muted);margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--border-light);">${label}</div>`;
+
+  let html = `
+    <div style="margin:20px 0;border-radius:12px;overflow:hidden;border:1px solid var(--border);">
+      <div style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);padding:16px 20px;">
+        <div style="font-size:15px;font-weight:800;color:#fff;margin-bottom:4px;">📌 Solution Blueprint — Complete Traceability</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.78);line-height:1.5;">Every solution mapped to the requirements it satisfies, the benefits it delivers, the vendor or process approach that delivers it, and any training or change management required. This is the chain that makes your business case defensible.</div>
+      </div>`;
+
+  solutions.forEach((sol, idx) => {
+    const approach   = sol.solutionApproach || 'buy';
+    const linkedReqs = (sol.linkedRequirements || sol.depends_on_requirements || []);
+    const linkedBens = (sol.linkedBenefits    || sol.delivers_benefits        || []);
+    const solReqs    = requirements.filter(r => linkedReqs.includes(r.id));
+    const solBens    = benefits.filter(b => linkedBens.includes(b.id));
+    const vendorRes  = vendorMap[sol.id];
+    const topVendor  = vendorRes?.selectedVendor || vendorRes?.vendors?.[0] || null;
+    const bg         = idx % 2 === 0 ? 'var(--surface)' : 'var(--surface-alt,#f9fafb)';
+
+    // Requirements block
+    const reqsHtml = solReqs.length
+      ? solReqs.map(r => {
+          const mustHave = r.priority === 'must_have';
+          return `<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;">
+            <span style="color:#16a34a;font-size:13px;flex-shrink:0;margin-top:1px;">✓</span>
+            <div style="font-size:12px;line-height:1.4;">
+              <span style="font-weight:600;color:var(--text);">${r.id}</span>
+              <span style="color:${mustHave ? '#dc2626' : '#d97706'};font-size:10px;font-weight:700;margin:0 6px;">${mustHave ? 'MUST HAVE' : 'SHOULD HAVE'}</span>
+              <span style="color:var(--text-muted);">${r.description}</span>
+            </div>
+          </div>`;
+        }).join('')
+      : `<div style="font-size:12px;color:var(--text-muted);">No requirements linked — check Phase 1 data</div>`;
+
+    // Benefits block
+    const bensHtml = solBens.length
+      ? solBens.map(b => {
+          const conf = Math.round((b.confidence || 0) * 100);
+          const confColor = conf >= 80 ? '#16a34a' : conf >= 60 ? '#d97706' : '#dc2626';
+          const annVal = b.annualizedValue || b.riskAdjustedValue || 0;
+          return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">${b.id}: ${b.description}</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;">
+              <span style="font-size:12px;color:#16a34a;font-weight:700;">${fmtMoney(annVal)}/yr</span>
+              <span style="font-size:11px;color:${confColor};font-weight:600;">${conf}% confidence</span>
+              <span style="font-size:11px;color:var(--text-muted);">${b.category || 'Benefit'}</span>
+              ${b.valueBasis ? `<span style="font-size:11px;color:var(--text-muted);font-style:italic;">${b.valueBasis}</span>` : ''}
+            </div>
+          </div>`;
+        }).join('')
+      : `<div style="font-size:12px;color:var(--text-muted);">No benefits linked — check Phase 1 data</div>`;
+
+    // Vendor / Process block
+    let deliveryHtml = '';
+    if (approach === 'buy' || approach === 'hybrid') {
+      if (topVendor) {
+        const fitColor = topVendor.fitScore >= 80 ? '#16a34a' : topVendor.fitScore >= 60 ? '#d97706' : '#dc2626';
+        const compTags = (topVendor.complianceCoverage || []).map(c =>
+          `<span style="background:#dcfce7;color:#15803d;font-size:10px;font-weight:600;padding:1px 6px;border-radius:10px;">✓ ${c}</span>`).join(' ');
+        const costLow  = topVendor.vendorCostLow  || topVendor.typicalCostRange?.low  || 0;
+        const costHigh = topVendor.vendorCostHigh || topVendor.typicalCostRange?.high || 0;
+        const months   = topVendor.implementationMonths || '—';
+        deliveryHtml = `
+          <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+              <span style="font-size:13px;font-weight:700;color:var(--text);">${topVendor.name}</span>
+              <span style="font-size:12px;font-weight:700;color:${fitColor};">Fit Score ${topVendor.fitScore}/100</span>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+              <span style="font-size:12px;color:var(--text-muted);">💰 ${fmtMoney(costLow)}–${fmtMoney(costHigh)}</span>
+              <span style="font-size:12px;color:var(--text-muted);">🗓 ${months} months implementation</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">${compTags || '<span style="font-size:11px;color:var(--text-muted);">No compliance coverage data</span>'}</div>
+            ${topVendor.whyRecommended ? `<div style="margin-top:8px;font-size:11px;color:var(--text-muted);font-style:italic;line-height:1.5;">${topVendor.whyRecommended}</div>` : ''}
+          </div>`;
+      } else {
+        deliveryHtml = `<div style="font-size:12px;color:var(--text-muted);font-style:italic;">Vendor data not yet loaded — run Phase 1.6 to match vendors for this solution.</div>`;
+      }
+      if (approach === 'hybrid') {
+        deliveryHtml += `<div style="margin-top:8px;background:#fdf4ff;border:1px solid #e9d5ff;border-radius:8px;padding:10px 12px;">
+          <div style="font-size:11px;font-weight:700;color:#7c3aed;margin-bottom:4px;">⚙️ PROCESS CHANGE COMPONENT (Hybrid)</div>
+          <div style="font-size:12px;color:var(--text-muted);">This solution also requires a process intervention. Complete the PIB panel in Phase 1.6 to define headcount affected, intervention types (SOP, training, workflow redesign), and key processes being changed.</div>
+        </div>`;
+      }
+    } else {
+      // Process change only
+      deliveryHtml = `<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:12px 14px;">
+        <div style="font-size:11px;font-weight:700;color:#15803d;margin-bottom:6px;">⚙️ PROCESS CHANGE — No Software Vendor Required</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Delivery through: Process redesign, staff training, and change management. Complete the Process Intervention Builder (PIB) in Phase 1.6 to specify:<br>
+        • Intervention types (SOP updates, staff training, workflow redesign, change champions, communication plan)<br>
+        • Headcount affected<br>
+        • Key processes being changed<br>
+        This data feeds directly into Phase 1.5 cost estimation using consultant day rates and training costs.</div>
+      </div>`;
+    }
+
+    html += `
+      <div style="background:${bg};border-top:1px solid var(--border);padding:16px 20px;">
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+          <span style="font-size:14px;font-weight:800;color:var(--text);">${sol.id}: ${sol.name}</span>
+          ${approachLabel(approach)}
+          ${riskLabel(sol.riskLevel || 'Medium')}
+          <span style="font-size:11px;color:var(--text-muted);">Phase ${sol.deliveryPhase || 1}</span>
+        </div>
+        ${sectionHead('Requirements Satisfied')}${reqsHtml}
+        ${sectionHead('Benefits Delivered')}${bensHtml}
+        ${sectionHead(approach === 'change' ? 'Process Delivery' : approach === 'hybrid' ? 'Vendor + Process Delivery' : 'Vendor')}${deliveryHtml}
+      </div>`;
+  });
+
+  html += `</div>`;
+  el.innerHTML = html;
+  el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function buildPhase16Payload(sol, p1) {
+  const vd = p1.validatedData || {};
+  return {
+    solution: {
+      id:            sol.id,
+      name:          sol.name,
+      description:   sol.description || sol.name,
+      category:      sol.category || sol.solutionApproach || 'general',
+      riskLevel:     sol.riskLevel || 'Medium',
+      deliveryPhase: sol.deliveryPhase || 1,
+      totalCost:     sol.totalCost || (sol.costEstimate && sol.costEstimate.mid) || 50000,
+      costEstimate:  sol.costEstimate || { low: 40000, mid: 60000, high: 80000 }
+    },
+    validatedData: {
+      projectTitle:           vd.projectTitle || p1.projectMeta?.projectTitle || wizardData.projectTitle || 'Business Case',
+      businessUnit:           vd.businessUnit || wizardData.businessUnit || '',
+      industry:               vd.industry || p1.projectMeta?.industry || 'general',
+      budget:                 vd.budget || wizardData.budget || 500000,
+      annualRevenue:          vd.annualRevenue || wizardData.annualRevenue || 0,
+      annualOperatingCost:    vd.annualOperatingCost || wizardData.annualOperatingCost || 0,
+      headcount:              vd.headcount || wizardData.headcount || 50,
+      companySize:            vd.companySize || 'SME',
+      timeHorizonYears:       vd.timeHorizonYears || wizardData.timeHorizonYears || 3,
+      discountRatePct:        vd.discountRatePct || wizardData.discountRatePct || 12,
+      complianceRequirements: vd.complianceRequirements || wizardData.complianceRequirements || [],
+      technicalStack:         vd.technicalStack || wizardData.technicalStack || [],
+      systemIntegrations:     vd.systemIntegrations || wizardData.systemIntegrations || [],
+      currentPainPoints:      vd.currentPainPoints || wizardData.currentPainPoints || [],
+      businessGoals:          vd.businessGoals || wizardData.businessGoals || []
+    },
+    budgetAnalysis:  p1.budgetAnalysis  || { totalCost: 0, budget: vd.budget || 500000 },
+    trackingId:      p1.trackingId      || 'req_live',
+    discoveryMethod: p1.discoveryMethod || 'ai_generated'
+  };
 }
 
 // ─── Per-solution provider section renderer ──────────────────────
@@ -7511,6 +7771,9 @@ function renderVendorResults(r) {
     integrationGaps: r.integrationGaps || []
   }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  // Render the traceability view below vendor results
+  setTimeout(() => renderPostVendorTraceability(), 300);
 }
 
 // ─── Phase 1.5 — Cost Estimation ─────────────────────────────────
@@ -7580,6 +7843,7 @@ async function runPhase15() {
   const p15Msgs = ['Fetching vendor pricing data...','Calculating implementation costs...','Building TCO model...','Validating budget constraints...','Finalising cost ranges...'];
   let p15MsgIdx = 0;
   if (spinText) spinText.textContent = p15Msgs[0];
+  showPhaseContext('phase15');
   spinner.classList.add('active');
   const p15Interval = setInterval(() => { p15MsgIdx=(p15MsgIdx+1)%p15Msgs.length; if(spinText) spinText.textContent=p15Msgs[p15MsgIdx]; }, 2000);
   $('#cost-results').style.display = 'none';
@@ -7599,6 +7863,7 @@ async function runPhase15() {
       if (!proceed) return;
       // User chose to proceed — restart spinner and re-lock button
       btn.disabled = true;
+      showPhaseContext('phase15');
       spinner.classList.add('active');
       const p15Interval2 = setInterval(() => { p15MsgIdx=(p15MsgIdx+1)%p15Msgs.length; if(spinText) spinText.textContent=p15Msgs[p15MsgIdx]; }, 2000);
       try {
@@ -7633,6 +7898,7 @@ async function runPhase15() {
     el.innerHTML = `<div class="error-panel"><h3>Cost Estimation Failed</h3><p>${err.message}</p></div>`;
     el.style.display = 'block';
   } finally {
+    hidePhaseContext();
     clearInterval(p15Interval);
     spinner.classList.remove('active');
     btn.disabled = false;
@@ -7793,6 +8059,7 @@ async function runReflection() {
   const refMsgs = ['Reviewing solution quality...','Checking requirement coverage...','Assessing risk posture...','Running completeness checks...','Generating quality verdict...'];
   let refMsgIdx = 0;
   if (spinText) spinText.textContent = refMsgs[0];
+  showPhaseContext('reflection');
   spinner.classList.add('active');
   const refInterval = setInterval(() => { refMsgIdx=(refMsgIdx+1)%refMsgs.length; if(spinText) spinText.textContent=refMsgs[refMsgIdx]; }, 2000);
   $('#reflection-results').style.display = 'none';
@@ -7824,6 +8091,7 @@ async function runReflection() {
     el.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">&#9888;</span><div><strong>Request Failed:</strong> ${err.message}</div></div>`;
     el.style.display = 'block';
   } finally {
+    hidePhaseContext();
     clearInterval(refInterval);
     spinner.classList.remove('active');
     btn.disabled = false;
@@ -8041,6 +8309,7 @@ async function runPhase2() {
   const p2Msgs = ['Calculating NPV and IRR...','Building financial models...','Running sensitivity analysis...','Benchmarking portfolio financials...','Scoring quality metrics...'];
   let p2MsgIdx = 0;
   if (spinText) spinText.textContent = p2Msgs[0];
+  showPhaseContext('phase2');
   if (spinner) spinner.classList.add('active');
   const p2Interval = setInterval(() => { p2MsgIdx=(p2MsgIdx+1)%p2Msgs.length; if(spinText) spinText.textContent=p2Msgs[p2MsgIdx]; }, 2000);
   $('#phase2-results').style.display = 'none';
@@ -8069,6 +8338,7 @@ async function runPhase2() {
     el.innerHTML = `<div class="alert alert-danger"><span class="alert-icon">&#9888;</span><div><strong>Request Failed:</strong> ${err.message}</div></div>`;
     el.style.display = 'block';
   } finally {
+    hidePhaseContext();
     clearInterval(p2Interval);
     if (spinner) spinner.classList.remove('active');
     btn.disabled = false;
@@ -8537,11 +8807,16 @@ async function runPhase3() {
   const el = document.getElementById('phase3-results');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner" style="width:16px;height:16px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:8px;"></span> Running Phase 3...';
+  showPhaseContext('phase3');
+  const spinner3 = document.getElementById('spinner');
+  if (spinner3) spinner3.classList.add('active');
   const p3Msgs = ['Validating requirement linkages...','Building traceability matrix...','Generating project timeline...','Calculating confidence scores...','Checking dependency chains...'];
+  const spinText3 = spinner3 ? spinner3.querySelector('.spinner-text') : null;
   let p3MsgIdx = 0;
+  if (spinText3) spinText3.textContent = p3Msgs[0];
   el.innerHTML = `<div id="p3-loading" style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">${p3Msgs[0]}</div>`;
   el.style.display = 'block';
-  const p3Interval = setInterval(() => { p3MsgIdx=(p3MsgIdx+1)%p3Msgs.length; const lEl=document.getElementById('p3-loading'); if(lEl) lEl.textContent=p3Msgs[p3MsgIdx]; }, 2000);
+  const p3Interval = setInterval(() => { p3MsgIdx=(p3MsgIdx+1)%p3Msgs.length; const lEl=document.getElementById('p3-loading'); if(lEl) lEl.textContent=p3Msgs[p3MsgIdx]; if(spinText3) spinText3.textContent=p3Msgs[p3MsgIdx]; }, 2000);
 
   try {
     if (!_phase2Results) { showToast('Run Financials (Phase 2) first.', 3000); return; }
@@ -8561,6 +8836,8 @@ async function runPhase3() {
     el.innerHTML = `<div class="error-card"><strong>Phase 3 Error</strong><p>${err.message}</p></div>`;
     el.style.display = 'block';
   } finally {
+    hidePhaseContext();
+    if (spinner3) spinner3.classList.remove('active');
     clearInterval(p3Interval);
     btn.disabled = false;
     btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Run Phase 3 Validation`;
@@ -8987,10 +9264,15 @@ async function runPhase4() {
   const el  = document.getElementById('phase4-results');
   btn.disabled = true;
   btn.textContent = 'Running Phase 4…';
+  showPhaseContext('phase4');
+  const spinner4 = document.getElementById('spinner');
+  const spinText4 = spinner4 ? spinner4.querySelector('.spinner-text') : null;
+  if (spinner4) spinner4.classList.add('active');
   const p4Msgs = ['Scoring solutions by composite value...','Applying industry risk factors...','Comparing NPV and ROI across portfolio...','Identifying top recommendation...','Running Phase 5 gate check...'];
   let p4MsgIdx = 0;
+  if (spinText4) spinText4.textContent = p4Msgs[0];
   el.innerHTML = `<div id="p4-loading" style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">${p4Msgs[0]}</div>`;
-  const p4Interval = setInterval(() => { p4MsgIdx=(p4MsgIdx+1)%p4Msgs.length; const lEl=document.getElementById('p4-loading'); if(lEl) lEl.textContent=p4Msgs[p4MsgIdx]; }, 2000);
+  const p4Interval = setInterval(() => { p4MsgIdx=(p4MsgIdx+1)%p4Msgs.length; const lEl=document.getElementById('p4-loading'); if(lEl) lEl.textContent=p4Msgs[p4MsgIdx]; if(spinText4) spinText4.textContent=p4Msgs[p4MsgIdx]; }, 2000);
 
   try {
     if (!_phase3Results) { showToast('Run Traceability (Phase 3) first.', 3000); return; }
@@ -9009,6 +9291,8 @@ async function runPhase4() {
   } catch (err) {
     el.innerHTML = `<div class="card" style="border-left:4px solid var(--danger);padding:24px;"><strong>Phase 4 Error</strong><br>${err.message}</div>`;
   } finally {
+    hidePhaseContext();
+    if (spinner4) spinner4.classList.remove('active');
     clearInterval(p4Interval);
     btn.disabled = false;
     btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px;"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg> Run Phase 4 Ranking';
@@ -9849,10 +10133,15 @@ async function runPhase5() {
   const box = document.getElementById('phase5-results');
   btn.disabled = true;
   btn.textContent = 'Generating report...';
+  showPhaseContext('phase5');
+  const spinner5 = document.getElementById('spinner');
+  const spinText5 = spinner5 ? spinner5.querySelector('.spinner-text') : null;
+  if (spinner5) spinner5.classList.add('active');
   const p5Msgs = ['Writing executive summary...','Formatting financial KPIs...','Building vendor rankings...','Compiling health dashboard...','Generating HTML export...'];
   let p5MsgIdx = 0;
+  if (spinText5) spinText5.textContent = p5Msgs[0];
   box.innerHTML = `<div id="p5-loading" style="text-align:center;padding:40px;color:var(--text-muted);font-size:14px;">${p5Msgs[0]}</div>`;
-  const p5Interval = setInterval(() => { p5MsgIdx=(p5MsgIdx+1)%p5Msgs.length; const lEl=document.getElementById('p5-loading'); if(lEl) lEl.textContent=p5Msgs[p5MsgIdx]; }, 2000);
+  const p5Interval = setInterval(() => { p5MsgIdx=(p5MsgIdx+1)%p5Msgs.length; const lEl=document.getElementById('p5-loading'); if(lEl) lEl.textContent=p5Msgs[p5MsgIdx]; if(spinText5) spinText5.textContent=p5Msgs[p5MsgIdx]; }, 2000);
 
   try {
     if (!_phase4Results) { showToast('Run Ranking (Phase 4) first.', 3000); return; }
@@ -9882,6 +10171,8 @@ async function runPhase5() {
       <div style="font-size:11px;color:var(--text-muted);margin-top:16px;">Skipping may produce an incomplete BRD. Retry when connectivity is restored.</div>
     </div>`;
   } finally {
+    hidePhaseContext();
+    if (spinner5) spinner5.classList.remove('active');
     btn.disabled = false;
     clearInterval(p5Interval);
     btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Generate Report';
