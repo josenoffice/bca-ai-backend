@@ -3909,6 +3909,31 @@ function sourceTag(valueBasis) {
   return '<span class="source-tag" style="background:#f3f4f6;color:#6b7280;">Unknown</span>';
 }
 
+// ─── Build Implementation Approach Narrative ──────────────────────
+function buildImplementationNarrative(solution) {
+  if (!solution) return '';
+  const approach = solution.solutionApproach || 'unknown';
+  const name = solution.name || '';
+  const vendor = solution.selectedVendor?.name || solution.vendorName || '';
+  const impTime = solution.implementationTime || 12;
+
+  if (approach === 'buy' || approach === 'hybrid') {
+    // Software/vendor solution narrative
+    const vendorPhrase = vendor ? `Implement ${vendor}'s solution` : 'Deploy a vendor-delivered solution';
+    const integrationPhrase = 'integrate with existing systems (AWS, current infrastructure)';
+    const trainingPhrase = `conduct staff training (${impTime} weeks estimated implementation)`;
+    return `${vendorPhrase}, ${integrationPhrase}, and ${trainingPhrase}. Solution covers compliance standards and integrates with your current tech stack.`;
+  } else if (approach === 'change') {
+    // Process change narrative
+    const processPhrase = 'Redesign business processes to eliminate manual work';
+    const staffPhrase = 'add specialized resources (process leads, change champions)';
+    const adoptionPhrase = `manage adoption across the organization over ${impTime} weeks`;
+    return `${processPhrase}, ${staffPhrase}, and ${adoptionPhrase}. Execution depends on internal team bandwidth and stakeholder alignment.`;
+  }
+
+  return '';
+}
+
 function progressColor(pct) {
   if (pct <= 70) return 'var(--warning)';
   if (pct <= 90) return 'var(--success)';
@@ -6143,6 +6168,11 @@ function renderResults(r) {
     const breakdownGrid = breakdownKeys.map(k => `<div class="breakdown-item"><div class="breakdown-item-label">${k}</div><div class="breakdown-item-value">${fmt(bd[k])}</div></div>`).join('');
     const benLinks = (s.linkedBenefits || []).map(id => `<span class="badge badge-success" style="font-size:10px;">${id}</span>`).join('');
     const reqLinks = (s.linkedRequirements || []).map(id => `<span class="badge badge-info" style="font-size:10px;">${id}</span>`).join('');
+
+    // Build implementation narrative for this solution
+    const implNarrative = buildImplementationNarrative(s);
+    const implHTML = implNarrative ? `<div style="background:var(--surface-alt);border-left:4px solid var(--primary);padding:12px 14px;margin-bottom:14px;border-radius:6px;font-size:13px;line-height:1.5;color:var(--text-muted);"><strong style="color:var(--text);">Implementation Approach:</strong> ${implNarrative}</div>` : '';
+
     return `
       <div class="sol-card" onclick="this.classList.toggle('open')">
         <div class="sol-card-header">
@@ -6160,6 +6190,7 @@ function renderResults(r) {
         </div>
         <div class="sol-card-body">
           <div class="sol-desc">${s.description}</div>
+          ${implHTML}
           ${s.processAddressabilityPct != null ? `<div style="margin-bottom:14px;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
               <span style="font-size:11px;font-weight:700;color:var(--text-muted);">Process Addressability</span>
@@ -6330,7 +6361,7 @@ function renderResults(r) {
     ${explainBtn('p1-glance','phase1','overall',()=>({projectContext:{industry:p1Industry,budget:r.projectMeta?.budget||r.validatedData?.budget||0},metricValue:p1QScore,additionalContext:{solutions:r.solutions.length,benefits:r.benefits.length,budgetUtil:Math.round(p1BudgUtil),verdict:p1GlanceVerdict}}))}
     ${kpiRow}
     ${p1QualInterp}
-    <div class="section"><div class="section-title">Solutions (${r.solutions.length})</div>${splitPanelHtml}<div class="sol-grid">${solCards}</div></div>
+    <div class="section"><div class="section-title">Solutions (${r.solutions.length})</div><div style="background:#fef3c7;border:1.5px solid #f59e0b;border-radius:10px;padding:14px 16px;margin-bottom:16px;font-size:13px;line-height:1.5;color:#92400e;"><strong style="color:#b45309;">ℹ️ Implementation approaches shown above are based on your initial intake and AI analysis.</strong> These will be refined and detailed as: (1) vendor selection is confirmed in Phase 1.6, (2) cost estimates are finalized in Phase 1.5, (3) project timeline is locked in Phase 3. Treat as directional guidance, not final design.</div>${splitPanelHtml}<div class="sol-grid">${solCards}</div></div>
     <div class="section"><div class="section-title">Benefits (${r.benefits.length}) ${guideBtn('What do the Benefits rows show?')}</div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Category</th><th>Description</th><th>Value</th><th>Confidence</th><th>Source</th></tr></thead><tbody>${benRows}</tbody></table></div></div>
     <div class="section"><div class="section-title">Requirements (${r.requirements.length}) ${guideBtn('What are Requirements?')}</div><div class="req-list">${reqItems}</div></div>
     <div class="section">${buildValueChainSection(r.solutions, r.benefits, r.requirements, 'Value Chain — Solution → Requirement → Benefit ' + guideBtn('What does the Value Chain diagram show?'))}</div>
