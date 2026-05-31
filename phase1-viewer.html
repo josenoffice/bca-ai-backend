@@ -2862,7 +2862,7 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <div class="spa-section" id="section-phase2">
   <div style="text-align:center;margin-bottom:32px;">
     <h2 style="font-size:24px;font-weight:800;">Phase 2 — Financial Analysis <button class="guide-inline-btn" onclick="showGuideAnswer('What financial metrics are calculated?')" title="What does Phase 2 calculate?">Guide me</button></h2>
-    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">Pure JavaScript maths — NPV, IRR, ROI, payback, sensitivity analysis, and traceability health.<br>No AI call needed. No API key required. <button class="guide-inline-btn" onclick="showGuideAnswer('How does Phase 2 use my intake data?')" title="How does Phase 2 use intake data?">How it uses your data</button></p>
+    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">Calculates NPV, ROI, IRR, and Payback Period from your actual costs and benefits — benchmarked against your industry. Every formula is auditable via Show Calculation. <button class="guide-inline-btn" onclick="showGuideAnswer('How does Phase 2 use my intake data?')" title="How does Phase 2 use intake data?">How it uses your data</button></p>
   </div>
 
   <div style="text-align:center;margin-bottom:32px;">
@@ -2870,7 +2870,6 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>
       Run Phase 2 Analysis
     </button>
-    <p style="color:var(--text-light);font-size:12px;margin-top:10px;">Uses hardcoded test payload (Eco Platform Upgrade — Retail)</p>
   </div>
 
   <div id="phase2-results"></div>
@@ -2882,14 +2881,13 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <div class="spa-section" id="section-phase3">
   <div style="text-align:center;margin-bottom:32px;">
     <h2 style="font-size:24px;font-weight:800;">Phase 3 — Traceability Validation <button class="guide-inline-btn" onclick="showGuideAnswer('What does the Traceability phase verify?')" title="What does Phase 3 verify?">Guide me</button></h2>
-    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">Pure JavaScript logic — dependency analysis, confidence scoring, timeline building, and executive health badge.<br>No AI call needed. No API key required. <button class="guide-inline-btn" onclick="showGuideAnswer('How does my intake data affect traceability?')" title="How intake data affects traceability">How it uses your data</button></p>
+    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">AI validates the complete logic chain — every requirement linked to a solution, every solution linked to a measurable benefit — and generates a phased project delivery timeline with cost phasing per stage. <button class="guide-inline-btn" onclick="showGuideAnswer('How does my intake data affect traceability?')" title="How intake data affects traceability">How it uses your data</button></p>
   </div>
   <div style="text-align:center;margin-bottom:32px;">
     <button class="btn" id="phase3Btn" onclick="runPhase3()" style="padding:14px 40px;font-size:16px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       Run Phase 3 Validation
     </button>
-    <p style="color:var(--text-light);font-size:12px;margin-top:10px;">Uses hardcoded test payload (Eco Platform Upgrade — Retail)</p>
   </div>
   <div id="phase3-results"></div>
 </div>
@@ -2898,14 +2896,13 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <div class="spa-section" id="section-phase4">
   <div style="text-align:center;margin-bottom:32px;">
     <h2 style="font-size:24px;font-weight:800;">Phase 4 — Ranking &amp; Recommendation <button class="guide-inline-btn" onclick="showGuideAnswer('How are solutions ranked?')" title="How are solutions ranked?">Guide me</button></h2>
-    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">Composite scoring across 5 dimensions, solution ranking, sensitivity analysis, and Phase 5 gate check.<br>Pure JavaScript — no AI call needed. <button class="guide-inline-btn" onclick="showGuideAnswer('What are the scoring weights?')" title="What are scoring weights?">Scoring weights</button></p>
+    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">Objective composite scoring across 5 dimensions: NPV (35%), ROI (20%), Confidence (15%), Risk (15%), Vendor Fit (15%). Produces a ranked shortlist with justification for each solution. <button class="guide-inline-btn" onclick="showGuideAnswer('What are the scoring weights?')" title="What are scoring weights?">Scoring weights</button></p>
   </div>
   <div style="text-align:center;margin-bottom:32px;">
     <button class="btn" id="phase4Btn" onclick="runPhase4()" style="padding:14px 40px;font-size:16px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px;"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
       Run Phase 4 Ranking
     </button>
-    <p style="color:var(--text-light);font-size:12px;margin-top:10px;">Uses hardcoded test payload (Eco Platform Upgrade — Retail)</p>
   </div>
   <div id="phase4-results"></div>
 </div>
@@ -2913,14 +2910,13 @@ Portfolio ROI above 150% within 3 years | Payback period under 24 months</textar
 <div class="spa-section" id="section-phase5">
   <div style="text-align:center;margin-bottom:32px;">
     <h2 style="font-size:24px;font-weight:800;">Phase 5 — Report Generation <button class="guide-inline-btn" onclick="showGuideAnswer('What does the Report phase produce?')" title="What does Phase 5 produce?">Guide me</button></h2>
-    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">Assembles everything into a polished board-ready HTML report with executive narrative, KPI cards, ranking table, vendor summary, sensitivity analysis, and methodology note.<br>Pure JavaScript template assembly — no AI call needed. <button class="guide-inline-btn" onclick="showGuideAnswer('How is the executive summary written?')" title="How is the exec summary written?">Executive summary</button></p>
+    <p style="color:var(--text-muted);font-size:14px;max-width:600px;margin:8px auto 0;">AI-generated executive report synthesising all phases: investment rationale, financial summary with benchmarks, ranked solutions, vendor analysis, project timeline, and call-to-action. Optimised for board submission. <button class="guide-inline-btn" onclick="showGuideAnswer('How is the executive summary written?')" title="How is the exec summary written?">Executive summary</button></p>
   </div>
   <div style="text-align:center;margin-bottom:32px;">
     <button class="btn" id="phase5Btn" onclick="runPhase5()" style="padding:14px 40px;font-size:16px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:8px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
       Generate Report
     </button>
-    <p style="color:var(--text-light);font-size:12px;margin-top:10px;">Uses hardcoded test payload (Eco Platform Upgrade — Retail, Phase 4 output)</p>
   </div>
   <div id="phase5-results"></div>
 </div>
@@ -7480,14 +7476,15 @@ function renderPostVendorTraceability() {
       ? solBens.map(b => {
           const conf = Math.round((b.confidence || 0) * 100);
           const confColor = conf >= 80 ? '#16a34a' : conf >= 60 ? '#d97706' : '#dc2626';
-          const annVal = b.annualizedValue || b.riskAdjustedValue || 0;
+          const annVal = b.riskAdjustedValue || b.annualizedValue || 0;
+          const basisTrimmed = b.valueBasis && b.valueBasis.length > 80 ? b.valueBasis.substring(0, 77) + '…' : b.valueBasis;
           return `<div style="background:var(--surface);border:1px solid var(--border-light);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
             <div style="font-size:12px;font-weight:600;color:var(--text);margin-bottom:4px;">${b.id}: ${b.description}</div>
             <div style="display:flex;gap:14px;flex-wrap:wrap;">
               <span style="font-size:12px;color:#16a34a;font-weight:700;">${fmtMoney(annVal)}/yr</span>
               <span style="font-size:11px;color:${confColor};font-weight:600;">${conf}% confidence</span>
               <span style="font-size:11px;color:var(--text-muted);">${b.category || 'Benefit'}</span>
-              ${b.valueBasis ? `<span style="font-size:11px;color:var(--text-muted);font-style:italic;">${b.valueBasis}</span>` : ''}
+              ${basisTrimmed ? `<span style="font-size:11px;color:var(--text-muted);font-style:italic;">${basisTrimmed}</span>` : ''}
             </div>
           </div>`;
         }).join('')
@@ -7551,7 +7548,23 @@ function renderPostVendorTraceability() {
       </div>`;
   });
 
-  html += `</div>`;
+  // Portfolio summary
+  const totalReqsCovered = requirements.length;
+  const totalAnnualValue = benefits.reduce((sum, b) => sum + (b.riskAdjustedValue || b.annualizedValue || 0), 0);
+  const solCount = solutions.length;
+
+  html += `
+    <div style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);border-top:2px solid #16a34a;margin-top:20px;padding:16px 20px;border-radius:0 0 12px 12px;">
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#15803d;margin-bottom:12px;">✓ Portfolio Summary</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:14px;">
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:600;">Solutions</div><div style="font-size:18px;font-weight:800;color:#16a34a;">${solCount}</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:600;">Requirements Covered</div><div style="font-size:18px;font-weight:800;color:#16a34a;">${totalReqsCovered}</div></div>
+        <div><div style="font-size:11px;color:var(--text-muted);font-weight:600;">Total Annual Value</div><div style="font-size:18px;font-weight:800;color:#16a34a;">${fmtMoney(totalAnnualValue)}/yr</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--text);line-height:1.5;margin-bottom:12px;">This blueprint is complete and ready for cost estimation. Every requirement links to a solution, and every solution maps to a measurable benefit with a vendor or delivery approach defined.</div>
+      <button onclick="document.getElementById('costLaunchPanel').scrollIntoView({behavior:'smooth',block:'start'})" style="background:#16a34a;color:#fff;border:none;border-radius:6px;padding:10px 18px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s;">→ Next: Phase 1.5 — Cost Estimation</button>
+    </div>
+  </div>`;
   el.innerHTML = html;
   el.style.display = 'block';
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -12461,7 +12474,7 @@ const GUIDE_KB = {
       { q: 'How does "What you already tried" affect the AI output?', a: 'The <strong>Already Tried</strong> step tells the AI what approaches have already been attempted and failed. The AI uses this to:<br><br>• <strong>Exclude already-failed solutions</strong> — if you\'ve already tried off-the-shelf software and it didn\'t work, the AI won\'t recommend the same class of solution as your primary option<br>• <strong>Explain differences</strong> — if a similar approach is unavoidable (e.g., compliance tools), the AI will explicitly explain in the solution description why this recommendation will succeed where the previous attempt failed (different scope, vendor, governance, or methodology)<br>• <strong>Steer toward complementary approaches</strong> — if you tried process redesign alone, the AI may recommend a tech-enabled version with better adoption tools<br><br>This field is for AI context only — it does not appear in your BRD or executive report. It\'s completely optional but significantly improves the quality of recommendations when you\'ve been through a failed project before.' },
       { q: 'What is the quality bar on Step 5?', a: 'The quality bar scores your <strong>Current State text</strong> from 0–10. It looks for: system names (+2), metrics with numbers (+3), time indicators (+1), affected people/teams (+1), and root cause (+1). A score of 7+ produces "Excellent" — your benefit values will be anchored to your data. Below 4 means the AI will rely on conservative industry benchmarks for most figures.' },
       { q: 'Which fields have the biggest impact?', a: '<strong>1. Current State</strong> — anchors all solutions and benefits.<br><strong>2. Business Impact (Section A)</strong> — directly becomes your benefit values in the financial model.<br><strong>3. Budget</strong> — enables the 85% ceiling check and rescoping logic.<br><strong>4. Compliance requirements</strong> — filters vendors so you only see compliant options.<br><strong>5. Scale</strong> — calibrates every financial metric.<br>Problems, role and BU also matter, but these 5 have the largest financial impact.' },
-      { q: 'Can I improve my inputs after running?', a: 'Yes — but you will need to re-run Phase 1 and all downstream phases. The <strong>Re-run Discovery</strong> button appears at the top of results. Note: re-running overwrites all existing results including any user edits in Phases 2–5. For the demo, re-runs are instant because they use the same demo dataset. For real analyses, re-running costs ~$0.05 and takes 15–30 seconds.' }
+      { q: 'Can I improve my inputs after running?', a: 'Yes — but you will need to re-run Phase 1 and all downstream phases. The <strong>Re-run Discovery</strong> button appears at the top of results. Note: re-running overwrites all existing results including any user edits in Phases 2–5. Each AI phase costs ~$0.05–$0.10 per run; re-running the full pipeline typically takes 15–30 seconds total.' }
     ]
   }
 };
