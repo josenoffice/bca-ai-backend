@@ -1169,6 +1169,70 @@ html, body {
 .edb-mailto { background: var(--blue); border: 1.5px solid var(--blue); color: white; }
 .edb-mailto:hover { background: var(--navy-mid); border-color: var(--navy-mid); }
 
+/* ── DEMO MODE STYLES ── */
+.demo-banner {
+  display: none;
+  background: linear-gradient(90deg, #FEF3C7 0%, #FDE68A 100%);
+  border-bottom: 2px solid #F59E0B;
+  padding: 12px 24px;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 99;
+}
+.demo-banner.visible {
+  display: flex;
+}
+.demo-badge {
+  background: #F59E0B;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.demo-banner-text {
+  color: #B45309;
+  font-size: 13px;
+  font-weight: 600;
+  flex: 1;
+}
+.demo-clear-btn {
+  background: none;
+  border: 1.5px solid #F59E0B;
+  color: #B45309;
+  border-radius: 6px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+.demo-clear-btn:hover {
+  background: rgba(245, 158, 11, 0.1);
+}
+.demo-trigger-btn {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: var(--font-body);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: opacity 0.15s;
+}
+.demo-trigger-btn:hover {
+  opacity: 0.9;
+}
+
 /* ── Embedded iframe mode — hide topbar when inside phase1-viewer ── */
 .embedded-mode .topbar { display: none; }
 .embedded-mode .app-shell { grid-template-rows: 1fr; }
@@ -1189,7 +1253,17 @@ html, body {
       <div class="save-indicator"><div class="save-dot"></div> Auto-saved</div>
       <div class="progress-pill" id="progressPill">0 of 11 sections</div>
     </div>
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <button class="demo-trigger-btn" id="demoTriggerBtn" onclick="startDemo()">▶ Guided Demo — POS Upgrade</button>
+    </div>
   </header>
+
+  <!-- DEMO BANNER -->
+  <div class="demo-banner" id="demoBanner">
+    <span class="demo-badge">Demo Mode</span>
+    <span class="demo-banner-text">Showing: POS (Point of Sale) System Upgrade — explore without entering real data</span>
+    <button class="demo-clear-btn" onclick="clearDemo()">✕ Clear Demo</button>
+  </div>
 
   <!-- WORKSPACE -->
   <div class="workspace">
@@ -3437,6 +3511,156 @@ window.addEventListener('message', (event) => {
     }
   }
 });
+
+// ═══════════════════════════════════════════════════════════════
+//  DEMO MODE
+// ═══════════════════════════════════════════════════════════════
+let _demoMode = false;
+
+const DEMO_DATA = {
+  projectName: 'POS (Point of Sale) System Upgrade',
+  industry: 'Retail',
+  trigger: 'performance',
+  background: 'Our Point of Sale (POS) system is 10 years old, deployed across 250 retail locations with 2,000+ store associates. Current system: legacy on-premises, no omnichannel capability, average checkout time 4.5 minutes (industry benchmark: 2 minutes). No support for contactless or mobile payment options. Real-time inventory visibility unavailable — staff manually reconcile stock 3x weekly. Not PCI-DSS Level 1 certified. System downtime: 12 hours/year avg, costing ~$50K per incident in lost sales. Training on current system takes 8 days per new hire.',
+  perfDesc: 'Checkout process takes 4.5 minutes on average vs 2-minute industry benchmark, causing cart abandonment and customer frustration. System crashes 2-3 times per month during peak hours, each incident costing ~$50K in lost sales.',
+  whyNow: 'PCI-DSS v4.0 compliance deadline is Q1 2026 — current system will fail certification. Additionally, competitor adoption of mobile/contactless payments is driving customer expectations higher. Internal tech team capacity is available this fiscal year for a phased rollout.',
+  problem: 'Our warehouse picking error rate is 12%, against a target of 3% and industry benchmark of 2%. System crashes 2-3 times monthly during peak trading hours, causing point-of-sale outages and $50K+ revenue loss per incident. No contactless payment capability — estimated 8% transaction loss to competitors.',
+  annualCost: 1590000,
+  rootCause: 'Legacy POS system running Windows Server 2012 (end-of-life). Real-time inventory sync unavailable — manual batch reconciliation creates data gaps. No native mobile payment support. Insufficient hardware refresh cycle.',
+  stakeholders: 'Retail Operations (primary), Finance, IT Operations, Store Managers (250 locations), Customer Service team',
+  scope: 'Replace POS system across all 250 retail locations with modern cloud-based platform. Includes new hardware, payment processing integration, staff training (2000+ associates), data migration of 10 years of transaction history.',
+  outOfScope: 'E-commerce platform integration (separate project). Store layout/UX redesign (out of scope). Advanced analytics/AI features (Phase 2 consideration).',
+  techStack: 'Oracle MICROS, SAP ERP, Shopify, Stripe, Verifone terminals, AWS',
+  systemIntegrations: 'SAP ERP, Shopify, Stripe, Google Analytics 4, Mailchimp',
+  upfrontLow: 320000,
+  upfrontLikely: 485000,
+  upfrontHigh: 620000,
+  ongoingY1: 45000,
+  ongoingSS: 48000,
+  indirect: 25000,
+  golive: '2025-10-15',
+  ms1: 6,
+  ms2: 10,
+  ms3: 6,
+  ms4: 4,
+  ms5: 4
+};
+
+function startDemo() {
+  _demoMode = true;
+  document.getElementById('demoBanner').classList.add('visible');
+  document.getElementById('demoTriggerBtn').style.display = 'none';
+  loadDemoData();
+  goSection(1); // Navigate to first section
+}
+
+function clearDemo() {
+  _demoMode = false;
+  document.getElementById('demoBanner').classList.remove('visible');
+  document.getElementById('demoTriggerBtn').style.display = 'flex';
+  // Optionally clear all fields
+  // document.querySelectorAll('.field-input, .field-textarea').forEach(el => el.value = '');
+}
+
+function loadDemoData() {
+  // Section 1: Strategic Alignment
+  const initName = document.getElementById('f-init-name');
+  if (initName) {
+    initName.value = DEMO_DATA.projectName;
+    initName.dispatchEvent(new Event('input'));
+    updateProjectName(DEMO_DATA.projectName);
+  }
+
+  const industry = document.getElementById('f-industry');
+  if (industry) industry.value = DEMO_DATA.industry;
+
+  // Section 1: Trigger (performance)
+  const perfDescEl = document.getElementById('f-perf-desc');
+  if (perfDescEl) perfDescEl.value = DEMO_DATA.perfDesc;
+
+  // Section 1: Why Now
+  const whyNowEl = document.getElementById('f-why-now');
+  if (whyNowEl) whyNowEl.value = DEMO_DATA.whyNow;
+
+  // Section 1: Background
+  const backgroundEl = document.getElementById('f-background');
+  if (backgroundEl) backgroundEl.value = DEMO_DATA.background;
+
+  // Section 3: Problem Definition
+  const problemEl = document.getElementById('f-problem');
+  if (problemEl) problemEl.value = DEMO_DATA.problem;
+
+  const annualCostEl = document.getElementById('f-annual-cost');
+  if (annualCostEl) annualCostEl.value = DEMO_DATA.annualCost;
+
+  const rootCauseEl = document.getElementById('f-root-cause');
+  if (rootCauseEl) rootCauseEl.value = DEMO_DATA.rootCause;
+
+  // Stakeholders, Scope, Out of Scope
+  const scopeTextareas = document.querySelectorAll('.field-textarea');
+  if (scopeTextareas.length > 5) {
+    // Find and fill scope-related fields by searching for placeholder text
+    document.querySelectorAll('.field-textarea').forEach(ta => {
+      if (ta.placeholder && ta.placeholder.includes('Warehouse operations') && !ta.value) {
+        ta.value = DEMO_DATA.scope;
+      }
+      if (ta.placeholder && ta.placeholder.includes('Brisbane DC') && !ta.value) {
+        ta.value = DEMO_DATA.outOfScope;
+      }
+      if (ta.placeholder && ta.placeholder.includes('Warehouse operations') && !ta.value) {
+        ta.value = DEMO_DATA.stakeholders;
+      }
+    });
+  }
+
+  // Section 5: Tech Stack
+  const techStackEl = document.querySelector('input[placeholder*="SAP ERP"]');
+  if (techStackEl) techStackEl.value = DEMO_DATA.techStack;
+
+  const integrationsEl = document.querySelectorAll('input[placeholder*="Salesforce CRM"]');
+  if (integrationsEl.length > 0) integrationsEl[0].value = DEMO_DATA.systemIntegrations;
+
+  // Section 6: Budget and Timeline
+  const upfrontLowEl = document.getElementById('f-upfront-low');
+  if (upfrontLowEl) upfrontLowEl.value = DEMO_DATA.upfrontLow;
+
+  const upfrontLikelyEl = document.getElementById('f-upfront-likely');
+  if (upfrontLikelyEl) upfrontLikelyEl.value = DEMO_DATA.upfrontLikely;
+
+  const upfrontHighEl = document.getElementById('f-upfront-high');
+  if (upfrontHighEl) upfrontHighEl.value = DEMO_DATA.upfrontHigh;
+
+  const ongoingY1El = document.getElementById('f-ongoing-y1');
+  if (ongoingY1El) ongoingY1El.value = DEMO_DATA.ongoingY1;
+
+  const ongoingSSEl = document.getElementById('f-ongoing-ss');
+  if (ongoingSSEl) ongoingSSEl.value = DEMO_DATA.ongoingSS;
+
+  const indirectEl = document.getElementById('f-indirect');
+  if (indirectEl) indirectEl.value = DEMO_DATA.indirect;
+
+  const goliveEl = document.getElementById('f-golive');
+  if (goliveEl) goliveEl.value = DEMO_DATA.golive;
+
+  // Milestones
+  const ms1El = document.getElementById('ms-1');
+  if (ms1El) ms1El.value = DEMO_DATA.ms1;
+
+  const ms2El = document.getElementById('ms-2');
+  if (ms2El) ms2El.value = DEMO_DATA.ms2;
+
+  const ms3El = document.getElementById('ms-3');
+  if (ms3El) ms3El.value = DEMO_DATA.ms3;
+
+  const ms4El = document.getElementById('ms-4');
+  if (ms4El) ms4El.value = DEMO_DATA.ms4;
+
+  const ms5El = document.getElementById('ms-5');
+  if (ms5El) ms5El.value = DEMO_DATA.ms5;
+
+  // Recalculate TCO
+  if (typeof calcTCO === 'function') calcTCO();
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  INIT
