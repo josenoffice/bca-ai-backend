@@ -878,6 +878,11 @@ html, body {
   40%{ transform: translateY(-7px); }
 }
 
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 /* Input */
 .asst-input-area {
   background: var(--white);
@@ -3566,15 +3571,82 @@ function gatherIntakeData() {
   };
 }
 
-function submitToParent() {
-  const data = gatherIntakeData();
-  if (window.parent !== window) {
-    window.parent.postMessage({ type: 'BCA_INTAKE_SUBMIT', payload: data }, '*');
-    // Show confirmation in the form
-    const btn = document.getElementById('btnRunAnalysis');
-    btn.textContent = '⏳ Sending to BCA.AI...';
+async function submitToParent() {
+  const intakeData = gatherIntakeData();
+  const btn = document.getElementById('btnRunAnalysis');
+
+  // Show loading state
+  if (btn) {
     btn.disabled = true;
     btn.style.opacity = '0.6';
+    btn.innerHTML = '<svg style="display:inline;width:14px;height:14px;animation:spin 1s linear infinite;margin-right:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg>Processing...';
+  }
+
+  try {
+    // Prepare data for Phase 1 API
+    const payload = {
+      projectTitle: intakeData.projectTitle || 'Untitled Initiative',
+      businessUnit: 'Form Submission',
+      industry: 'technology',
+      currentState: intakeData.background || '',
+      businessImpact: intakeData.problemStatement || '',
+      budget: intakeData.upfrontLikely || 0,
+      expectedTimeframe: intakeData.goLive || '12 months',
+      urgency: 'high',
+      currentPainPoints: intakeData.problemStatement ? [intakeData.problemStatement] : [],
+      businessGoals: intakeData.outcomes || [],
+      technicalStack: intakeData.systems ? intakeData.systems.map(s => s.name) : [],
+      systemIntegrations: intakeData.integrations ? intakeData.integrations.map(i => i.system) : [],
+      complianceRequirements: [],
+      mode: 'live',
+      source: 'form-intake',
+      formData: intakeData  // Include full form data for reference
+    };
+
+    // Send to Phase 1 API
+    const response = await fetch('/api/phase1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    // Store results
+    if (result && result[0]) {
+      const intakeStr = JSON.stringify(intakeData);
+      const phase1Str = JSON.stringify(result[0]);
+
+      sessionStorage.setItem('bcaIntakeData', intakeStr);
+      sessionStorage.setItem('phase1Data', phase1Str);
+
+      try {
+        localStorage.setItem('bcaIntakeBackup_v1', JSON.stringify({ data: intakeData, ts: Date.now() }));
+        localStorage.setItem('phase1DataBackup_v1', JSON.stringify({ data: result[0], ts: Date.now() }));
+      } catch {}
+
+      // Navigate to phase 1 viewer or notify parent
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'BCA_PHASE1_COMPLETE', payload: result[0] }, '*');
+        window.close();
+      } else {
+        window.location.href = '/phase1-viewer.html';
+      }
+    } else {
+      throw new Error('No data returned from Phase 1');
+    }
+  } catch (err) {
+    console.error('Error submitting form:', err);
+    if (btn) {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+      btn.innerHTML = '▶ Run BCA Analysis';
+    }
+    alert('Error processing your form: ' + err.message + '\n\nPlease try again or check your internet connection.');
   }
 }
 
