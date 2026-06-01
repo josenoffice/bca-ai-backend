@@ -128,6 +128,28 @@ body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-80
 .data-val.empty { color: var(--slate-300); font-style: italic; font-size: 11px; }
 .data-val.filled { color: var(--navy); font-weight: 600; }
 
+/* ── BCA SUMMARY CARDS — Redesigned for readability ── */
+.bca-summary-card {
+  display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: white; border: 1.5px solid var(--slate-200); border-radius: 10px;
+  transition: all .15s; cursor: pointer;
+}
+.bca-summary-card:hover { border-color: var(--blue); background: var(--blue-soft); }
+.bca-summary-icon { font-size: 18px; flex-shrink: 0; }
+.bca-summary-content { flex: 1; min-width: 0; }
+.bca-summary-label { font-size: 11px; font-weight: 700; color: var(--slate-500); text-transform: uppercase; letter-spacing: .03em; margin-bottom: 3px; }
+.bca-summary-value {
+  font-size: 13px; font-weight: 600; color: var(--navy);
+  line-height: 1.4; word-break: break-word; white-space: normal;
+}
+.bca-summary-value.empty { color: var(--slate-400); font-weight: 500; font-style: italic; }
+.bca-summary-edit {
+  background: none; border: none; color: var(--slate-400); font-size: 14px;
+  cursor: pointer; padding: 4px 8px; border-radius: 6px; flex-shrink: 0;
+  transition: all .15s; font-weight: 600;
+}
+.bca-summary-edit:hover { color: var(--blue); background: var(--blue-soft); }
+
 /* ── FOOTER ── */
 .footer-copyright { background: white; border-top: 1px solid var(--slate-200); text-align: center; padding: 9px; font-size: 11px; color: var(--slate-400); flex-shrink: 0; }
 
@@ -334,58 +356,125 @@ select.field-input { cursor: pointer; }
         Generate Business Case Analysis
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
       </button>
-      <div class="demo-note" id="demoNote" style="display:none;">Demo Mode — no real analysis will run.</div>
+      <div class="demo-note" id="demoNote" style="display:none;"></div>
     </div>
   </div>
+  <!-- REDESIGNED BCA SUMMARY PANEL — Professional UI/UX -->
   <div class="data-panel">
-    <div class="panel-header">
-      <div class="panel-title">📋 Your BCA Summary</div>
-      <div class="panel-progress"><div class="panel-progress-bar" id="panelProgressBar"></div></div>
-      <div class="panel-progress-label" id="panelProgressLabel">0 of 8 fields captured</div>
+    <div class="panel-header" style="padding:16px;border-bottom:2px solid var(--slate-200);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="panel-title" style="font-size:16px;font-weight:800;color:var(--navy);">📋 Your BCA Summary</div>
+        <div style="font-size:13px;font-weight:700;color:var(--blue);background:var(--blue-soft);padding:4px 10px;border-radius:6px;" id="panelProgressLabel">0 / 11</div>
+      </div>
+      <div class="panel-progress" style="height:6px;background:var(--slate-200);border-radius:4px;overflow:hidden;">
+        <div class="panel-progress-bar" id="panelProgressBar" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));width:0%;transition:width .3s ease;"></div>
+      </div>
     </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-projectTitle"></div>
-      <div class="data-info"><div class="data-key">🏗️ Project Name</div><div class="data-val empty" id="dp-projectTitle">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-role"></div>
-      <div class="data-info"><div class="data-key">👤 Role / Organisation</div><div class="data-val empty" id="dp-role">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-pain"></div>
-      <div class="data-info"><div class="data-key">⚠️ Key Pain Point</div><div class="data-val empty" id="dp-pain">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-urgency"></div>
-      <div class="data-info"><div class="data-key">🚨 Urgency Level</div><div class="data-val empty" id="dp-urgency">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-budget"></div>
-      <div class="data-info"><div class="data-key">💰 Budget</div><div class="data-val empty" id="dp-budget">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-timeline"></div>
-      <div class="data-info"><div class="data-key">📅 Timeline</div><div class="data-val empty" id="dp-timeline">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-kpis"></div>
-      <div class="data-info"><div class="data-key">🎯 KPIs / Success Metrics</div><div class="data-val empty" id="dp-kpis">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-compliance"></div>
-      <div class="data-info"><div class="data-key">✅ Compliance</div><div class="data-val empty" id="dp-compliance">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-alternatives"></div>
-      <div class="data-info"><div class="data-key">🔀 Options Modelled</div><div class="data-val empty" id="dp-alternatives">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-techStack"></div>
-      <div class="data-info"><div class="data-key">🖥️ Tech Stack</div><div class="data-val empty" id="dp-techStack">Not yet entered</div></div>
-    </div>
-    <div class="data-item">
-      <div class="data-dot" id="dot-stakeholders"></div>
-      <div class="data-info"><div class="data-key">👥 Stakeholders</div><div class="data-val empty" id="dp-stakeholders">Not yet entered</div></div>
+
+    <div style="overflow-y:auto;flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;">
+      <!-- Project & Role Card -->
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">🏗️</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Project Name</div>
+          <div class="bca-summary-value empty" id="dp-projectTitle">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q1')" title="Edit">✎</button>
+      </div>
+
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">👤</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Role / Organisation</div>
+          <div class="bca-summary-value empty" id="dp-role">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q1')" title="Edit">✎</button>
+      </div>
+
+      <!-- Problem & Urgency Card -->
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">⚠️</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Key Pain Point</div>
+          <div class="bca-summary-value empty" id="dp-pain">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q3')" title="Edit">✎</button>
+      </div>
+
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">🚨</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Urgency Level</div>
+          <div class="bca-summary-value empty" id="dp-urgency">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q5')" title="Edit">✎</button>
+      </div>
+
+      <!-- Financial & Timeline Cards -->
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">💰</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Budget</div>
+          <div class="bca-summary-value empty" id="dp-budget">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q10')" title="Edit">✎</button>
+      </div>
+
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">📅</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Timeline</div>
+          <div class="bca-summary-value empty" id="dp-timeline">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q13')" title="Edit">✎</button>
+      </div>
+
+      <!-- Metrics & Compliance Cards -->
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">🎯</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">KPIs / Success Metrics</div>
+          <div class="bca-summary-value empty" id="dp-kpis">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q7')" title="Edit">✎</button>
+      </div>
+
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">✅</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Compliance Requirements</div>
+          <div class="bca-summary-value empty" id="dp-compliance">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q12')" title="Edit">✎</button>
+      </div>
+
+      <!-- Options, Tech Stack, Stakeholders Cards -->
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">🔀</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Options Modelled</div>
+          <div class="bca-summary-value empty" id="dp-alternatives">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q9')" title="Edit">✎</button>
+      </div>
+
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">🖥️</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Tech Stack</div>
+          <div class="bca-summary-value empty" id="dp-techStack">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q11')" title="Edit">✎</button>
+      </div>
+
+      <div class="bca-summary-card">
+        <div class="bca-summary-icon">👥</div>
+        <div class="bca-summary-content">
+          <div class="bca-summary-label">Stakeholders</div>
+          <div class="bca-summary-value empty" id="dp-stakeholders">Not yet entered</div>
+        </div>
+        <button class="bca-summary-edit" onclick="jumpToQuestion('q8')" title="Edit">✎</button>
+      </div>
     </div>
   </div>
 </div>
@@ -449,10 +538,95 @@ function updateStepUI(qid) {
 }
 
 function viewDraft() {
-  const keys = Object.keys(_collectedData).filter(k => _collectedData[k]);
-  if (keys.length === 0) { alert('No data collected yet — answer some questions first.'); return; }
-  const lines = keys.map(k => `${k}: ${JSON.stringify(_collectedData[k]).substring(0,80)}`);
-  alert('Draft Data:\n\n' + lines.join('\n'));
+  // Create or show existing modal
+  let modal = document.getElementById('draftModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'draftModal';
+    modal.innerHTML = `
+      <div style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:9998;display:flex;align-items:center;justify-content:center;" id="draftOverlay" onclick="closeDraftModal()">
+        <div style="background:white;border-radius:16px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);" onclick="event.stopPropagation()">
+          <!-- Header -->
+          <div style="padding:20px 24px;border-bottom:1px solid var(--slate-200);display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:18px;font-weight:800;color:var(--navy);">📋 Your Draft — Review & Edit</div>
+            <button onclick="closeDraftModal()" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--slate-400);padding:0;width:28px;height:28px;display:flex;align-items:center;justify-content:center;">✕</button>
+          </div>
+
+          <!-- Content (scrollable) -->
+          <div style="flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;" id="draftContent">
+            <!-- Filled in by JS -->
+          </div>
+
+          <!-- Footer -->
+          <div style="padding:16px 24px;border-top:1px solid var(--slate-200);display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="closeDraftModal()" style="padding:10px 20px;border:1.5px solid var(--slate-200);background:white;border-radius:8px;font-size:14px;font-weight:700;color:var(--slate-600);cursor:pointer;transition:all .15s;">Close</button>
+            <button onclick="closeDraftModal()" style="padding:10px 20px;background:var(--blue);color:white;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;">Continue Filling Form</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+
+  // Populate content
+  const contentDiv = document.getElementById('draftContent');
+  contentDiv.innerHTML = '';
+
+  const draftFields = [
+    { label: '🏗️ Project Name', id: 'projectTitle' },
+    { label: '👤 Role / Organisation', id: 'role' },
+    { label: '⚠️ Key Pain Point', id: 'pain' },
+    { label: '🚨 Urgency Level', id: 'urgency' },
+    { label: '💰 Budget', id: 'budget' },
+    { label: '📅 Timeline', id: 'timeline' },
+    { label: '🎯 KPIs / Success Metrics', id: 'kpis' },
+    { label: '✅ Compliance', id: 'compliance' },
+    { label: '🔀 Options Modelled', id: 'alternatives' },
+    { label: '🖥️ Tech Stack', id: 'techStack' },
+    { label: '👥 Stakeholders', id: 'stakeholders' },
+  ];
+
+  draftFields.forEach(field => {
+    const value = _collectedData[field.id];
+    const displayValue = Array.isArray(value) ? value.join(', ') : (value || '(Not entered)');
+    const isFilled = !!value;
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      padding:14px 16px; border:1.5px solid var(--slate-200); border-radius:10px;
+      background:${isFilled ? 'var(--blue-soft)' : 'var(--surface-alt)'};
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+    `;
+    card.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:11px;font-weight:700;color:var(--slate-500);text-transform:uppercase;margin-bottom:4px;">${field.label}</div>
+        <div style="font-size:13px;font-weight:${isFilled ? 700 : 500};color:${isFilled ? 'var(--navy)' : 'var(--slate-400)'};word-break:break-word;font-style:${isFilled ? 'normal' : 'italic'};">${displayValue}</div>
+      </div>
+      <button onclick="jumpToQuestion('q${field.id === 'projectTitle' ? 1 : field.id === 'role' ? 1 : field.id === 'pain' ? 3 : field.id === 'urgency' ? 5 : field.id === 'budget' ? 10 : field.id === 'timeline' ? 13 : field.id === 'kpis' ? 7 : field.id === 'compliance' ? 12 : field.id === 'alternatives' ? 9 : field.id === 'techStack' ? 11 : field.id === 'stakeholders' ? 8 : 1}')" style="background:none;border:none;color:var(--blue);font-size:14px;cursor:pointer;padding:4px 8px;flex-shrink:0;font-weight:700;">Edit ✎</button>
+    `;
+    contentDiv.appendChild(card);
+  });
+
+  modal.style.display = 'flex';
+}
+
+function closeDraftModal() {
+  const modal = document.getElementById('draftModal');
+  if (modal) modal.style.display = 'none';
+}
+
+function jumpToQuestion(qid) {
+  closeDraftModal();
+  const q = QUESTIONS.find(qu => qu.id === qid);
+  if (q) {
+    _currentQ = q;
+    renderQuestion(q);
+    const elem = document.getElementById('qcard-' + qid);
+    if (elem) {
+      elem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => elem.querySelector('.answer-area input, .answer-area textarea, .answer-area select')?.focus(), 300);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════
@@ -832,7 +1006,7 @@ function renderQuestion(q) {
         <div class="section-hdr-sub">Let's start with the big picture.</div>
       </div>`;
     stream.appendChild(hdr);
-    requestAnimationFrame(() => requestAnimationFrame(() => hdr.classList.add('visible')));
+    requestAnimationFrame(() => hdr.classList.add('visible'));
   }
 
   updateStepUI(q.id);
@@ -873,10 +1047,11 @@ function renderQuestion(q) {
 
   stream.appendChild(turn);
 
-  requestAnimationFrame(() => requestAnimationFrame(() => {
+  // Single optimized animation frame (avoids jank)
+  requestAnimationFrame(() => {
     turn.querySelector('.ai-bubble').classList.add('visible');
-    setTimeout(() => turn.querySelector('.answer-area').classList.add('visible'), 180);
-  }));
+    turn.querySelector('.answer-area').classList.add('visible');
+  });
 
   return turn;
 }
