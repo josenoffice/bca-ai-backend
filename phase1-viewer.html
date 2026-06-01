@@ -8281,22 +8281,21 @@ function renderReflection(r) {
   }));
   el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // ── Continue to Phase 2 CTA (only when reflection passes) ──
-  if (ref.readyForPhase2) {
-    const cta1 = document.createElement('div');
-    cta1.className = 'phase-next-cta';
-    cta1.innerHTML = `
-      <div class="phase-next-cta-inner">
-        <div class="phase-next-cta-text">
-          <div class="phase-next-cta-title">Ready for Financial Analysis?</div>
-          <div class="phase-next-cta-desc">Phase 2 calculates NPV, ROI, IRR, and payback period across your entire solution portfolio — with sensitivity analysis and industry benchmark comparisons.</div>
-        </div>
-        <button class="phase-next-btn" onclick="unlockPhaseTab('phase2');showSection('phase2');setTimeout(runPhase2,400);">
-          Continue to Phase 2 — Financials &rarr;
-        </button>
-      </div>`;
-    el.appendChild(cta1);
-  }
+  // ── Continue to Phase 2 CTA (always visible — user can proceed regardless of quality verdict) ──
+  const cta1 = document.createElement('div');
+  cta1.className = 'phase-next-cta';
+  const phase2Status = ref.readyForPhase2 ? '✓ Ready for Financial Analysis' : '⚠️ Proceed with Caution';
+  cta1.innerHTML = `
+    <div class="phase-next-cta-inner">
+      <div class="phase-next-cta-text">
+        <div class="phase-next-cta-title">${phase2Status}</div>
+        <div class="phase-next-cta-desc">Phase 2 calculates NPV, ROI, IRR, and payback period across your entire solution portfolio — with sensitivity analysis and industry benchmark comparisons. Address any warnings above before presenting to leadership.</div>
+      </div>
+      <button class="phase-next-btn" onclick="unlockPhaseTab('phase2');showSection('phase2');setTimeout(runPhase2,400);">
+        Continue to Phase 2 — Financials &rarr;
+      </button>
+    </div>`;
+  el.appendChild(cta1);
 }
 
 // ═══════════════════════════════════════════════════════════════════
