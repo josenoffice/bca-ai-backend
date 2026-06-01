@@ -1236,6 +1236,163 @@ html, body {
 /* ── Embedded iframe mode — hide topbar when inside phase1-viewer ── */
 .embedded-mode .topbar { display: none; }
 .embedded-mode .app-shell { grid-template-rows: 1fr; }
+
+/* ═══════════════════════════════════════════════════════════════
+   DRAGGABLE LIVE SUMMARY PANEL
+═══════════════════════════════════════════════════════════════ */
+.data-panel {
+  /* Default: hidden on small screens, positioned off-screen */
+  position: fixed;
+  right: -320px;
+  top: 120px;
+  width: 300px;
+  height: calc(100vh - 160px);
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.15);
+  display: flex;
+  flex-direction: column;
+  z-index: 40;
+  transition: right 0.3s ease;
+  border-left: none;
+  overflow: hidden;
+}
+
+.data-panel.visible {
+  right: 20px;
+}
+
+.data-panel.dragging {
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  cursor: grabbing;
+}
+
+.data-panel-header-drag {
+  background: linear-gradient(135deg, #2563eb 0%, #0891b2 100%);
+  padding: 12px 14px;
+  cursor: grab;
+  user-select: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  border-radius: 11px 11px 0 0;
+}
+
+.data-panel-header-drag:active {
+  cursor: grabbing;
+}
+
+.data-panel-export-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+  font-family: var(--font-body);
+}
+
+.data-panel-export-btn:hover {
+  background: rgba(255,255,255,0.3);
+  border-color: rgba(255,255,255,0.4);
+}
+
+.data-panel-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  cursor: nwse-resize;
+  background: linear-gradient(135deg, transparent 0%, rgba(0,0,0,0.06) 100%);
+  border-radius: 0 0 11px 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 2px;
+  font-size: 10px;
+  color: rgba(0,0,0,0.2);
+  user-select: none;
+}
+
+/* ── Mobile/Tablet: Show/hide toggle ── */
+@media (max-width: 1200px) {
+  .data-panel {
+    right: -320px;
+    width: 280px;
+    position: fixed;
+  }
+  .data-panel.visible {
+    right: 10px;
+  }
+}
+
+/* ── Large screens: Always visible + sticky positioning ── */
+@media (min-width: 1100px) {
+  .data-panel {
+    display: block !important;
+    /* Keep fixed positioning on large screens */
+    position: fixed !important;
+    right: 20px !important;
+    top: 120px !important;
+    height: calc(100vh - 160px) !important;
+    width: 280px !important;
+    border: 1.5px solid var(--slate-200) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,.15) !important;
+    z-index: 50 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #f8fafc !important;
+    padding: 0 !important;
+    flex-shrink: unset !important;
+    border-left: none !important;
+  }
+}
+
+/* Panel content styling */
+#panelContent {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+#panelContent .summary-section {
+  margin-bottom: 14px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+#panelContent .summary-section:last-child {
+  border-bottom: none;
+}
+
+#panelContent .summary-label {
+  font-weight: 600;
+  color: #334155;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+#panelContent .summary-value {
+  color: #475569;
+  font-size: 12px;
+  word-break: break-word;
+}
+
+#panelContent .summary-value.empty {
+  color: #cbd5e1;
+  font-style: italic;
+}
 </style>
 </head>
 <body>
@@ -2382,11 +2539,54 @@ html, body {
 
   </div><!-- end workspace -->
 </div><!-- end app-shell -->
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- DRAGGABLE LIVE SUMMARY PANEL -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="dataPanel" class="data-panel">
+  <!-- Draggable header with gradient -->
+  <div id="panelDragHandle" class="data-panel-header-drag">
+    <div style="font-weight: 600; color: #ffffff; font-size: 13px;">📋 Form Summary</div>
+    <button class="data-panel-export-btn" onclick="exportBCASummary()" title="Copy summary to clipboard">
+      <span style="font-size: 14px;">📋</span>
+    </button>
+  </div>
+
+  <!-- Live summary content -->
+  <div id="panelContent" style="padding: 12px 14px; font-size: 12px; line-height: 1.5; overflow-y: auto; flex: 1;">
+    <div style="color: #64748b; text-align: center; padding: 20px 10px;">
+      Fill in form fields to see live summary
+    </div>
+  </div>
+
+  <!-- Resize handle -->
+  <div id="panelResizeHandle" class="data-panel-resize-handle" title="Drag to resize"></div>
+</div>
+
 <footer style="background:var(--navy);color:var(--slate-400);text-align:center;padding:14px 24px;font-family:var(--font-body);font-size:12px;letter-spacing:0.2px;border-top:2px solid var(--blue);">&copy; Nidhish Jose &mdash; BCA.AI Business Case Automation. All rights reserved.</footer>
 <script>
 // ═══════════════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════════════
+
+// ── DRAGGABLE PANEL STATE ──
+let _panelDragging = false;
+let _panelResizing = false;
+let _panelDragOffsetX = 0;
+let _panelDragOffsetY = 0;
+
+// ── LIVE SUMMARY DATA ──
+let _collectedData = {
+  projectTitle: '',
+  orgName: '',
+  pain: '',
+  urgency: '',
+  budget: '',
+  timeline: '',
+  kpis: [],
+  compliance: [],
+};
+
 let currentSection = 1;
 let currentSectionKey = 'alignment';
 let sectionReadiness = {};
@@ -3663,6 +3863,163 @@ function loadDemoData() {
 }
 
 // ═══════════════════════════════════════════════════════════════
+//  DRAGGABLE LIVE SUMMARY PANEL
+// ═══════════════════════════════════════════════════════════════
+function initDraggablePanel() {
+  const panel = document.getElementById('dataPanel');
+  const dragHandle = document.getElementById('panelDragHandle');
+  const resizeHandle = document.getElementById('panelResizeHandle');
+
+  if (!panel || !dragHandle) return;
+
+  // ─── DRAG FUNCTIONALITY ───
+  dragHandle.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.data-panel-export-btn')) return; // Don't drag when clicking export button
+    _panelDragging = true;
+    panel.classList.add('dragging');
+
+    const rect = panel.getBoundingClientRect();
+    _panelDragOffsetX = e.clientX - rect.left;
+    _panelDragOffsetY = e.clientY - rect.top;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!_panelDragging) return;
+
+    const panel = document.getElementById('dataPanel');
+    const x = e.clientX - _panelDragOffsetX;
+    const y = e.clientY - _panelDragOffsetY;
+
+    // Keep panel within viewport bounds
+    const minX = 10;
+    const minY = 56; // Below topbar
+    const maxX = window.innerWidth - panel.offsetWidth - 10;
+    const maxY = window.innerHeight - panel.offsetHeight - 10;
+
+    panel.style.left = Math.max(minX, Math.min(maxX, x)) + 'px';
+    panel.style.top = Math.max(minY, Math.min(maxY, y)) + 'px';
+    panel.style.right = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (_panelDragging) {
+      _panelDragging = false;
+      const panel = document.getElementById('dataPanel');
+      if (panel) panel.classList.remove('dragging');
+    }
+    if (_panelResizing) _panelResizing = false;
+  });
+
+  // ─── RESIZE FUNCTIONALITY ───
+  if (resizeHandle) {
+    resizeHandle.addEventListener('mousedown', (e) => {
+      _panelResizing = true;
+      const rect = panel.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth = rect.width;
+      const startHeight = rect.height;
+      e.preventDefault();
+
+      const handleMouseMove = (moveEvent) => {
+        if (!_panelResizing) return;
+
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+        const newWidth = Math.max(250, startWidth + deltaX); // Minimum width
+        const newHeight = Math.max(200, startHeight + deltaY); // Minimum height
+
+        panel.style.width = newWidth + 'px';
+        panel.style.height = newHeight + 'px';
+      };
+
+      const handleMouseUp = () => {
+        _panelResizing = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    });
+  }
+}
+
+function exportBCASummary() {
+  // Create a text summary from form data
+  const data = _collectedData;
+  const summary = `
+BCA SUMMARY — Live Export
+Generated: ${new Date().toLocaleString()}
+
+Project: ${data.projectTitle || '(Not entered)'}
+Organization: ${data.orgName || '(Not entered)'}
+
+Pain Point: ${data.pain || '(Not entered)'}
+Urgency: ${data.urgency || '(Not entered)'}
+
+Budget: ${data.budget ? '$' + data.budget : '(Not entered)'}
+Timeline: ${data.timeline || '(Not entered)'}
+
+KPIs: ${Array.isArray(data.kpis) ? data.kpis.join(', ') : (data.kpis || '(Not entered)')}
+Compliance: ${Array.isArray(data.compliance) ? data.compliance.join(', ') : (data.compliance || '(Not entered)')}
+`;
+
+  navigator.clipboard.writeText(summary.trim()).then(() => {
+    alert('Summary copied to clipboard!');
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+  });
+}
+
+function updateSummary() {
+  const panel = document.getElementById('panelContent');
+  if (!panel) return;
+
+  const html = `
+    <div class="summary-section">
+      <span class="summary-label">Project</span>
+      <div class="summary-value ${!_collectedData.projectTitle ? 'empty' : ''}">
+        ${_collectedData.projectTitle || 'Not entered'}
+      </div>
+    </div>
+    <div class="summary-section">
+      <span class="summary-label">Organization</span>
+      <div class="summary-value ${!_collectedData.orgName ? 'empty' : ''}">
+        ${_collectedData.orgName || 'Not entered'}
+      </div>
+    </div>
+    <div class="summary-section">
+      <span class="summary-label">Key Pain Point</span>
+      <div class="summary-value ${!_collectedData.pain ? 'empty' : ''}">
+        ${_collectedData.pain || 'Not entered'}
+      </div>
+    </div>
+    <div class="summary-section">
+      <span class="summary-label">Urgency</span>
+      <div class="summary-value ${!_collectedData.urgency ? 'empty' : ''}">
+        ${_collectedData.urgency || 'Not entered'}
+      </div>
+    </div>
+    <div class="summary-section">
+      <span class="summary-label">Budget</span>
+      <div class="summary-value ${!_collectedData.budget ? 'empty' : ''}">
+        ${_collectedData.budget ? '$' + _collectedData.budget : 'Not entered'}
+      </div>
+    </div>
+    <div class="summary-section">
+      <span class="summary-label">Timeline</span>
+      <div class="summary-value ${!_collectedData.timeline ? 'empty' : ''}">
+        ${_collectedData.timeline || 'Not entered'}
+      </div>
+    </div>
+  `;
+
+  panel.innerHTML = html;
+}
+
+// ═══════════════════════════════════════════════════════════════
 //  INIT
 // ═══════════════════════════════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
@@ -3684,6 +4041,54 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // Hook key form fields to update live summary
+  const projectTitleEl = document.getElementById('f-init-name');
+  if (projectTitleEl) {
+    projectTitleEl.addEventListener('input', (e) => {
+      _collectedData.projectTitle = e.target.value;
+      updateSummary();
+    });
+  }
+
+  // Listen for changes on other form fields (industry, problem, budget, timeline)
+  document.querySelectorAll('.field-input, .field-textarea, .field-select').forEach(el => {
+    el.addEventListener('input', updateFormDataFromFields);
+    el.addEventListener('change', updateFormDataFromFields);
+  });
+
+  function updateFormDataFromFields() {
+    // Update budget from any number input
+    const upfrontLow = document.getElementById('f-upfront-low');
+    const upfrontLikely = document.getElementById('f-upfront-likely');
+    const upfrontHigh = document.getElementById('f-upfront-high');
+    if (upfrontLikely && upfrontLikely.value) {
+      _collectedData.budget = upfrontLikely.value;
+    }
+
+    // Update timeline from go-live date
+    const goliveEl = document.getElementById('f-golive');
+    if (goliveEl && goliveEl.value) {
+      _collectedData.timeline = goliveEl.value;
+    }
+
+    // Update pain point from performance description or problem statement
+    const perfDesc = document.getElementById('f-perf-desc');
+    const problemEl = document.getElementById('f-problem');
+    if (perfDesc && perfDesc.value) {
+      _collectedData.pain = perfDesc.value.substring(0, 80) + (perfDesc.value.length > 80 ? '...' : '');
+    } else if (problemEl && problemEl.value) {
+      _collectedData.pain = problemEl.value.substring(0, 80) + (problemEl.value.length > 80 ? '...' : '');
+    }
+
+    // Update urgency from "why now" field
+    const whyNowEl = document.getElementById('f-why-now');
+    if (whyNowEl && whyNowEl.value) {
+      _collectedData.urgency = whyNowEl.value.substring(0, 80) + (whyNowEl.value.length > 80 ? '...' : '');
+    }
+
+    updateSummary();
+  }
+
   // Detect embedded iframe mode — hide topbar for seamless integration
   if (window.parent !== window) {
     document.body.classList.add('embedded-mode');
@@ -3694,6 +4099,10 @@ document.addEventListener('DOMContentLoaded', () => {
   greetSection(1);
   checkReadiness(1);
   document.getElementById('btnPrev').style.visibility = 'hidden';
+
+  // Initialize draggable panel
+  initDraggablePanel();
+  updateSummary();
 });
 </script>
 </body>
