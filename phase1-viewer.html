@@ -8148,7 +8148,13 @@ function renderReflection(r) {
   const el = $('#reflection-results');
 
   const verdictClass = ref.verdict === 'pass' ? 'verdict-pass' : ref.verdict === 'fail' ? 'verdict-fail' : 'verdict-warnings';
-  const verdictLabel = (ref.verdict || 'unknown').replace(/_/g, ' ').toUpperCase();
+  const verdictLabelMap = {
+    'pass': '✓ QUALITY CLEARED',
+    'pass_with_warnings': '⚠️ QUALITY ACCEPTABLE',
+    'fail': '❌ QUALITY REVIEW NEEDED',
+    'unknown': 'QUALITY REVIEW'
+  };
+  const verdictLabel = verdictLabelMap[ref.verdict] || verdictLabelMap['unknown'];
   const verdictBadge = `<span class="verdict-badge ${verdictClass}">${verdictLabel}</span>`;
   const readyBadge = (ref.readyForPhase2 || ref.verdict !== 'fail' ? '<span class="ready-badge ready-yes">&#10003; READY FOR PHASE 2</span>' : '<span class="ready-badge ready-warn" style="background:#fef3c7;color:#d97706;border-color:#fcd34d;">⚠️ CRITICAL ISSUES — PROCEED WITH CAUTION</span>') + ' ' + guideBtn('What does "Ready for Phase 2" mean?');
 
@@ -8191,10 +8197,10 @@ function renderReflection(r) {
   const p1refGlanceBg    = ref.verdict === 'pass' ? '#f0fdf4' : ref.verdict === 'fail' ? '#fef2f2' : '#fffbeb';
   const p1refGlanceIcon  = ref.verdict === 'pass' ? '🟢' : ref.verdict === 'fail' ? '🔴' : '🟡';
   const p1refVerdictDesc = ref.verdict === 'pass'
-    ? 'All quality checks passed. This BCA is cleared for financial analysis.'
+    ? '✓ All quality checks passed. This BCA is cleared for financial analysis.'
     : ref.verdict === 'fail'
-    ? 'Critical issues detected. You may proceed to Phase 2 to build a complete financial analysis demonstrating to leadership why this initiative may not be viable. Review the issues below to understand the risks.'
-    : 'Passed with notes — the BCA can proceed, but review the items below to strengthen accuracy.';
+    ? '⚠️ Critical issues detected. You can still proceed to Phase 2, but review these issues first to strengthen the case before presenting to leadership.'
+    : '✓ Quality acceptable. This BCA can proceed to Phase 2. Review the warnings below to strengthen accuracy before leadership presentation.';
   const p1refGlanceBanner = `
     <div style="background:${p1refGlanceBg};border:1px solid ${p1refGlanceColor};border-radius:10px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:flex-start;gap:16px;">
       <div style="font-size:22px;line-height:1;">${p1refGlanceIcon}</div>
@@ -8214,10 +8220,10 @@ function renderReflection(r) {
 
   // F7 — Plain-English verdict label
   const verdictPlain = ref.verdict === 'pass'
-    ? `Your business case passed all quality checks and is cleared for financial analysis. ${strengths.length > 0 ? strengths.length + ' strength' + (strengths.length > 1 ? 's' : '') + ' noted.' : ''}`
+    ? `✓ All quality checks passed. This BCA is cleared for financial analysis. ${strengths.length > 0 ? strengths.length + ' strength' + (strengths.length > 1 ? 's' : '') + ' noted.' : ''}`
     : ref.verdict === 'fail'
-    ? `This business case is blocked from Phase 2. Resolve ${critCount} critical issue${critCount !== 1 ? 's' : ''} before proceeding.`
-    : `Business case cleared for Phase 2${critCount > 0 ? ` — address ${critCount} critical issue${critCount !== 1 ? 's' : ''}` : ''}${warnings.length > 0 ? ` and review ${warnings.length} warning${warnings.length !== 1 ? 's' : ''}` : ''} to strengthen the financial case.`;
+    ? `⚠️ Critical issues detected. You can still proceed to Phase 2 to complete the financial analysis, but review the critical issues below before presenting to leadership.`
+    : `✓ Business case cleared for Phase 2. Review ${warnings.length} warning${warnings.length !== 1 ? 's' : ''} below to strengthen accuracy before leadership presentation.`;
 
   // F6 — 4-area scored breakdown
   const areaScores = (() => {
