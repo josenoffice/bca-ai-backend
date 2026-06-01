@@ -111,8 +111,88 @@ body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-80
 .generate-cta .demo-note { font-size: 11px; color: var(--amber); margin-top: 12px; font-weight: 600; }
 
 /* ── DATA PANEL ── */
-.data-panel { width: 260px; flex-shrink: 0; background: #f8fafc; border-left: 1px solid var(--slate-200); padding: 16px 14px 24px; overflow-y: auto; display: none; }
-@media (min-width: 1100px) { .data-panel { display: flex; flex-direction: column; } }
+.data-panel {
+  width: 280px;
+  flex-shrink: 0;
+  background: #f8fafc;
+  border-left: 1px solid var(--slate-200);
+  padding: 16px 14px 24px;
+  overflow-y: auto;
+  display: none;
+  position: fixed;
+  right: 20px;
+  top: 120px;
+  height: calc(100vh - 160px);
+  border: 1.5px solid var(--slate-200);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.15);
+  z-index: 50;
+  cursor: grab;
+  resize: both;
+  overflow: hidden;
+}
+.data-panel.dragging {
+  cursor: grabbing;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.data-panel-resize-handle {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(135deg, transparent 50%, var(--blue) 50%);
+  cursor: se-resize;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+}
+.data-panel-resize-handle:hover {
+  opacity: 1;
+}
+.data-panel-header-drag {
+  padding: 12px 12px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  border-radius: 10px 10px 0 0;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.data-panel-header-drag:active {
+  cursor: grabbing;
+}
+.data-panel-title-drag {
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  flex: 1;
+}
+.data-panel-export-btn {
+  background: white;
+  border: none;
+  color: var(--blue);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.data-panel-export-btn:hover {
+  background: rgba(255,255,255,0.9);
+  transform: scale(1.05);
+}
+@media (min-width: 1100px) {
+  .data-panel {
+    display: flex;
+    flex-direction: column;
+  }
+}
 .panel-header { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--slate-200); }
 .panel-title { font-size: 13px; font-weight: 800; color: var(--navy); margin-bottom: 10px; letter-spacing: -.01em; }
 .panel-progress { height: 6px; background: var(--slate-200); border-radius: 3px; margin-bottom: 5px; overflow: hidden; }
@@ -323,7 +403,6 @@ select.field-input { cursor: pointer; }
   <span class="step-label" id="stepLabel">Step 1 of 11 — Strategic Alignment</span>
   <div class="topbar-spacer"></div>
   <button class="btn-switch" onclick="window.location.href='/'">Switch to Form</button>
-  <button class="btn-draft" id="viewDraftBtn" onclick="viewDraft()">View Draft</button>
   <button class="demo-trigger-btn" id="demoTriggerBtn" onclick="startDemo()">▶ Guided Demo — POS Upgrade</button>
 </div>
 
@@ -359,16 +438,18 @@ select.field-input { cursor: pointer; }
       <div class="demo-note" id="demoNote" style="display:none;"></div>
     </div>
   </div>
-  <!-- REDESIGNED BCA SUMMARY PANEL — Professional UI/UX -->
-  <div class="data-panel">
-    <div class="panel-header" style="padding:16px;border-bottom:2px solid var(--slate-200);">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <div class="panel-title" style="font-size:16px;font-weight:800;color:var(--navy);">📋 Your BCA Summary</div>
-        <div style="font-size:13px;font-weight:700;color:var(--blue);background:var(--blue-soft);padding:4px 10px;border-radius:6px;" id="panelProgressLabel">0 / 11</div>
-      </div>
-      <div class="panel-progress" style="height:6px;background:var(--slate-200);border-radius:4px;overflow:hidden;">
-        <div class="panel-progress-bar" id="panelProgressBar" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));width:0%;transition:width .3s ease;"></div>
-      </div>
+  <!-- DRAGGABLE & RESIZABLE BCA SUMMARY PANEL — Real-time Live Summary -->
+  <div class="data-panel" id="dataPanel">
+    <div class="data-panel-header-drag" id="panelDragHandle">
+      <div class="data-panel-title-drag">📋 Live Summary</div>
+      <button class="data-panel-export-btn" id="panelExportBtn" onclick="exportBCASummary()" title="Export summary">📥 Export</button>
+    </div>
+    <div style="padding:12px;border-bottom:2px solid var(--slate-200);display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:13px;font-weight:700;color:var(--blue);background:var(--blue-soft);padding:4px 10px;border-radius:6px;" id="panelProgressLabel">0 / 11</div>
+      <div style="font-size:11px;color:var(--slate-500);font-weight:600;">Drag to move · Corner to resize</div>
+    </div>
+    <div class="panel-progress" style="height:4px;background:var(--slate-200);border-radius:2px;overflow:hidden;margin:12px 12px 0;">
+      <div class="panel-progress-bar" id="panelProgressBar" style="height:100%;background:linear-gradient(90deg,var(--blue),var(--purple));width:0%;transition:width .3s ease;"></div>
     </div>
 
     <div style="overflow-y:auto;flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;">
@@ -476,6 +557,7 @@ select.field-input { cursor: pointer; }
         <button class="bca-summary-edit" onclick="jumpToQuestion('q8')" title="Edit">✎</button>
       </div>
     </div>
+    <div class="data-panel-resize-handle" id="panelResizeHandle"></div>
   </div>
 </div>
 
@@ -614,6 +696,136 @@ function closeDraftModal() {
   const modal = document.getElementById('draftModal');
   if (modal) modal.style.display = 'none';
 }
+
+// ════════════════════════════════════════════════════════
+// DRAGGABLE & RESIZABLE LIVE SUMMARY PANEL
+// ════════════════════════════════════════════════════════
+let _panelDragging = false;
+let _panelResizing = false;
+let _panelDragOffsetX = 0;
+let _panelDragOffsetY = 0;
+
+function initDraggablePanel() {
+  const panel = document.getElementById('dataPanel');
+  const dragHandle = document.getElementById('panelDragHandle');
+  const resizeHandle = document.getElementById('panelResizeHandle');
+
+  if (!panel || !dragHandle) return;
+
+  // ─── DRAG FUNCTIONALITY ───
+  dragHandle.addEventListener('mousedown', (e) => {
+    if (e.target.closest('.data-panel-export-btn')) return; // Don't drag when clicking export button
+    _panelDragging = true;
+    panel.classList.add('dragging');
+
+    const rect = panel.getBoundingClientRect();
+    _panelDragOffsetX = e.clientX - rect.left;
+    _panelDragOffsetY = e.clientY - rect.top;
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!_panelDragging) return;
+
+    const panel = document.getElementById('dataPanel');
+    const x = e.clientX - _panelDragOffsetX;
+    const y = e.clientY - _panelDragOffsetY;
+
+    // Keep panel within viewport bounds
+    const minX = 10;
+    const minY = 56; // Below topbar
+    const maxX = window.innerWidth - panel.offsetWidth - 10;
+    const maxY = window.innerHeight - panel.offsetHeight - 10;
+
+    panel.style.left = Math.max(minX, Math.min(maxX, x)) + 'px';
+    panel.style.top = Math.max(minY, Math.min(maxY, y)) + 'px';
+    panel.style.right = 'auto';
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (_panelDragging) {
+      _panelDragging = false;
+      const panel = document.getElementById('dataPanel');
+      if (panel) panel.classList.remove('dragging');
+    }
+    if (_panelResizing) _panelResizing = false;
+  });
+
+  // ─── RESIZE FUNCTIONALITY ───
+  if (resizeHandle) {
+    resizeHandle.addEventListener('mousedown', (e) => {
+      _panelResizing = true;
+      const rect = panel.getBoundingClientRect();
+      const startX = e.clientX;
+      const startY = e.clientY;
+      const startWidth = rect.width;
+      const startHeight = rect.height;
+      e.preventDefault();
+
+      const handleMouseMove = (moveEvent) => {
+        if (!_panelResizing) return;
+
+        const deltaX = moveEvent.clientX - startX;
+        const deltaY = moveEvent.clientY - startY;
+        const newWidth = Math.max(250, startWidth + deltaX); // Minimum width
+        const newHeight = Math.max(200, startHeight + deltaY); // Minimum height
+
+        panel.style.width = newWidth + 'px';
+        panel.style.height = newHeight + 'px';
+      };
+
+      const handleMouseUp = () => {
+        _panelResizing = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    });
+  }
+}
+
+function exportBCASummary() {
+  // Create a text summary
+  const data = _collectedData;
+  const summary = `
+BCA SUMMARY — Live Export
+Generated: ${new Date().toLocaleString()}
+
+Project: ${data.projectTitle || '(Not entered)'}
+Role: ${data.role || '(Not entered)'}
+Organisation: ${data.orgName || '(Not entered)'}
+
+Key Pain Point: ${data.pain || '(Not entered)'}
+Urgency: ${data.urgency || '(Not entered)'}
+
+Budget: ${data.budget ? '$' + data.budget : '(Not entered)'}
+Timeline: ${data.timeline || '(Not entered)'}
+
+KPIs: ${Array.isArray(data.kpis) ? data.kpis.join(', ') : (data.kpis || '(Not entered)')}
+Compliance: ${Array.isArray(data.compliance) ? data.compliance.join(', ') : (data.compliance || '(Not entered)')}
+
+Options Modelled: ${data.alternatives || '(Not entered)'}
+Tech Stack: ${data.techStack || '(Not entered)'}
+Stakeholders: ${data.stakeholders || '(Not entered)'}
+
+Progress: ${_answeredCount} of ${TOTAL_Q} sections completed
+  `.trim();
+
+  // Copy to clipboard
+  navigator.clipboard.writeText(summary).then(() => {
+    const btn = document.getElementById('panelExportBtn');
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = '✓ Copied!';
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    }
+  });
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', initDraggablePanel);
 
 function jumpToQuestion(qid) {
   closeDraftModal();
