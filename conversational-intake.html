@@ -2642,17 +2642,20 @@ async function submitIntake() {
   try {
     // Prepare data for API - include conversational context
     const payload = {
-      projectTitle: data.projectTitle || 'Untitled Project',
-      businessUnit: data.orgName || 'General',
+      projectTitle: (data.projectTitle || 'Untitled Project').trim(),
+      businessUnit: (data.orgName || 'Project Team').trim(),
       industry: 'technology',
-      currentState: data.pain || '',
-      businessImpact: data.urgency || 'Medium',
+      currentState: (data.pain || 'Business transformation initiative').trim(),
+      businessImpact: (data.urgency || 'Medium priority').trim(),
       budget: Number(data.budget) || 0,
-      expectedTimeframe: data.timeline || '12 months',
+      expectedTimeframe: (data.timeline || '12 months').trim(),
       urgency: (data.urgency || 'medium').toLowerCase(),
-      currentPainPoints: data.pain ? [data.pain] : [],
-      complianceRequirements: Array.isArray(data.compliance) ? data.compliance : [],
-      mode: 'live',
+      currentPainPoints: data.pain && data.pain.trim() ? [data.pain.trim()] : [],
+      businessGoals: data.kpis && Array.isArray(data.kpis) ? data.kpis : [],
+      complianceRequirements: Array.isArray(data.compliance) && data.compliance.length ? data.compliance : [],
+      stakeholders: data.stakeholders ? [data.stakeholders].filter(Boolean) : [],
+      technicalStack: data.techStack ? [data.techStack].filter(Boolean) : [],
+      mode: 'draft',
       source: 'conversational-intake'
     };
 

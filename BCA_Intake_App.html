@@ -3585,20 +3585,21 @@ async function submitToParent() {
   try {
     // Prepare data for Phase 1 API
     const payload = {
-      projectTitle: intakeData.projectTitle || 'Untitled Initiative',
-      businessUnit: 'Form Submission',
+      projectTitle: (intakeData.projectTitle || 'Untitled Initiative').trim(),
+      businessUnit: (intakeData.trigger || 'General Business Unit').trim(),
       industry: 'technology',
-      currentState: intakeData.background || '',
-      businessImpact: intakeData.problemStatement || '',
-      budget: intakeData.upfrontLikely || 0,
-      expectedTimeframe: intakeData.goLive || '12 months',
+      currentState: (intakeData.background || 'Current operational state').trim(),
+      businessImpact: (intakeData.problemStatement || 'Business impact assessment').trim(),
+      budget: Number(intakeData.upfrontLikely) || 0,
+      expectedTimeframe: (intakeData.goLive || '12 months').trim(),
       urgency: 'high',
-      currentPainPoints: intakeData.problemStatement ? [intakeData.problemStatement] : [],
-      businessGoals: intakeData.outcomes || [],
-      technicalStack: intakeData.systems ? intakeData.systems.map(s => s.name) : [],
-      systemIntegrations: intakeData.integrations ? intakeData.integrations.map(i => i.system) : [],
-      complianceRequirements: [],
-      mode: 'live',
+      currentPainPoints: intakeData.problemStatement && intakeData.problemStatement.trim() ? [intakeData.problemStatement.trim()] : [],
+      businessGoals: (intakeData.outcomes && intakeData.outcomes.length) ? intakeData.outcomes : [],
+      technicalStack: intakeData.systems && intakeData.systems.length ? intakeData.systems.map(s => s.name).filter(Boolean) : [],
+      systemIntegrations: intakeData.integrations && intakeData.integrations.length ? intakeData.integrations.map(i => i.system).filter(Boolean) : [],
+      complianceRequirements: intakeData.complianceRequirements && Array.isArray(intakeData.complianceRequirements) ? intakeData.complianceRequirements : [],
+      stakeholders: intakeData.stakeholders ? [intakeData.stakeholders].filter(Boolean) : [],
+      mode: 'draft',
       source: 'form-intake',
       formData: intakeData  // Include full form data for reference
     };
