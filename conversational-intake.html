@@ -189,8 +189,19 @@ body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-80
 }
 @media (min-width: 1100px) {
   .data-panel {
-    display: flex;
-    flex-direction: column;
+    display: flex !important;
+    flex-direction: column !important;
+    /* DRAGGABLE PANEL: Keep fixed positioning on large screens */
+    position: fixed !important;
+    right: 20px !important;
+    top: 120px !important;
+    height: calc(100vh - 160px) !important;
+    width: 280px !important;
+    border: 1.5px solid var(--slate-200) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 10px 40px rgba(0,0,0,.15) !important;
+    z-index: 50 !important;
+    overflow: hidden !important;
   }
 }
 .panel-header { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--slate-200); }
