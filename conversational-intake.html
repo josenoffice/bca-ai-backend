@@ -189,8 +189,8 @@ body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-80
 }
 @media (min-width: 1100px) {
   .data-panel {
-    display: flex !important;
-    flex-direction: column !important;
+    /* DRAGGABLE PANEL: Use display: block for fixed positioning */
+    display: block !important;
     /* DRAGGABLE PANEL: Keep fixed positioning on large screens */
     position: fixed !important;
     right: 20px !important;
@@ -201,7 +201,12 @@ body { font-family: var(--font-body); background: #f1f5f9; color: var(--slate-80
     border-radius: 12px !important;
     box-shadow: 0 10px 40px rgba(0,0,0,.15) !important;
     z-index: 50 !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    background: #f8fafc !important;
+    padding: 0 !important;
+    flex-shrink: unset !important;
+    border-left: none !important;
   }
 }
 .panel-header { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--slate-200); }
