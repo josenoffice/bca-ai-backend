@@ -334,6 +334,7 @@ select.field-input { cursor: pointer; }
 /* ── ANIMATIONS ── */
 @keyframes fadeSlideIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
 .animate-in { animation: fadeSlideIn .3s ease forwards; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
 /* ── GUIDE PANEL ── */
 .guide-btn { background: none; border: 1px solid var(--blue-light); border-radius: 6px; padding: 3px 10px; font-size: 11px; color: var(--blue); cursor: pointer; font-weight: 600; transition: all .15s; margin-bottom: 8px; display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-body); }
@@ -2626,22 +2627,74 @@ function setSel(id, val) { const el = document.getElementById(id); if(el && val)
 // ════════════════════════════════════════════════════════
 // SUBMIT
 // ════════════════════════════════════════════════════════
-function submitIntake() {
-  if (_demoMode) {
-    alert('Demo Mode Active\n\nIn a live session, clicking this button would:\n1. Send your collected data to BCA.AI\n2. Run Phase 1 Discovery via Claude\n3. Unlock Financials → Traceability → Ranking → Report → BRD tabs\n\nYour collected data would include:\n• Project: ' + (_collectedData.projectTitle||'—') + '\n• Role: ' + (_collectedData.role||'—') + '\n• Budget: $' + (Number(_collectedData.budget||0).toLocaleString()) + '\n\nClear the demo and enter your real data to run an actual analysis.');
-    return;
-  }
+async function submitIntake() {
   const data = { ..._collectedData };
-  if (window.opener) {
-    window.opener.postMessage({ type: 'BCA_CONVERSATIONAL_DATA', data }, '*');
-    window.close();
-  } else {
-    const intakeStr = JSON.stringify(data);
-    sessionStorage.setItem('bcaIntakeData', intakeStr);
-    // Write to localStorage immediately so phase1-viewer can find the data
-    // even if sessionStorage is unavailable or lost during navigation
-    try { localStorage.setItem('bcaIntakeBackup_v1', JSON.stringify({ data, ts: Date.now() })); } catch {}
-    window.location.href = '/';
+
+  // Show loading indicator
+  const generateBtn = document.querySelector('.generate-btn');
+  if (generateBtn) {
+    generateBtn.disabled = true;
+    generateBtn.style.opacity = '0.6';
+    const originalText = generateBtn.innerHTML;
+    generateBtn.innerHTML = '<svg style="display:inline;width:15px;height:15px;animation:spin 1s linear infinite;margin-right:8px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a10 10 0 0 1 0 20"/></svg>Processing...';
+  }
+
+  try {
+    // Prepare data for API - include conversational context
+    const payload = {
+      projectTitle: data.projectTitle || 'Untitled Project',
+      businessUnit: data.orgName || 'General',
+      industry: 'technology',
+      currentState: data.pain || '',
+      businessImpact: data.urgency || 'Medium',
+      budget: Number(data.budget) || 0,
+      expectedTimeframe: data.timeline || '12 months',
+      urgency: (data.urgency || 'medium').toLowerCase(),
+      currentPainPoints: data.pain ? [data.pain] : [],
+      complianceRequirements: Array.isArray(data.compliance) ? data.compliance : [],
+      mode: 'live',
+      source: 'conversational-intake'
+    };
+
+    // Send to Phase 1 API
+    const response = await fetch('/api/phase1', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    // Store phase 1 results
+    if (result && result[0]) {
+      const intakeStr = JSON.stringify(data);
+      const phase1Str = JSON.stringify(result[0]);
+
+      sessionStorage.setItem('bcaIntakeData', intakeStr);
+      sessionStorage.setItem('phase1Data', phase1Str);
+
+      try {
+        localStorage.setItem('bcaIntakeBackup_v1', JSON.stringify({ data, ts: Date.now() }));
+        localStorage.setItem('phase1DataBackup_v1', JSON.stringify({ data: result[0], ts: Date.now() }));
+      } catch {}
+
+      // Navigate to phase 1 viewer
+      window.location.href = '/phase1-viewer.html';
+    } else {
+      throw new Error('No data returned from Phase 1');
+    }
+  } catch (err) {
+    console.error('Error submitting intake:', err);
+    if (generateBtn) {
+      generateBtn.disabled = false;
+      generateBtn.style.opacity = '1';
+      generateBtn.innerHTML = 'Generate Business Case Analysis<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+    }
+    alert('Error processing your data: ' + err.message + '\n\nPlease try again or check your internet connection.');
   }
 }
 
