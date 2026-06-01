@@ -3546,10 +3546,10 @@ function buildValueChainCard(sol, allBenefits, allRequirements, phaseContext) {
   // Requirement node
   const reqNode = reqs.length > 0 ? `
     <div class="vc-node vc-req">
-      <div class="vc-node-title">Requirements</div>
+      <div class="vc-node-title">Requirements ${guideBtn('What are MUST HAVE vs NICE-TO-HAVE requirements?')}</div>
       <div class="vc-node-items">${reqs.map(r => {
         const priClass = (r.priority || '').includes('must') ? 'badge-danger' : 'badge-warning';
-        const pri = r.priority ? `<span class="badge ${priClass}" style="font-size:9px;padding:1px 5px;margin-left:4px;">${(r.priority || '').replace('_',' ')}</span>` : '';
+        const pri = r.priority ? `<span class="badge ${priClass}" style="font-size:9px;padding:1px 5px;margin-left:4px;" title="Requirement priority level">${(r.priority || '').replace('_',' ')}</span>` : '';
         return `<div style="margin-bottom:3px;"><strong>${r.id}</strong>${pri}<div style="font-size:11px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.description || ''}</div></div>`;
       }).join('')}</div>
     </div>
@@ -3571,11 +3571,11 @@ function buildValueChainCard(sol, allBenefits, allRequirements, phaseContext) {
   const benNode = bens.length > 0 ? `
     <div class="vc-arrow">→</div>
     <div class="vc-node vc-ben">
-      <div class="vc-node-title">Benefits</div>
+      <div class="vc-node-title">Benefits ${guideBtn('What does benefit confidence percentage mean?')}</div>
       <div class="vc-node-items">${bens.map(b => {
         const val = b.annualizedValue || b.riskAdjustedValue || 0;
         const conf = b.confidence != null ? Math.round(b.confidence * 100) : null;
-        return `<div style="margin-bottom:3px;"><strong>${b.id}</strong> <span style="color:var(--success);font-weight:600;">${fmt(val)}/yr</span>${conf != null ? ` <span style="font-size:10px;color:var(--text-muted);">${conf}%</span>` : ''}<div style="font-size:11px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.description || ''}</div></div>`;
+        return `<div style="margin-bottom:3px;"><strong>${b.id}</strong> <span style="color:var(--success);font-weight:600;">${fmt(val)}/yr</span>${conf != null ? ` <span style="font-size:10px;color:var(--text-muted);" title="Confidence: probability this benefit will be realized">${conf}%</span>` : ''}<div style="font-size:11px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${b.description || ''}</div></div>`;
       }).join('')}</div>
     </div>` : '';
 
@@ -3615,7 +3615,7 @@ function buildValueChainCard(sol, allBenefits, allRequirements, phaseContext) {
 
   return `<div class="vc-card">
     <div class="vc-card-header">
-      <h4>${solId}: ${solName}</h4>
+      <h4>${solId}: ${solName} ${guideBtn('What do Software, Hybrid, and Process approach types mean?')}</h4>
       <div class="vc-badges">
         ${riskLvl ? `<span class="badge ${riskClass(riskLvl)}" style="font-size:10px;">${riskLvl} Risk</span>` : ''}
         ${sol.deliveryPhase ? `<span class="badge ${phaseColor(sol.deliveryPhase)}" style="font-size:10px;">Phase ${sol.deliveryPhase}</span>` : ''}
@@ -10298,7 +10298,7 @@ function renderPhase5(d) {
       </div>
       <div style="text-align:center;min-width:110px;">
         <div style="display:inline-block;padding:14px 22px;border-radius:10px;border:2px solid ${overall.border};background:${overall.bg};">
-          <div style="font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;color:${overall.text};margin-bottom:4px;">Overall Health</div>
+          <div style="font-size:11px;text-transform:uppercase;font-weight:700;letter-spacing:1px;color:${overall.text};margin-bottom:4px;">Overall Health ${guideBtn('What does the Health Badge mean? (Green/Amber/Red)')}</div>
           <div style="font-size:26px;font-weight:900;color:${overall.text};">${overall.label}</div>
         </div>
       </div>
@@ -10322,7 +10322,7 @@ function renderPhase5(d) {
       <div style="font-size:24px;font-weight:800;color:#8b5cf6;">${tc.coveragePct ?? '—'}%</div>
     </div>
     <div style="background:var(--surface);border:1px solid var(--border-light);border-left:4px solid #0891b2;border-radius:8px;padding:16px 18px;">
-      <div style="font-size:12px;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:4px;">${recRow.solutionApproach === 'change' ? 'Winner Approach' : 'Recommended Vendor'}</div>
+      <div style="font-size:12px;text-transform:uppercase;color:var(--text-muted);font-weight:600;margin-bottom:4px;">${recRow.solutionApproach === 'change' ? 'Winner Approach' : 'Recommended Vendor'} ${guideBtn('What is vendor fit score?')}</div>
       <div style="font-size:18px;font-weight:800;color:#0891b2;">${recRow.solutionApproach === 'change' ? '⚙️ Process Change' : (recRow.vendorName || '—')}</div>
       <div style="font-size:12px;color:var(--text-light);margin-top:2px;">${recRow.solutionApproach === 'change' ? 'No software vendor required' : 'Fit: ' + (recRow.vendorFitScore != null ? recRow.vendorFitScore + '/100' : '—')}</div>
     </div>
@@ -10345,17 +10345,17 @@ function renderPhase5(d) {
   html += `
   <div class="business-emphasis" style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;border-radius:10px;">
     <div style="background:${budgetC.bg};border:1px solid ${budgetC.border};border-radius:10px;padding:18px;text-align:center;">
-      <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:${budgetC.text};letter-spacing:1px;">Budget</div>
+      <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:${budgetC.text};letter-spacing:1px;">Budget ${guideBtn('What is budget utilization?')}</div>
       <div style="font-size:28px;font-weight:900;color:${budgetC.text};margin:6px 0;">${budgetC.label}</div>
       <div style="font-size:12px;color:${budgetC.text};">Utilisation: ${d.executiveHealth?.budgetHealth?.utilizationPct ?? '—'}%</div>
     </div>
     <div style="background:${traceC.bg};border:1px solid ${traceC.border};border-radius:10px;padding:18px;text-align:center;">
-      <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:${traceC.text};letter-spacing:1px;">Traceability</div>
+      <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:${traceC.text};letter-spacing:1px;">Traceability ${guideBtn('What is traceability coverage?')}</div>
       <div style="font-size:28px;font-weight:900;color:${traceC.text};margin:6px 0;">${traceC.label}</div>
       <div style="font-size:12px;color:${traceC.text};">Coverage: ${d.executiveHealth?.traceabilityHealth?.coveragePct ?? '—'}%</div>
     </div>
     <div style="background:${confC.bg};border:1px solid ${confC.border};border-radius:10px;padding:18px;text-align:center;">
-      <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:${confC.text};letter-spacing:1px;">Confidence</div>
+      <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:${confC.text};letter-spacing:1px;">Confidence ${guideBtn('What is overall confidence?')}</div>
       <div style="font-size:28px;font-weight:900;color:${confC.text};margin:6px 0;">${confC.label}</div>
       <div style="font-size:12px;color:${confC.text};">Overall: ${d.executiveHealth?.confidenceHealth?.overallConfidence ?? '—'}</div>
     </div>
@@ -10371,8 +10371,8 @@ function renderPhase5(d) {
     html += `<div class="card analyst-only" style="margin-bottom:24px;padding:22px 26px;border-left:4px solid #f59e0b;">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
         <span style="font-size:18px;">⚙️🔀</span>
-        <h4 style="font-size:15px;font-weight:700;margin:0;color:var(--text-strong);">Process Change &amp; Hybrid — Org Friction</h4>
-        <span style="margin-left:auto;font-size:11px;background:#fde68a;color:#92400e;font-weight:700;padding:3px 10px;border-radius:10px;">${p5pfLabel} Delivery · ${p5orgF.changeCount || 0}/${p5orgF.totalSolutions || (d.solutions||[]).length} Process · ${p5hybridSols.length} Hybrid</span>
+        <h4 style="font-size:15px;font-weight:700;margin:0;color:var(--text-strong);">Process Change &amp; Hybrid — Org Friction ${guideBtn('What does organizational friction mean and how does it impact implementation?')}</h4>
+        <span style="margin-left:auto;font-size:11px;background:#fde68a;color:#92400e;font-weight:700;padding:3px 10px;border-radius:10px;" title="Delivery Path: ${p5pfLabel} · Process Solutions: ${p5orgF.changeCount || 0}/${p5orgF.totalSolutions || (d.solutions||[]).length} · Hybrid Solutions: ${p5hybridSols.length}">${p5pfLabel} Delivery ${guideBtn('What is Process-First vs Blended delivery?')} · ${p5orgF.changeCount || 0}/${p5orgF.totalSolutions || (d.solutions||[]).length} Process · ${p5hybridSols.length} Hybrid</span>
       </div>
       ${p5orgF.winnerIsHighFriction ? `<div style="background:#fef2f2;border:1.5px solid #dc2626;border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:#7f1d1d;font-weight:600;">🔴 High-Friction Winner — ensure executive sponsorship and a phased adoption plan before committing.</div>` : ''}
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
@@ -10402,7 +10402,8 @@ function renderPhase5(d) {
   // ── Report Preview (sandboxed iframe via srcdoc) ──
   html += `
   <div style="margin-bottom:24px;">
-    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;color:var(--text-strong);">Report Preview ${guideBtn('What does the Report phase produce?')}</h3>
+    <h3 style="font-size:16px;font-weight:700;margin-bottom:12px;color:var(--text-strong);">Executive Report Preview ${guideBtn('What should an executive report include?')}</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px;">Below is the final executive report ready for board presentation. It includes overall health status, financial KPIs, vendor recommendations, traceability coverage, and implementation timeline.</p>
     <iframe id="phase5-preview-iframe" sandbox="allow-same-origin" srcdoc="" style="width:100%;height:600px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;"></iframe>
   </div>`;
 
