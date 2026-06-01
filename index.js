@@ -237,7 +237,8 @@ app.use('/api', plainEnglishRouter)
 
 // ── Static routes (not rate limited) ─────────────────────────────────────────
 app.get('/health', (_req, res) => res.json({ status: 'ok' }))
-app.get('/', (_req, res) => res.sendFile(join(__dirname, 'phase1-viewer.html')))
+app.get('/', (_req, res) => res.sendFile(join(__dirname, 'index.html')))
+app.get('/phase1-viewer.html', (_req, res) => res.sendFile(join(__dirname, 'phase1-viewer.html')))
 app.get('/BCA_Intake_App.html', (_req, res) => res.sendFile(join(__dirname, 'BCA_Intake_App.html')))
 app.get('/conversational-intake', (_req, res) => res.sendFile(join(__dirname, 'conversational-intake.html')))
 
