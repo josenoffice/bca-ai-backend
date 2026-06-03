@@ -10236,6 +10236,437 @@ function p5StatusColor(status) {
   return { bg: '#fee2e2', border: '#dc2626', text: '#b91c1c', label: 'RED' };
 }
 
+// ── Helper: Render Appendix (Deep-Dive Details) ──
+function renderAppendix(appendix) {
+  if (!appendix || !appendix.appendix1) return '';
+
+  const {appendix1, appendix2, appendix3, appendix4, appendix5} = appendix;
+
+  let html = '';
+
+  // Appendix 1: Value Chain
+  if (appendix1) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Appendix 1: ${appendix1.title}</h2>
+      <div style="background:#f9fafb;padding:12px;border-radius:6px;margin-bottom:16px;font-size:12px;color:var(--text-muted);">${appendix1.description}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:8px;">Solution</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-strong);margin-bottom:8px;">${appendix1.solution}</div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:6px;">Linked Requirements (${appendix1.linkedRequirements?.length || 0})</div>
+          <div style="display:grid;gap:4px;">
+            ${(appendix1.linkedRequirements || []).map(r => `
+              <div style="font-size:11px;padding:4px;background:#eff6ff;border-radius:4px;color:#1e40af;">
+                <strong>${r.id}</strong>: ${r.description} <span style="color:var(--text-muted);">(${r.priority})</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:8px;">Financial Outcome</div>
+          <div style="display:grid;gap:6px;font-size:12px;">
+            <div>Investment: <strong>$${(appendix1.financialOutcome.totalInvestment || 0).toLocaleString()}</strong></div>
+            <div>Benefits: <strong>$${(appendix1.financialOutcome.totalBenefits || 0).toLocaleString()}</strong></div>
+            <div>Net Value: <strong style="color:#16a34a;">$${(appendix1.financialOutcome.netValue || 0).toLocaleString()}</strong></div>
+            <div>ROI: <strong>${appendix1.financialOutcome.roi || 0}%</strong></div>
+            <div>Payback: <strong>${appendix1.financialOutcome.paybackMonths || 0} months</strong></div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  // Appendix 2: Financial Summary Table
+  if (appendix2) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Appendix 2: ${appendix2.title}</h2>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Discount Rate: ${Math.round((appendix2.discountRate || 0) * 100)}% | Horizon: ${appendix2.horizonYears} years</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;font-size:12px;border-collapse:collapse;">
+          <thead style="background:#f9fafb;border-bottom:2px solid var(--border-light);">
+            <tr>
+              <th style="padding:8px;text-align:left;font-weight:700;">Year</th>
+              <th style="padding:8px;text-align:right;">Costs</th>
+              <th style="padding:8px;text-align:right;">Benefits</th>
+              <th style="padding:8px;text-align:right;">Net Cash Flow</th>
+              <th style="padding:8px;text-align:right;">Cumulative PV</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${(appendix2.yearlyBreakdown || []).map(y => `
+              <tr style="border-bottom:1px solid var(--border-light);">
+                <td style="padding:8px;font-weight:700;">Year ${y.year}</td>
+                <td style="padding:8px;text-align:right;">$${(y.costs || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                <td style="padding:8px;text-align:right;">$${(y.benefits || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                <td style="padding:8px;text-align:right;color:#16a34a;font-weight:700;">$${(y.netCashFlow || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+                <td style="padding:8px;text-align:right;font-weight:700;">$${(y.cumulativePV || 0).toLocaleString(undefined, {maximumFractionDigits: 0})}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+  }
+
+  // Appendix 3: Sensitivity Analysis
+  if (appendix3) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Appendix 3: ${appendix3.title}</h2>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:6px;">Base Case</div>
+        <div style="padding:8px;background:#f9fafb;border-radius:6px;font-size:12px;">Discount Rate: ${Math.round(appendix3.baseCase.discountRate * 100)}% · PV: $${(appendix3.baseCase.portfolioPV || 0).toLocaleString()}</div>
+      </div>
+      <div style="display:grid;gap:8px;">
+        ${(appendix3.scenarios || []).map(s => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:#f9fafb;border-radius:6px;border-left:4px solid ${s.variance >= 0 ? '#16a34a' : '#dc2626'};">
+            <div>
+              <div style="font-size:12px;font-weight:700;color:var(--text-strong);">${s.discountRate}% Discount Rate</div>
+              <div style="font-size:11px;color:var(--text-muted);">PV: $${(s.portfolioPV || 0).toLocaleString()}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;font-weight:700;color:${s.variance >= 0 ? '#16a34a' : '#dc2626'};">${s.variance >= 0 ? '+' : ''}$${(s.variance || 0).toLocaleString()}</div>
+              <div style="font-size:10px;color:var(--text-muted);">${s.variancePercent >= 0 ? '+' : ''}${s.variancePercent}%</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div style="margin-top:12px;padding:10px;background:#f0fdf4;border-radius:6px;font-size:11px;color:#15803d;line-height:1.6;">${appendix3.insight}</div>
+    </div>`;
+  }
+
+  // Appendix 4: Vendor Compliance
+  if (appendix4) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Appendix 4: ${appendix4.title}</h2>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-strong);margin-bottom:6px;">Recommended: ${appendix4.recommendedVendor}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+          ${(appendix4.complianceCoverage || []).map(c => `
+            <span style="display:inline-block;padding:3px 8px;background:#dcfce7;color:#15803d;border-radius:4px;font-size:10px;font-weight:700;">✓ ${c}</span>
+          `).join('')}
+        </div>
+        ${(appendix4.gaps || []).length > 0 ? `
+          <div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:6px;">Gaps:</div>
+          <div style="display:grid;gap:4px;">
+            ${(appendix4.gaps || []).map(g => `
+              <div style="padding:6px;background:#fef2f2;border-radius:4px;font-size:10px;color:#7f1d1d;">
+                <strong>${g.gap}</strong> (${g.severity}) - ${g.mitigationPlan}
+              </div>
+            `).join('')}
+          </div>
+        ` : '<div style="font-size:11px;color:var(--text-muted);">✓ No compliance gaps</div>'}
+      </div>
+    </div>`;
+  }
+
+  // Appendix 5: Organization Friction
+  if (appendix5) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Appendix 5: ${appendix5.title}</h2>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;">${appendix5.description}</p>
+      <div style="display:grid;gap:10px;">
+        ${(appendix5.frictionSolutions || []).map(s => {
+          const colors = s.frictionLevel === 'High' ? '#dc2626' : s.frictionLevel === 'Medium' ? '#f59e0b' : '#16a34a';
+          return `
+          <div style="border:1px solid ${colors};border-radius:8px;padding:12px;background:${colors}11;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+              <div>
+                <div style="font-weight:700;font-size:13px;color:var(--text-strong);">${s.solutionName}</div>
+                <div style="font-size:11px;color:var(--text-muted);">Headcount: ${s.headcountImpacted} people · Risk: ${s.riskLevel}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:18px;font-weight:900;color:${colors};">${s.frictionScore}</div>
+                <div style="font-size:10px;color:${colors};font-weight:700;">${s.frictionLevel} Friction</div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:var(--text);line-height:1.5;">
+              <strong>Mitigation:</strong> ${s.mitigationStrategy}<br>
+              <strong>Interventions:</strong> ${s.interventionTypes.join(', ') || 'Standard approach'}
+            </div>
+          </div>
+          `;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+
+  return html;
+}
+
+// ── Helper: Render Sections 2-12 (Structured Framework) ──
+function renderSections2to12(sections) {
+  if (!sections || !sections.section2) return '';
+
+  const {section2, section3, section4, section5, section6, section7, section8, section9, section10, section11, section12} = sections;
+
+  let html = '';
+
+  // Section 2: Your Situation
+  if (section2) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 2: Your Situation</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:4px;">Problem Statement</div>
+          <div style="font-size:14px;color:var(--text);line-height:1.6;">${section2.problemStatement}</div>
+        </div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:4px;">Business Impact</div>
+          <div style="font-size:14px;color:var(--text);line-height:1.6;">${section2.businessImpact}</div>
+        </div>
+      </div>
+      <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:14px;border-radius:6px;margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:6px;">💰 Cost of Inaction</div>
+        <div style="font-size:13px;color:var(--text);">${section2.costOfInaction}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);">Decision Timeline: ${section2.timeline}</div>
+    </div>`;
+  }
+
+  // Section 3: Alternatives Considered
+  if (section3) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 3: Alternatives Considered</h2>
+      <div style="display:grid;gap:16px;">
+        ${section3.alternatives.map((alt, i) => `
+          <div style="border:1px solid var(--border-light);border-radius:8px;padding:14px;background:${i === 0 ? '#f0fdf4' : 'transparent'};">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+              <div style="font-weight:700;color:${i === 0 ? '#16a34a' : 'var(--text-strong)'};font-size:13px;">Rank #${alt.rank}: ${alt.name} ${i === 0 ? '⭐ RECOMMENDED' : ''}</div>
+              <div style="margin-left:auto;font-size:11px;color:var(--text-muted);">NPV: $${(alt.cost || 0).toLocaleString()} · ROI: ${Math.round(alt.roi || 0)}%</div>
+            </div>
+            ${alt.whyNotChosen ? `<div style="font-size:12px;color:#dc2626;margin-bottom:8px;">Why not chosen: ${alt.whyNotChosen}</div>` : ''}
+            <div style="font-size:12px;color:var(--text-muted);">Timeline: ${alt.timeline}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Section 4: Recommended Solution & Why
+  if (section4) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 4: Recommended Solution & Why</h2>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px;">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:6px;">Solution</div>
+          <div style="font-size:14px;font-weight:700;color:var(--text-strong);margin-bottom:4px;">${section4.solution.name}</div>
+          <div style="display:inline-block;padding:3px 8px;background:${section4.solution.approach === 'buy' ? '#0891b222' : section4.solution.approach === 'change' ? '#ea580c22' : '#6d28d922'};color:${section4.solution.approach === 'buy' ? '#0891b2' : section4.solution.approach === 'change' ? '#ea580c' : '#6d28d9'};border-radius:4px;font-size:11px;font-weight:700;">${section4.solution.approachLabel}</div>
+          ${section4.solution.vendor ? `<div style="font-size:12px;color:var(--text-muted);margin-top:8px;">Vendor: ${section4.solution.vendor}</div>` : ''}
+        </div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-muted);font-weight:700;margin-bottom:6px;">Financial Justification</div>
+          <div style="font-size:13px;color:var(--text);line-height:1.8;">
+            Investment: $${(section4.financialJustification.investmentRequired || 0).toLocaleString()}<br>
+            Benefits: $${(section4.financialJustification.expectedBenefits || 0).toLocaleString()}<br>
+            Net Benefit: $${(section4.financialJustification.netBenefit || 0).toLocaleString()}<br>
+            Payback: ${section4.financialJustification.paybackMonths} months
+          </div>
+        </div>
+      </div>
+      <div style="background:#eff6ff;border-left:4px solid #1976d2;padding:12px;border-radius:6px;">
+        <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:6px;">✓ Why This Solution</div>
+        <ul style="margin:0;padding-left:20px;font-size:12px;color:var(--text);">
+          ${section4.reasoning.map(r => `<li style="margin:4px 0;">${r}</li>`).join('')}
+        </ul>
+      </div>
+    </div>`;
+  }
+
+  // Section 5: Risk & Mitigation
+  if (section5) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 5: Risk & Mitigation</h2>
+      <div style="display:grid;gap:12px;">
+        ${section5.topRisks.map((risk, i) => `
+          <div style="padding:12px;background:${i === 0 ? '#fef2f2' : i === 1 ? '#fef2f2' : '#fffbeb'};border-left:4px solid ${i === 0 ? '#dc2626' : i === 1 ? '#dc2626' : '#f59e0b'};border-radius:6px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;">
+              <div style="flex:1;">
+                <div style="font-weight:700;font-size:13px;color:var(--text-strong);">${risk.title}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Likelihood: ${risk.likelihood} | Impact: ${risk.impact}</div>
+                <div style="font-size:12px;color:var(--text);margin-top:6px;line-height:1.4;">Mitigation: ${risk.mitigation}</div>
+              </div>
+              <div style="text-align:center;min-width:50px;">
+                <div style="font-size:16px;font-weight:900;color:${i === 0 ? '#dc2626' : i === 1 ? '#dc2626' : '#f59e0b'};">${risk.riskScore}</div>
+                <div style="font-size:9px;color:var(--text-muted);margin-top:2px;">Risk Score</div>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  // Section 6: Scenarios
+  if (section6) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 6: Scenario Analysis</h2>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+        ${section6.scenarios.map((s, i) => {
+          const colors = ['#16a34a', '#3b82f6', '#dc2626'];
+          return `
+          <div style="border:1.5px solid ${colors[i]};border-radius:8px;padding:12px;background:${colors[i]}11;">
+            <div style="font-weight:700;font-size:12px;color:${colors[i]};margin-bottom:6px;">${s.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;line-height:1.4;">${s.description}</div>
+            <div style="font-size:13px;font-weight:700;color:${colors[i]};margin-bottom:2px;">$${(s.pv || 0).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-bottom:6px;">ROI: ${Math.round(s.roi || 0)}%</div>
+            <div style="font-size:10px;background:${colors[i]}22;padding:2px 6px;border-radius:3px;display:inline-block;color:${colors[i]};font-weight:700;">Probability: ${s.probability}%</div>
+          </div>
+          `;
+        }).join('')}
+      </div>
+      <div style="font-size:12px;color:var(--text);background:#f9fafb;padding:10px;border-radius:6px;">${section6.summary}</div>
+    </div>`;
+  }
+
+  // Section 7: Assumptions & Data Quality
+  if (section7) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 7: Assumptions & Data Quality</h2>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-strong);margin-bottom:8px;">Key Assumptions</div>
+        <div style="display:grid;gap:8px;">
+          ${section7.keyAssumptions.map(a => `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:#f9fafb;border-radius:6px;">
+              <div style="font-size:12px;color:var(--text);">${a.assumption}</div>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <div style="font-size:11px;color:var(--text-muted);">Confidence: ${a.confidence}%</div>
+                <div style="width:30px;height:4px;background:var(--border-light);border-radius:2px;position:relative;overflow:hidden;">
+                  <div style="position:absolute;top:0;left:0;height:100%;width:${a.confidence}%;background:${a.confidence >= 80 ? '#16a34a' : a.confidence >= 60 ? '#f59e0b' : '#dc2626'};"></div>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+      <div style="padding:10px;background:#eff6ff;border-left:4px solid #1976d2;border-radius:6px;font-size:12px;color:var(--text);">
+        <strong>Overall Confidence:</strong> ${section7.dataQuality.overallConfidence}% |
+        <strong>Traceability:</strong> ${section7.dataQuality.traceability}% |
+        <strong>Financial Data:</strong> ${section7.dataQuality.financialDataQuality}
+      </div>
+    </div>`;
+  }
+
+  // Sections 8-12: Abbreviated display (can expand if needed)
+  if (section8) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 8: Stakeholder Alignment</h2>
+      <div style="display:grid;gap:8px;font-size:12px;">
+        ${section8.stakeholders.map(s => `
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px;background:#f9fafb;border-radius:6px;">
+            <div>
+              <div style="font-weight:700;color:var(--text-strong);">${s.group}</div>
+              <div style="font-size:11px;color:var(--text-muted);">${s.notes}</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="display:inline-block;padding:2px 8px;background:${s.status === 'Aligned' ? '#dcfce7' : s.status === 'Partial' ? '#fef3c7' : '#f3f4f6'};color:${s.status === 'Aligned' ? '#15803d' : s.status === 'Partial' ? '#92400e' : '#6b7280'};border-radius:4px;font-size:10px;font-weight:700;">${s.status}</div>
+              <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${s.confidence}% confident</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  if (section9) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 9: Implementation Readiness</h2>
+      <div style="display:flex;align-items:center;gap:20px;margin-bottom:16px;">
+        <div style="text-align:center;">
+          <div style="font-size:32px;font-weight:900;color:#1976d2;">${section9.overallReadiness}%</div>
+          <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;margin-top:2px;">Overall Readiness</div>
+        </div>
+        <div style="flex:1;">
+          <div style="font-size:12px;color:var(--text);line-height:1.8;">
+            <strong>Top Priority Areas:</strong><br>
+            ${section9.readinessActions.slice(0, 3).map(a => `• ${a.dimension}: ${a.action}`).join('<br>')}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  if (section10) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 10: Success Definition</h2>
+      <div style="background:#f0fdf4;border-left:4px solid #16a34a;padding:12px;border-radius:6px;margin-bottom:16px;">
+        <div style="font-size:12px;color:#15803d;line-height:1.6;">${section10.definition}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
+        ${section10.successMetrics.slice(0, 4).map(m => `
+          <div style="padding:10px;background:#f9fafb;border-radius:6px;">
+            <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;margin-bottom:4px;">${m.metric}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text-strong);">${m.target}</div>
+            <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">Measure: ${m.measurement}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  if (section11) {
+    html += `
+    <div style="background:var(--surface);border:1px solid var(--border-light);border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:var(--text-strong);">Section 11: Quick Wins Timeline</h2>
+      <p style="font-size:12px;color:var(--text-muted);margin:0 0 12px;">${section11.description}</p>
+      <div style="display:grid;gap:8px;">
+        ${section11.quickWins.map((w, i) => `
+          <div style="display:flex;gap:12px;padding:10px;background:#f9fafb;border-radius:6px;border-left:4px solid #1976d2;">
+            <div style="min-width:60px;font-weight:700;font-size:11px;color:#1976d2;text-transform:uppercase;">${w.timeframe}</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:700;color:var(--text-strong);">${w.win}</div>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Value: ${w.value}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  if (section12) {
+    html += `
+    <div style="background:var(--surface);border:2px solid #16a34a;border-radius:10px;padding:24px;margin-bottom:28px;">
+      <h2 style="margin:0 0 16px;font-size:18px;font-weight:700;color:#15803d;">Section 12: Decision & Next Steps</h2>
+      <div style="background:#f0fdf4;border-radius:8px;padding:14px;margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:6px;">📋 Executive Decision</div>
+        <div style="font-size:12px;color:#15803d;line-height:1.6;">
+          <strong>Question:</strong> ${section12.decision.question}<br>
+          <strong>Recommendation:</strong> ${section12.decision.recommendation}<br>
+          <strong>Reasoning:</strong> ${section12.decision.reasoning}
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:var(--text-strong);margin-bottom:8px;">🎯 Immediate Next Steps:</div>
+      <div style="display:grid;gap:8px;">
+        ${section12.immediateNextSteps.map((step, i) => `
+          <div style="display:flex;gap:10px;align-items:flex-start;padding:8px;background:#f9fafb;border-radius:6px;">
+            <div style="min-width:20px;height:20px;border-radius:50%;background:#1976d2;color:white;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;">${i + 1}</div>
+            <div style="flex:1;">
+              <div style="font-size:12px;font-weight:700;color:var(--text-strong);">${step.step}</div>
+              <div style="font-size:10px;color:var(--text-muted);">Owner: ${step.owner} | Due: ${step.dueDate}</div>
+            </div>
+            <div style="display:inline-block;padding:2px 6px;background:${step.status === 'Pending' ? '#fee2e2' : '#dcfce7'};color:${step.status === 'Pending' ? '#991b1b' : '#15803d'};border-radius:3px;font-size:9px;font-weight:700;">${step.status}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+  }
+
+  return html;
+}
+
 // ── Helper: Render Section 1 (One-Page Infographic) ──
 function renderSection1Infographic(s1) {
   if (!s1) return '';
@@ -10333,7 +10764,8 @@ function renderSection1Infographic(s1) {
     </div>
   </div>
 
-  <div id="phase5-details-toggle" style="display:none;">`;
+  <div id="phase5-details-toggle" style="display:none;">
+  ${section2to12Html}`;
 }
 
 function renderPhase5(d) {
@@ -10389,7 +10821,12 @@ function renderPhase5(d) {
   html += renderSection1Infographic(s1);
 
   // ── Sections 2-12 (collapsible, hidden by default until expanded) ──
-  // Inside this div: existing Executive at a Glance, Health Dashboard, etc.
+  // Build the Sections 2-12 HTML
+  const section2to12Html = renderSections2to12(d.sections || {});
+
+  // ── Appendix (collapsible, hidden by default until expanded) ──
+  // Build the Appendix HTML (deep-dive details)
+  const appendixHtml = renderAppendix(d.appendix || {});
 
   html += p5GlanceBanner;
   html += p5ROIInterp;
@@ -10549,6 +10986,14 @@ function renderPhase5(d) {
   });
   html += `
     </div>
+  </div>`;
+
+  // ── Add Appendix (still inside collapsible) ──
+  html += `
+  <div style="margin-top:32px;padding-top:24px;border-top:2px solid var(--border-light);">
+    <h2 style="margin:0 0 16px;font-size:20px;font-weight:800;color:var(--text-strong);">Appendix: Deep-Dive Analysis</h2>
+    <p style="font-size:13px;color:var(--text-muted);margin:0 0 20px;">Detailed financial breakdowns, vendor compliance analysis, and organizational impact assessment</p>
+    ${appendixHtml}
   </div>`;
 
   // ── Close collapsible Section 2-12 container ──

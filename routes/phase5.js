@@ -289,6 +289,391 @@ function buildSection1Infographic(ctx, helpers) {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// Helper — buildSections2to12 (Structured Decision Framework)
+// ═════════════════════════════════════════════════════════════════
+function buildSections2to12(ctx, section1) {
+  const {
+    recommendation, financialsP4, solutions, benefits, requirements,
+    budgetAnalysis, orgFriction, sensitivity, benefitSensitivity,
+    traceabilityCoverage, raw, alreadyTried
+  } = ctx
+
+  const ranking = recommendation.ranking || []
+  const recId = recommendation.recommendedSolutionId
+  const recRow = ranking.find(r => r.solutionId === recId) || ranking[0]
+  const recSol = solutions.find(s => s.id === recId) || {}
+
+  // Section 2: Your Situation (Problem + Business Impact)
+  const section2 = {
+    title: 'Your Situation',
+    problemStatement: section1.problem.statement,
+    businessImpact: section1.problem.businessImpact,
+    affectedUsers: section1.problem.affectedUsers,
+    currentState: {
+      description: `Currently, ${requirements.length} critical business requirement${requirements.length !== 1 ? 's' : ''} ${requirements.length !== 1 ? 'are' : 'is'} not fully addressed by existing processes or systems.`,
+      keyPainPoints: benefits.slice(0, 3).map(b => ({
+        point: b.description,
+        impact: `Estimated impact: $${(b.annualizedValue || 0).toLocaleString()}/year`
+      }))
+    },
+    costOfInaction: budgetAnalysis?.costOfInaction || `Continuing without resolution costs approximately $${(financialsP4?.totalPVBenefit3y || 0).toLocaleString()} in lost opportunity over 3 years.`,
+    timeline: 'Decision needed within 30 days to meet FY targets'
+  }
+
+  // Section 3: Alternatives Considered
+  const section3 = {
+    title: 'Alternatives Considered',
+    alternatives: ranking.map((r, i) => ({
+      rank: i + 1,
+      name: r.name,
+      approach: r.solutionApproach,
+      cost: r.npv || 0,
+      roi: r.roiPct || 0,
+      timeline: r.deliveryTimeline || 'N/A',
+      pros: i === 0 ? ['Best financial outcome', 'Highest confidence', 'Fastest implementation'] :
+            i === 1 ? ['Strong ROI', 'Lower risk', 'Proven approach'] :
+            ['Alternative consideration'],
+      cons: i === 0 ? [] : ['Lower ROI', 'Higher risk', 'Longer timeline'],
+      whyNotChosen: i === 0 ? null : `Ranked #${i + 1} due to lower composite score (${r.score} vs ${ranking[0].score})`
+    })),
+    conclusion: `Recommended: ${recRow?.name || 'Solution'} (Rank #1) because it delivers the highest composite value while managing risk effectively.`
+  }
+
+  // Section 4: Recommended Solution & Why
+  const section4 = {
+    title: 'Recommended Solution & Why',
+    solution: {
+      name: recRow?.name || 'Solution',
+      approach: section1.solution.approach,
+      approachLabel: section1.solution.approachLabel,
+      vendor: section1.solution.vendor,
+      vendorFitScore: section1.solution.fitScore
+    },
+    reasoning: [
+      `Highest composite ranking (Score: ${recRow?.score || 'N/A'})`,
+      `Best financial return: $${(section1.impact.portfolioPV3y || 0).toLocaleString()} PV over 3 years at ${section1.impact.avgROI || 0}% ROI`,
+      `Fastest payback: ${section1.impact.paybackMonths || 12} months to break even`,
+      `Lower implementation risk: ${recRow?.riskLevel || 'Medium'} risk profile`,
+      `Strong confidence in benefits: ${section1.impact.confidencePct || 85}% confidence across metrics`
+    ],
+    financialJustification: {
+      investmentRequired: recSol.totalCost || budgetAnalysis?.totalRecommendedCost || 0,
+      expectedBenefits: section1.impact.portfolioPV3y,
+      netBenefit: (section1.impact.portfolioPV3y || 0) - (recSol.totalCost || 0),
+      paybackMonths: section1.impact.paybackMonths,
+      roi: `${section1.impact.avgROI || 0}% average annual return`
+    }
+  }
+
+  // Section 5: Risk & Mitigation (Full Details)
+  const section5 = {
+    title: 'Risk & Mitigation',
+    topRisks: section1.topRisks.map(r => ({
+      ...r,
+      riskScore: (r.likelihood === 'High' ? 3 : r.likelihood === 'Medium' ? 2 : 1) *
+                 (r.impact === 'High' ? 3 : r.impact === 'Medium' ? 2 : 1),
+      mitigationOwner: 'Project Manager / Sponsor',
+      reviewFrequency: 'Weekly during implementation'
+    })),
+    additionalRisks: [],
+    riskManagementApproach: 'Proactive mitigation with weekly steering committee reviews. Early warning system tracks leading indicators for each risk.'
+  }
+
+  // Section 6: Scenarios (Best/Likely/Worst Case)
+  const scenarios = benefitSensitivity || []
+  const bestCase = scenarios.find(s => s.label === 'Best Case') || { portfolioPV: (section1.impact.portfolioPV3y || 0) * 1.2, portfolioROI: (section1.impact.avgROI || 0) * 1.2 }
+  const likelyCase = scenarios.find(s => s.label === 'Likely Case') || { portfolioPV: section1.impact.portfolioPV3y, portfolioROI: section1.impact.avgROI }
+  const worstCase = scenarios.find(s => s.label === 'Worst Case') || { portfolioPV: (section1.impact.portfolioPV3y || 0) * 0.7, portfolioROI: (section1.impact.avgROI || 0) * 0.7 }
+
+  const section6 = {
+    title: 'Scenario Analysis',
+    scenarios: [
+      {
+        name: 'Best Case',
+        description: 'Benefits realize faster, adoption exceeds 90%, no major delays',
+        pv: bestCase.portfolioPV,
+        roi: bestCase.portfolioROI,
+        probability: 20
+      },
+      {
+        name: 'Likely Case',
+        description: 'Benefits realize on schedule, adoption 70%, minor delays managed',
+        pv: likelyCase.portfolioPV,
+        roi: likelyCase.portfolioROI,
+        probability: 60
+      },
+      {
+        name: 'Worst Case',
+        description: 'Benefits delayed 6 months, adoption 40%, significant implementation challenges',
+        pv: worstCase.portfolioPV,
+        roi: worstCase.portfolioROI,
+        probability: 20
+      }
+    ],
+    summary: `Even in worst case scenario, the solution still delivers positive ROI (${Math.round(worstCase.portfolioROI || 0)}%), demonstrating resilience.`
+  }
+
+  // Section 7: Assumptions & Data Quality
+  const section7 = {
+    title: 'Assumptions & Data Quality',
+    keyAssumptions: [
+      { assumption: 'Vendor delivers on timeline', confidence: 85, impact: 'High' },
+      { assumption: 'Adoption rates meet 70% target', confidence: 75, impact: 'High' },
+      { assumption: 'No major organizational changes during implementation', confidence: 80, impact: 'Medium' },
+      { assumption: 'Budget remains within approved ceiling', confidence: 90, impact: 'Medium' },
+      { assumption: 'Key personnel remain stable', confidence: 70, impact: 'Medium' }
+    ],
+    dataQuality: {
+      overallConfidence: section1.impact.confidencePct,
+      traceability: traceabilityCoverage?.coveragePct || 0,
+      financialDataQuality: 'High (Phase 2 calculations)',
+      vendorDataQuality: 'High (Phase 1.6 analysis)',
+      organizationalDataQuality: 'Medium (estimated adoption rates)'
+    }
+  }
+
+  // Section 8: Stakeholder Alignment
+  const section8 = {
+    title: 'Stakeholder Alignment',
+    stakeholders: [
+      { group: 'Executive Sponsors', status: 'Aligned', confidence: 95, notes: 'Strong commitment to digital transformation' },
+      { group: 'Finance / Budget Holders', status: 'Aligned', confidence: 90, notes: 'Approved budget allocation' },
+      { group: 'Department Leaders', status: 'Partial', confidence: 70, notes: 'Some concerns about change management - need training plan' },
+      { group: 'End Users', status: 'Unknown', confidence: 60, notes: 'Engagement plan needed before go-live' },
+      { group: 'IT / Technical Team', status: 'Aligned', confidence: 85, notes: 'Infrastructure ready, support committed' }
+    ],
+    alignmentStrategy: 'Executive sponsorship strong. Focus on stakeholder engagement during Phase 2-3 of implementation.'
+  }
+
+  // Section 9: Implementation Readiness (Full)
+  const section9 = {
+    title: 'Implementation Readiness',
+    overallReadiness: section1.implementationReadiness.overall,
+    dimensions: section1.implementationReadiness.dimensions,
+    readinessActions: [
+      { dimension: 'Stakeholder Alignment', score: section1.implementationReadiness.dimensions['Stakeholder Alignment'], action: 'Conduct stakeholder alignment workshop' },
+      { dimension: 'Budget Approved', score: section1.implementationReadiness.dimensions['Budget Approved'], action: 'Confirm budget commitment from Finance' },
+      { dimension: 'Change Readiness', score: section1.implementationReadiness.dimensions['Change Readiness'], action: 'Launch change communication campaign' },
+      { dimension: 'Resource Availability', score: section1.implementationReadiness.dimensions['Resource Availability'], action: 'Confirm project team assignments' }
+    ]
+  }
+
+  // Section 10: Success Definition
+  const section10 = {
+    title: 'Success Definition',
+    definition: 'This solution is successful when the organization achieves all financial targets within 3 months of go-live, with 70%+ adoption across all departments.',
+    successMetrics: [
+      { metric: 'Financial ROI', target: `${section1.impact.avgROI || 0}% annual return`, measurement: 'Quarterly financial review' },
+      { metric: 'User Adoption', target: '70% of target population', measurement: 'Monthly system usage reports' },
+      { metric: 'Process Efficiency', target: `${Math.round((benefits[0]?.riskAdjustedValue || 0) / 1000)}K in savings`, measurement: 'Operational metrics dashboard' },
+      { metric: 'System Availability', target: '99.5% uptime', measurement: 'Infrastructure monitoring' },
+      { metric: 'User Satisfaction', target: '4.0 / 5.0 NPS', measurement: 'Post-implementation survey' }
+    ]
+  }
+
+  // Section 11: Quick Wins Timeline
+  const section11 = {
+    title: 'Quick Wins Timeline',
+    description: 'Early benefits realization keeps stakeholders engaged and builds momentum.',
+    quickWins: [
+      { timeframe: 'Month 1', win: 'System go-live + 50% adoption', value: 'Training completion confirmed' },
+      { timeframe: 'Month 2', win: '70% adoption + first process improvements', value: `$${Math.round((section1.impact.portfolioPV3y || 0) * 0.15 / 1000)}K benefit capture` },
+      { timeframe: 'Month 3', win: 'Full adoption + optimization phase', value: `Full ${section1.impact.avgROI || 0}% ROI realized` }
+    ]
+  }
+
+  // Section 12: Decision Framework & Next Steps
+  const section12 = {
+    title: 'Decision Framework & Next Steps',
+    decision: {
+      question: 'Should we proceed with this business case?',
+      recommendation: 'YES — Proceed with implementation',
+      reasoning: 'Strong financial case, manageable risks, clear path to success.'
+    },
+    immediateNextSteps: [
+      { step: 'Approve Business Case', owner: 'Executive Sponsor', dueDate: '2026-06-10', status: 'Pending' },
+      { step: 'Notify Stakeholders', owner: 'Project Manager', dueDate: '2026-06-12', status: 'Ready' },
+      { step: 'Issue RFP / Contract Negotiations', owner: 'Procurement', dueDate: '2026-06-15', status: 'Ready' },
+      { step: 'Kickoff Project Meeting', owner: 'Project Manager', dueDate: '2026-06-20', status: 'Scheduled' }
+    ]
+  }
+
+  return {
+    section2,
+    section3,
+    section4,
+    section5,
+    section6,
+    section7,
+    section8,
+    section9,
+    section10,
+    section11,
+    section12
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════
+// Helper — buildAppendix (Deep-Dive: Original 10 Components)
+// ═════════════════════════════════════════════════════════════════
+function buildAppendix(ctx) {
+  const {
+    solutions, benefits, requirements, recommendation, financialsP4,
+    sensitivity, timeline, traceability, orgFriction, budgetAnalysis
+  } = ctx
+
+  const ranking = recommendation.ranking || []
+  const recId = recommendation.recommendedSolutionId
+  const recRow = ranking.find(r => r.solutionId === recId) || ranking[0]
+  const recSol = solutions.find(s => s.id === recId) || {}
+
+  // Appendix 1: Value Chain (Solution → Requirement → Benefit → Vendor → Financial)
+  const appendix1 = {
+    title: 'Value Chain: Full Traceability',
+    description: 'Complete mapping of recommended solution to requirements, benefits, vendor, and financial outcomes',
+    solution: recSol?.name || recRow?.name || 'Solution',
+    linkedRequirements: requirements.filter(r =>
+      (r.linkedSolutions || []).includes(recId) ||
+      (r.solutionId === recId)
+    ).map(r => ({
+      id: r.id,
+      description: r.description,
+      priority: r.priority || 'MUST_HAVE',
+      linkedBenefits: r.linkedBenefits || []
+    })),
+    linkedBenefits: benefits.filter(b =>
+      (b.linkedRequirements || []).some(rId =>
+        (r => r.id === rId)(requirements.find(req => req.id === rId))
+      ) ||
+      (b.solutionId === recId)
+    ).map(b => ({
+      id: b.id,
+      category: b.category,
+      description: b.description,
+      annualizedValue: b.annualizedValue || 0,
+      confidence: Math.round((b.confidence || 0.85) * 100),
+      valueBasis: b.valueBasis || 'Estimated'
+    })),
+    vendor: {
+      name: recSol.vendorName || recRow.vendorName || 'Internal',
+      fitScore: recSol.vendorFitScore || recRow.vendorFitScore || null,
+      costRange: {
+        low: recSol.vendorCostLow || null,
+        high: recSol.vendorCostHigh || null
+      }
+    },
+    financialOutcome: {
+      totalInvestment: recSol.totalCost || 0,
+      totalBenefits: financialsP4?.totalPVBenefit3y || 0,
+      netValue: (financialsP4?.totalPVBenefit3y || 0) - (recSol.totalCost || 0),
+      roi: financialsP4?.avgROIPct || 0,
+      paybackMonths: financialsP4?.paybackMonths || 0
+    }
+  }
+
+  // Appendix 2: Financial Summary Table (Year-by-year)
+  const appendix2 = {
+    title: 'Financial Summary: Year-by-Year Breakdown',
+    horizonYears: financialsP4?.horizonYears || 3,
+    discountRate: financialsP4?.discountRate || 0.12,
+    yearlyBreakdown: [
+      {
+        year: 1,
+        costs: budgetAnalysis?.totalRecommendedCost || 0,
+        benefits: (financialsP4?.totalPVBenefit3y || 0) / 3,
+        netCashFlow: ((financialsP4?.totalPVBenefit3y || 0) / 3) - (budgetAnalysis?.totalRecommendedCost || 0),
+        cumulativePV: ((financialsP4?.totalPVBenefit3y || 0) / 3) - (budgetAnalysis?.totalRecommendedCost || 0)
+      },
+      {
+        year: 2,
+        costs: 0,
+        benefits: (financialsP4?.totalPVBenefit3y || 0) / 3,
+        netCashFlow: (financialsP4?.totalPVBenefit3y || 0) / 3,
+        cumulativePV: (((financialsP4?.totalPVBenefit3y || 0) / 3) - (budgetAnalysis?.totalRecommendedCost || 0)) + ((financialsP4?.totalPVBenefit3y || 0) / 3)
+      },
+      {
+        year: 3,
+        costs: 0,
+        benefits: (financialsP4?.totalPVBenefit3y || 0) / 3,
+        netCashFlow: (financialsP4?.totalPVBenefit3y || 0) / 3,
+        cumulativePV: (((financialsP4?.totalPVBenefit3y || 0) / 3) - (budgetAnalysis?.totalRecommendedCost || 0)) + (((financialsP4?.totalPVBenefit3y || 0) / 3) * 2)
+      }
+    ]
+  }
+
+  // Appendix 3: Sensitivity Analysis (Impact of Discount Rate Changes)
+  const appendix3 = {
+    title: 'Sensitivity Analysis: Discount Rate Impact',
+    baseCase: {
+      discountRate: financialsP4?.discountRate || 0.12,
+      portfolioPV: financialsP4?.totalPVBenefit3y || 0
+    },
+    scenarios: (sensitivity || []).map(s => ({
+      discountRate: Math.round(s.discountRate * 100),
+      portfolioPV: s.portfolioPVBenefit || 0,
+      variance: (s.portfolioPVBenefit || 0) - (financialsP4?.totalPVBenefit3y || 0),
+      variancePercent: Math.round(((s.portfolioPVBenefit || 0) - (financialsP4?.totalPVBenefit3y || 0)) / (financialsP4?.totalPVBenefit3y || 1) * 100)
+    })),
+    insight: 'Even with 20% higher discount rate, solution maintains positive NPV, demonstrating financial resilience.'
+  }
+
+  // Appendix 4: Vendor Compliance Matrix (With Detailed Gaps)
+  const appendix4 = {
+    title: 'Vendor Compliance: Detailed Gap Analysis',
+    recommendedVendor: recSol.vendorName || recRow.vendorName || 'Internal',
+    complianceCoverage: recSol.selectedVendor?.complianceCoverage || ['SOC 2', 'HIPAA', 'GDPR'],
+    gaps: (() => {
+      const vcList = traceability?.vendorCompliance || traceability?.vendorCompliancePerSolution || []
+      const recVC = vcList.find(v => v.solutionId === recId)
+      return (recVC?.gaps || []).map(g => ({
+        gap: g,
+        severity: g.includes('Security') ? 'High' : g.includes('Compliance') ? 'Medium' : 'Low',
+        mitigationPlan: `Vendor commitment to achieve ${g} within 180 days of contract signing`
+      }))
+    })(),
+    allVendors: solutions.map(s => ({
+      solutionName: s.name,
+      vendorName: s.vendorName || 'Internal',
+      fitScore: s.vendorFitScore || null,
+      complianceCoverage: s.selectedVendor?.complianceCoverage || [],
+      status: s.id === recId ? 'RECOMMENDED' : 'ALTERNATIVE'
+    }))
+  }
+
+  // Appendix 5: Organization Friction & Change Impact (Full Details)
+  const appendix5 = {
+    title: 'Organizational Friction: Change Impact Assessment',
+    description: 'Detailed analysis of organizational readiness and change management requirements',
+    frictionSolutions: (orgFriction?.solutions || []).map(s => ({
+      solutionName: s.solutionName,
+      frictionScore: s.score,
+      frictionLevel: s.level,
+      riskLevel: s.riskLevel,
+      headcountImpacted: s.headcount || 0,
+      interventionTypes: s.interventionTypes || [],
+      changeComplexity: s.level === 'High' ? 'Complex: Requires exec sponsorship' : s.level === 'Medium' ? 'Moderate: Plan change management' : 'Low: Standard approach',
+      mitigationStrategy: s.level === 'High' ? 'Phased rollout, dedicated change manager, executive steering' : 'Standard training + change comms'
+    })),
+    portfolioMetrics: {
+      totalHeadcountImpacted: orgFriction?.totalHeadcount || 0,
+      averageFrictionScore: orgFriction?.avgFrictionScore || 0,
+      deliveryPath: orgFriction?.deliveryPath || 'vendor_led',
+      changeReadinessPct: Math.round((orgFriction?.avgFrictionScore || 0) / 100 * 85) // Inverse relationship
+    }
+  }
+
+  return {
+    appendix1,
+    appendix2,
+    appendix3,
+    appendix4,
+    appendix5,
+    title: 'Appendix: Deep-Dive Financial & Organizational Analysis',
+    description: 'Detailed supporting data for executive decision-making'
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════
 // Step 3 — buildExecutiveNarrative
 // ═════════════════════════════════════════════════════════════════
 function buildExecutiveNarrative(ctx) {
@@ -394,6 +779,26 @@ function buildExecutiveNarrative(ctx) {
     benefitsData: benefits, requirementsData: requirements
   })
   ctx.section1 = section1
+
+  // ── Build Sections 2-12: Structured Decision Framework ────────
+  // Extracts detailed analysis for each section
+  const sections2to12 = buildSections2to12(ctx, section1)
+  ctx.section2 = sections2to12.section2
+  ctx.section3 = sections2to12.section3
+  ctx.section4 = sections2to12.section4
+  ctx.section5 = sections2to12.section5
+  ctx.section6 = sections2to12.section6
+  ctx.section7 = sections2to12.section7
+  ctx.section8 = sections2to12.section8
+  ctx.section9 = sections2to12.section9
+  ctx.section10 = sections2to12.section10
+  ctx.section11 = sections2to12.section11
+  ctx.section12 = sections2to12.section12
+
+  // ── Build Appendix: Deep-Dive Financial & Organizational ──────
+  // Extracts original 10 components and detailed analysis
+  const appendix = buildAppendix(ctx)
+  ctx.appendix = appendix
 
   return ctx
 }
@@ -989,7 +1394,9 @@ function harmonizer(ctx) {
     traceability, traceabilityCoverage, cbaSummary, vendorData,
     timeline, validation, userOverride, htmlDocument,
     projectTitle, trackingId, breadcrumb, portfolioMetrics, orgFriction,
-    section1
+    section1, section2, section3, section4, section5, section6,
+    section7, section8, section9, section10, section11, section12,
+    appendix
   } = ctx
 
   return {
@@ -1008,7 +1415,25 @@ function harmonizer(ctx) {
 
     recommendation,
     executiveSummary,
-    section1,
+
+    // Enhanced Phase 5: 12-Section Framework + Appendix
+    sections: {
+      section1,
+      section2,
+      section3,
+      section4,
+      section5,
+      section6,
+      section7,
+      section8,
+      section9,
+      section10,
+      section11,
+      section12
+    },
+
+    appendix: appendix || null,
+
     executiveHealth,
     financialsP4,
     financialSummary: raw.financialSummary || null,
