@@ -183,7 +183,24 @@ BCA.AI is an enterprise AI-powered Business Case Analysis platform. It guides us
 
 | Date | Commit | Impact |
 |------|--------|--------|
+| 2026-06-03 | Fix processing/loading UI readability | Improved contrast and visibility of 5 processing windows |
+| 2026-06-03 | Implement Complete Phase 5 Enhancement: Sections 2-12 + Appendix | All 12 sections + 5 appendix sections deployed to production |
 | 2026-06-03 | Implement Phase 5 Section 1: One-Page Infographic | Added Section 1 data generation and rendering |
+
+### Commit: Fix Processing/Loading UI Readability
+- Fixed `.spinner-text` color and opacity (now pure white, larger, bold)
+- Fixed `#spinnerContext` panel (increased opacity from 0.08 to 0.15, pure white title)
+- Fixed `.wiz-loading-msg` color (now white instead of gray-muted)
+- Fixed `.explain-loading` color (now regular text color instead of muted)
+- Fixed `.pe-loading` color (now regular text color instead of muted)
+- Impact: All AI processing messages now have 2-3x better contrast and are readable
+
+### Commit: Phase 5 Complete Implementation (Sections 2-12 + Appendix)
+- Added `buildSections2to12()` in routes/phase5.js (11 sections with structured data)
+- Added `buildAppendix()` in routes/phase5.js (5 deep-dive appendix sections)
+- Updated `buildExecutiveNarrative()` to call all three builders
+- Updated `harmonizer()` to export all sections and appendix in Phase 5 response
+- Deployed to production: https://plc-automate.onrender.com/api/phase5
 
 ### Commit: Phase 5 Section 1 Implementation
 - Added `buildSection1Infographic()` in routes/phase5.js
