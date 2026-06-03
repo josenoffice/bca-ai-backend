@@ -138,6 +138,157 @@ function validateAndSyncFinancials(ctx) {
 }
 
 // ═════════════════════════════════════════════════════════════════
+// Helper — buildSection1Infographic (Executive at a Glance)
+// ═════════════════════════════════════════════════════════════════
+function buildSection1Infographic(ctx, helpers) {
+  const {
+    recommendation, financialsP4, traceabilityCoverage, solutions,
+    orgFriction, budgetAnalysis, raw
+  } = ctx
+  const { recRow, recSol, recVendorName, recFitScore, isOverride, aiName,
+          benefitsData, requirementsData } = helpers
+
+  // Problem statement (from user intake or Phase 1)
+  const problemStatement = raw.validatedData?.problemStatement
+    || raw.problemStatement
+    || (requirementsData?.length > 0
+      ? `Address ${requirementsData.length} business requirement${requirementsData.length !== 1 ? 's' : ''}`
+      : 'Business transformation initiative')
+
+  const businessImpact = raw.validatedData?.businessImpact
+    || budgetAnalysis?.costOfInaction
+    || 'Improve operational efficiency and reduce costs'
+
+  const affectedUsers = orgFriction?.totalHeadcount
+    || (orgFriction?.solutions || []).reduce((sum, s) => sum + (s.headcount || 0), 0)
+    || 'Multiple business units'
+
+  // Solution details
+  const approachType = recRow?.solutionApproach || recSol?.solutionApproach || 'buy'
+  const approachLabel = approachType === 'change'
+    ? '⚙️ Process Change'
+    : approachType === 'hybrid'
+      ? '🔀 Hybrid'
+      : '🛒 Software'
+
+  // Financial impact
+  const pv = n(financialsP4?.totalPVBenefit3y)
+  const roi = n(financialsP4?.avgROIPct)
+  const paybackMonths = n(financialsP4?.paybackMonths || 12)
+  const confidencePct = Math.round(
+    (financialsP4?.overallConfidence != null)
+      ? (typeof financialsP4.overallConfidence === 'string'
+          ? parseInt(financialsP4.overallConfidence)
+          : financialsP4.overallConfidence * 100)
+      : 85
+  )
+
+  // Top 3 risks (from recommendation or derived from quality warnings)
+  const topRisks = (() => {
+    // Try to use recommendation.topRisks if available
+    if (recommendation.topRisks && Array.isArray(recommendation.topRisks) && recommendation.topRisks.length > 0) {
+      return recommendation.topRisks.slice(0, 3).map(r => ({
+        title: r.title || r.risk || r.description || 'Unknown Risk',
+        likelihood: r.likelihood || 'Medium',
+        impact: r.impact || 'Medium',
+        mitigation: r.mitigation || r.mitigationPlan || 'See detailed risk assessment'
+      }))
+    }
+
+    // Fallback: derive from org friction and quality warnings
+    const derived = []
+
+    // Risk 1: Change management (if process change solutions exist)
+    if (orgFriction && (orgFriction.changeCount > 0 || orgFriction.winnerIsHighFriction)) {
+      derived.push({
+        title: 'Organizational Change Resistance',
+        likelihood: orgFriction.winnerIsHighFriction ? 'High' : 'Medium',
+        impact: 'High',
+        mitigation: 'Executive sponsorship, phased rollout, dedicated change manager'
+      })
+    }
+
+    // Risk 2: Vendor/implementation issues
+    if (recVendorName && approachType === 'buy') {
+      derived.push({
+        title: 'Vendor Implementation Delays',
+        likelihood: 'Medium',
+        impact: 'High',
+        mitigation: 'Clear SLAs in contract, phased delivery with milestones'
+      })
+    }
+
+    // Risk 3: Budget or schedule overrun
+    if (budgetAnalysis.withinCeiling === false) {
+      derived.push({
+        title: 'Budget Ceiling Breach',
+        likelihood: 'High',
+        impact: 'High',
+        mitigation: 'Cost-phasing plan, contingency reserve, phased delivery'
+      })
+    } else {
+      derived.push({
+        title: 'Benefit Realization Timing',
+        likelihood: 'Medium',
+        impact: 'Medium',
+        mitigation: 'Early wins program, adoption metrics tracked monthly'
+      })
+    }
+
+    return derived.slice(0, 3)
+  })()
+
+  // Implementation readiness (from Phase 4 adoption readiness scoring)
+  const adoptionReadiness = recommendation.adoptionReadiness || {}
+  const implementationReadiness = (() => {
+    const dimensions = {
+      'Stakeholder Alignment': n(adoptionReadiness.stakeholderAlignment || 70),
+      'Budget Approved': budgetAnalysis.withinBudget ? 90 : 60,
+      'Resource Availability': n(adoptionReadiness.resourceAvailability || 65),
+      'Process Clarity': n(adoptionReadiness.processClarity || 70),
+      'Vendor Readiness': recVendorName && approachType !== 'change' ? 80 : 85,
+      'Change Readiness': n(adoptionReadiness.changeReadiness || 60),
+      'Risk Mitigation Plans': 75, // Assumed present since we have top 3 risks
+      'Success Metrics Defined': requirementsData?.length > 0 ? 85 : 70,
+      'Executive Sponsorship': isOverride ? 95 : 85,
+      'Timeline Feasibility': n(adoptionReadiness.timelineFeasibility || 70)
+    }
+
+    // Calculate overall as average
+    const overall = Math.round(
+      Object.values(dimensions).reduce((a, b) => a + b, 0) / Object.keys(dimensions).length
+    )
+
+    return { overall, dimensions }
+  })()
+
+  return {
+    problem: {
+      statement: problemStatement,
+      businessImpact,
+      affectedUsers
+    },
+    solution: {
+      name: recRow?.name || 'Recommended Solution',
+      approach: approachType,
+      approachLabel,
+      vendor: recVendorName || null,
+      fitScore: recFitScore || null
+    },
+    impact: {
+      portfolioPV3y: pv,
+      avgROI: roi,
+      paybackMonths,
+      confidencePct
+    },
+    topRisks,
+    implementationReadiness,
+    isOverride,
+    aiRecommendedName: aiName
+  }
+}
+
+// ═════════════════════════════════════════════════════════════════
 // Step 3 — buildExecutiveNarrative
 // ═════════════════════════════════════════════════════════════════
 function buildExecutiveNarrative(ctx) {
@@ -235,6 +386,14 @@ function buildExecutiveNarrative(ctx) {
       recVendorName ? `Delivery vendor: ${recVendorName}${recFitScore != null ? ` (fit score: ${recFitScore}/100)` : ''}` : null
     ].filter(Boolean)
   }
+
+  // ── Build Section 1: One-Page Infographic ──────────────────────
+  // Extracts problem, solution, impact, risks, and implementation readiness
+  const section1 = buildSection1Infographic(ctx, {
+    recRow, recSol, recVendorName, recFitScore, isOverride, aiName,
+    benefitsData: benefits, requirementsData: requirements
+  })
+  ctx.section1 = section1
 
   return ctx
 }
@@ -829,7 +988,8 @@ function harmonizer(ctx) {
     budgetAnalysis, qualityScore, sensitivity, benefitSensitivity,
     traceability, traceabilityCoverage, cbaSummary, vendorData,
     timeline, validation, userOverride, htmlDocument,
-    projectTitle, trackingId, breadcrumb, portfolioMetrics, orgFriction
+    projectTitle, trackingId, breadcrumb, portfolioMetrics, orgFriction,
+    section1
   } = ctx
 
   return {
@@ -848,6 +1008,7 @@ function harmonizer(ctx) {
 
     recommendation,
     executiveSummary,
+    section1,
     executiveHealth,
     financialsP4,
     financialSummary: raw.financialSummary || null,

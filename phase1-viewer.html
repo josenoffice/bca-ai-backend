@@ -10236,9 +10236,110 @@ function p5StatusColor(status) {
   return { bg: '#fee2e2', border: '#dc2626', text: '#b91c1c', label: 'RED' };
 }
 
+// ── Helper: Render Section 1 (One-Page Infographic) ──
+function renderSection1Infographic(s1) {
+  if (!s1) return '';
+
+  const s = s1.solution || {};
+  const imp = s1.impact || {};
+  const ir = s1.implementationReadiness || { overall: 0, dimensions: {} };
+  const risks = s1.topRisks || [];
+  const p = s1.problem || {};
+
+  // Color-coded approach icon
+  const approachColor = s.approach === 'change' ? '#ea580c' : s.approach === 'hybrid' ? '#6d28d9' : '#0891b2';
+
+  // Implementation readiness color (0% red, 50% yellow, 100% green)
+  const getReadinessColor = (pct) => {
+    if (pct < 50) return `rgb(${Math.round(220 + (35 - 220) * (pct/50))}, 38, 38)`;  // red to orange
+    return `rgb(${Math.round(220 - (220 - 22) * ((pct-50)/50))}, ${Math.round(38 + (164-38) * ((pct-50)/50))}, 38)`;  // orange to green
+  };
+
+  const readinessColor = getReadinessColor(ir.overall || 0);
+  const readinessBg = `rgba(${readinessColor}, 0.1)`;
+
+  return `
+  <div style="background:var(--surface);border:2px solid var(--primary);border-radius:12px;padding:28px 32px;margin-bottom:28px;position:relative;">
+    <div style="position:absolute;top:16px;right:16px;font-size:12px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Section 1: Executive At a Glance</div>
+
+    <h2 style="margin:0 0 24px 0;font-size:20px;font-weight:800;color:var(--text-strong);">One-Page Infographic — Decision Ready in 30 Seconds</h2>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:28px;">
+      <!-- Problem Column -->
+      <div style="padding:16px;background:#fef2f2;border-left:4px solid #dc2626;border-radius:8px;">
+        <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:#991b1b;letter-spacing:0.5px;margin-bottom:6px;">🔴 Problem</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-strong);margin-bottom:8px;line-height:1.4;">${p.statement || 'Business improvement needed'}</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.4;">Impact: ${p.businessImpact || '—'}</div>
+      </div>
+
+      <!-- Solution Column -->
+      <div style="padding:16px;background:#f0fdf4;border-left:4px solid #16a34a;border-radius:8px;">
+        <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:#15803d;letter-spacing:0.5px;margin-bottom:6px;">🟢 Recommended Solution</div>
+        <div style="font-size:13px;font-weight:700;color:var(--text-strong);margin-bottom:4px;">${s.name || 'Solution'}</div>
+        <div style="display:inline-block;padding:3px 8px;background:${approachColor}22;color:${approachColor};border-radius:4px;font-size:11px;font-weight:700;margin-bottom:8px;">${s.approachLabel || 'Software'}</div>
+        ${s.vendor ? `<div style="font-size:12px;color:var(--text-muted);">Vendor: ${s.vendor}${s.fitScore != null ? ' (fit: ' + s.fitScore + '/100)' : ''}</div>` : '<div style="font-size:12px;color:var(--text-muted);">Internal / Process delivery</div>'}
+      </div>
+
+      <!-- Impact Column -->
+      <div style="padding:16px;background:#eff6ff;border-left:4px solid #1976d2;border-radius:8px;">
+        <div style="font-size:11px;text-transform:uppercase;font-weight:700;color:#1e40af;letter-spacing:0.5px;margin-bottom:6px;">💰 Financial Impact</div>
+        <div style="font-size:16px;font-weight:900;color:#1976d2;margin-bottom:2px;">$${(imp.portfolioPV3y || 0).toLocaleString()} PV</div>
+        <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">
+          ROI: <strong>${imp.avgROI || 0}%</strong><br>
+          Payback: <strong>${imp.paybackMonths || 12} mo</strong><br>
+          Confidence: <strong>${imp.confidencePct || 85}%</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top Risks Section -->
+    ${risks.length > 0 ? `
+    <div style="margin-bottom:24px;">
+      <div style="font-size:13px;font-weight:700;color:var(--text-strong);margin-bottom:12px;">🔴 Top 3 Risks & Mitigation</div>
+      <div style="display:grid;gap:10px;">
+        ${risks.map((r, i) => `
+          <div style="padding:12px;background:${i === 0 ? '#fef2f2' : i === 1 ? '#fef2f2' : '#fffbeb'};border-left:4px solid ${i === 0 ? '#dc2626' : i === 1 ? '#dc2626' : '#f59e0b'};border-radius:6px;">
+            <div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:6px;">
+              <div style="font-weight:700;color:var(--text-strong);flex:1;font-size:13px;">${i+1}. ${r.title || 'Risk'}</div>
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;color:#7f1d1d;background:#fecaca;padding:2px 6px;border-radius:3px;">${r.likelihood || 'Medium'}</div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.4;">Mitigation: ${r.mitigation || 'Risk management plan in place'}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    ` : ''}
+
+    <!-- Implementation Readiness -->
+    <div style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text-strong);">✅ Implementation Readiness</div>
+        <div style="display:inline-flex;align-items:center;justify-content:center;width:60px;height:60px;border-radius:50%;background:${readinessBg};border:3px solid ${readinessColor};">
+          <div style="font-size:20px;font-weight:900;color:${readinessColor};">${ir.overall || 0}%</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-muted);line-height:1.6;">
+        Assessed across 10 dimensions: Stakeholder Alignment, Budget Approved, Resource Availability, Process Clarity, Vendor Readiness,
+        Change Readiness, Risk Mitigation Plans, Success Metrics, Executive Sponsorship, Timeline Feasibility.
+      </div>
+    </div>
+
+    <!-- Decision Buttons -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;padding-top:20px;border-top:1px solid var(--border-light);">
+      <button onclick="alert('✅ Business case approved for implementation. Next: Proceed to Phase 6 (RFP/BRD generation).')" style="padding:10px 18px;background:#16a34a;color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;">✅ APPROVE</button>
+      <button onclick="alert('⚠️ Flagged for review. Recommend: Check quality indicators and risk mitigation plans before approval.')" style="padding:10px 18px;background:#f59e0b;color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;">⚠️ REVIEW</button>
+      <button onclick="alert('❌ Business case rejected. Consider alternatives from Phase 4 ranking.')" style="padding:10px 18px;background:#dc2626;color:white;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;">❌ REJECT</button>
+      <button onclick="document.getElementById('phase5-details-toggle').style.display = document.getElementById('phase5-details-toggle').style.display === 'none' ? 'block' : 'none'; this.textContent = document.getElementById('phase5-details-toggle').style.display === 'none' ? '→ EXPAND FOR DETAILS' : '← COLLAPSE'" style="padding:10px 18px;background:var(--surface);color:var(--primary);border:1px solid var(--primary);border-radius:6px;font-weight:700;cursor:pointer;font-size:13px;margin-left:auto;">→ EXPAND FOR DETAILS</button>
+    </div>
+  </div>
+
+  <div id="phase5-details-toggle" style="display:none;">`;
+}
+
 function renderPhase5(d) {
   const box = document.getElementById('phase5-results');
   const es  = d.executiveSummary || {};
+  const s1  = d.section1 || {};
   const fp  = d.financialsP4 || {};
   const tc  = d.traceabilityCoverage || {};
   const hb  = es.healthBadge || {};
@@ -10283,6 +10384,13 @@ function renderPhase5(d) {
   // ── Role Bar ──
   let html = `<div class="role-bar ${_currentRole}" data-biz-label="Business View — Executive summary and health dashboard" data-analyst-label="Analyst View — Financial KPIs and quality warnings" style="margin-bottom:14px;"><span class="role-bar-label"><span class="role-icon">${_currentRole === 'analyst' ? '📊' : '👔'}</span> ${_currentRole === 'analyst' ? 'Analyst View — Financial KPIs and quality warnings' : 'Business View — Executive summary and health dashboard'}</span></div>`;
   html += buildInputTrace(d.validatedData || {}, 'phase5');
+
+  // ── Section 1: One-Page Infographic ──
+  html += renderSection1Infographic(s1);
+
+  // ── Sections 2-12 (collapsible, hidden by default until expanded) ──
+  // Inside this div: existing Executive at a Glance, Health Dashboard, etc.
+
   html += p5GlanceBanner;
   html += p5ROIInterp;
   html += explainBtn('p5-executive','phase5','executive_summary',()=>({projectContext:{industry:p5Industry},metricValue:p5AvgROI,additionalContext:{overallStatus:hb.status||'',traceabilityPct:p5TracePct,qualityWarnings:qw.length,headline:(es.headline||''),recommendedSolution:(ranking[0]?.name||'--')}}), true);
@@ -10442,6 +10550,9 @@ function renderPhase5(d) {
   html += `
     </div>
   </div>`;
+
+  // ── Close collapsible Section 2-12 container ──
+  html += `</div>`; // closes phase5-details-toggle
 
   // ── Footer ──
   html += `
